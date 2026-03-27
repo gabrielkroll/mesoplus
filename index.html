@@ -512,7 +512,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Fresh','Mild','Moderate','Heavy','Wrecked'];
 const PERF_C=['↓ Below par','→ On track','↑ Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'7h',energy:'Moderate',soreness:'Fresh',perf:'→ On track',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 
 const td=()=>new Date().toISOString().split('T')[0];
@@ -547,8 +547,12 @@ function init(){
 function buildChips(id,opts,sel,cb){
   const el=document.getElementById(id);el.innerHTML='';
   opts.forEach(o=>{const b=document.createElement('button');b.className='chip'+(o===sel?' on':'');b.textContent=o;
-    b.onclick=()=>{if(id==='chips-sleep'&&o==='Custom'){handleSleep('Custom');return;}
-      el.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');cb(o);};
+    b.onclick=()=>{
+      if(id==='chips-sleep'&&o==='Custom'){handleSleep('Custom');return;}
+      const isOn=b.classList.contains('on');
+      el.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      if(!isOn){b.classList.add('on');cb(o);}else{cb('');}
+    };
     el.appendChild(b);});
 }
 function handleSleep(v){
@@ -618,7 +622,7 @@ function selectDate(date){
   renderWeekNav();
 }
 function loadSess(sess){
-  S.dtype=sess.dtype||'Gym';S.gymDay=sess.gymDay||1;S.sleep=sess.sleep||'7h';S.energy=sess.energy||'Moderate';S.soreness=sess.soreness||'Fresh';S.perf=sess.perf||'→ On track';
+  S.dtype=sess.dtype||'Gym';S.gymDay=sess.gymDay||1;S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
   document.getElementById('m-extra').value=sess.extra||'';document.getElementById('m-notes').value=sess.notes||'';
   S.supersets=JSON.parse(JSON.stringify(sess.supersets||[]));
   if(sess.bjj){const b=sess.bjj;['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value=b[k]||'':el.value=b[k]||'';}});if(b.positions)document.querySelectorAll('.pos-chip').forEach(c=>c.classList.toggle('on',b.positions.includes(c.textContent)));}
@@ -629,14 +633,14 @@ function loadSess(sess){
   renderDtype();computeSug();renderTable();
 }
 function resetForm(){
-  S.dtype='Gym';S.sleep='7h';S.energy='Moderate';S.soreness='Fresh';S.perf='→ On track';
+  S.dtype='Gym';S.sleep='';S.energy='';S.soreness='';S.perf='';
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
   ['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value='':el.value='';}});
   document.querySelectorAll('.pos-chip').forEach(c=>c.classList.remove('on'));
-  buildChips('chips-sleep',SLEEP_C,'7h',v=>{handleSleep(v);markDirty();});
-  buildChips('chips-energy',ENERGY_C,'Moderate',v=>{S.energy=v;computeSug();renderTable();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,'Fresh',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
-  buildChips('chips-perf',PERF_C,'→ On track',v=>{S.perf=v;markDirty();});
+  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);markDirty();});
+  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
 }
 function shiftWeek(d){if(d>0&&S.viewWeekOffset>=0)return;autoSaveCurrentDay();S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;const _wSess=S.sessions.find(s=>s.date===vs);if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();}renderWeekNav();}
 
@@ -818,7 +822,8 @@ function markDirty(){
 }
 
 async function syncDayToSheets(date){
-  const sess=S.sessions.find(s=>s.date===date);if(!sess)return;
+  const sess=S.sessions.find(s=>s.date===date);
+  if(!sess||!sessionHasData(sess))return;
   const ok=await appendRows(toRows(sess));if(ok)markSynced(date);
 }
 
@@ -827,7 +832,7 @@ function autoSaveCurrentDay(){
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   persist();
-  if(S.scriptUrl&&!_synced.has(S.selectedDate))appendRows(toRows(sess)).then(ok=>{if(ok)markSynced(S.selectedDate);});
+  if(S.scriptUrl&&!_synced.has(S.selectedDate)&&sessionHasData(sess))appendRows(toRows(sess)).then(ok=>{if(ok)markSynced(S.selectedDate);});
 }
 
 async function manualSync(){
@@ -836,7 +841,7 @@ async function manualSync(){
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   persist();
-  if(S.scriptUrl){const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Synced ✓':'Sync failed',ok?'ok':'err');setTimeout(()=>{if(_lastSaveTime)setSave('Auto-saved · '+fmtTime(_lastSaveTime));},3000);}
+  if(S.scriptUrl){if(!sessionHasData(sess)){setSave('Nothing to sync — log some data first','err');return;}const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Synced ✓':'Sync failed',ok?'ok':'err');setTimeout(()=>{if(_lastSaveTime)setSave('Auto-saved · '+fmtTime(_lastSaveTime));},3000);}
   else setSave('No sync configured','err');
 }
 
@@ -861,12 +866,24 @@ async function completeDay(){
 
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
+function sessionHasData(s){
+  if(s.sleep||s.energy||s.soreness||s.perf||s.extra||s.notes)return true;
+  return(s.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
+}
 function toRows(s){
   const wk='W'+(s.week||1);
-  const vol=(ex)=>Math.round((parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));
+  const vol=(ex)=>Math.round((parseFloat(ex.reps)||0)*(parseFloat(ex.sets||0)));
   const rows=[];
-  (s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol(ex),s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});
-  if(!rows.length)rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);
+  (s.supersets||[]).forEach((ss,si)=>{
+    ss.exercises.forEach(ex=>{
+      if(!ex.name)return;
+      rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||'',vol(ex)||'',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'',ex.flagged?'flagged':'',s.extra||'',s.notes||'']);
+    });
+  });
+  // Only write a header-only row if no exercises but session has readiness data
+  if(!rows.length&&sessionHasData(s)){
+    rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'','',s.extra||'',s.notes||'']);
+  }
   return rows;
 }
 async function fullResync(){
