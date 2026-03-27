@@ -419,6 +419,7 @@ select.bare{cursor:pointer}
     <div class="s-row"><div class="s-lbl">2 — Create API key<div class="s-note">Credentials → Create Credentials → API Key. Restrict to Sheets API + your domain.</div></div><div><div class="field-lbl">API key</div><input class="bare" type="password" id="s-key" placeholder="AIza..."></div></div>
     <div class="s-row"><div class="s-lbl">3 — Sheet ID<div class="s-note">From URL: /spreadsheets/d/<strong style="color:var(--accent)">THIS_PART</strong>/edit — share as "Anyone with link can view"</div></div><div><div class="field-lbl">Sheet ID</div><input class="bare" id="s-id" placeholder="1BxiMVs0..."></div></div>
     <div class="s-row"><div class="s-lbl">4 — Tab name<div class="s-note">Exact tab name in your sheet.</div></div><div><div class="field-lbl">Tab name</div><input class="bare" id="s-tab" value="Workout_Log"></div></div>
+    <div class="s-row"><div class="s-lbl">5 — Apps Script URL<div class="s-note">Extensions → Apps Script → Deploy as web app → copy URL. Required for saving sessions to Sheets.</div></div><div><div class="field-lbl">Web app URL</div><input class="bare" id="s-script" placeholder="https://script.google.com/macros/s/.../exec"></div></div>
     <div style="padding-top:14px;display:flex;gap:8px;align-items:center"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
   </div>
 </div>
@@ -458,7 +459,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Fresh','Mild','Moderate','Heavy','Wrecked'];
 const PERF_C=['↓ Below par','→ On track','↑ Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'7h',energy:'Moderate',soreness:'Fresh',perf:'→ On track',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'7h',energy:'Moderate',soreness:'Fresh',perf:'→ On track',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 
 const td=()=>new Date().toISOString().split('T')[0];
@@ -473,9 +474,10 @@ function ph(){return S.phases[S.phaseIdx];}
 function init(){
   const saved=localStorage.getItem('mp7');
   if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.weekInPhase=p.weekInPhase||1;S.sessions=p.sessions||[];}
-  S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';
+  S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';S.scriptUrl=localStorage.getItem('mp7_su')||'';
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
   if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
+  if(S.scriptUrl){document.getElementById('s-script').value=S.scriptUrl;}
   S.selectedDate=td();
   buildChips('chips-sleep',SLEEP_C,S.sleep,v=>handleSleep(v));
   buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();});
@@ -745,7 +747,7 @@ async function saveSession(){
   else setSave('Saved locally');
 }
 function toRows(s){const rows=[];(s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{const vol=Math.round((parseFloat(ex.kg)||0)*(parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol,s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});if(!rows.length)rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);return rows;}
-async function appendRows(rows){try{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}catch(e){return false;}}
+async function appendRows(rows){try{if(S.scriptUrl){const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(rows)});const txt=await res.text();return txt.trim()==='ok';}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 function setSave(msg,ok){const el=document.getElementById('save-msg');el.textContent=msg;el.className='save-msg'+(ok===true?' ok':ok===false?' err':'');if(ok!==false)setTimeout(()=>el.textContent='',4000);}
 
 function renderHistory(){
@@ -768,8 +770,8 @@ async function runAnalysis(){
 }
 
 async function saveSettings(){
-  S.apiKey=document.getElementById('s-key').value.trim();S.sheetId=document.getElementById('s-id').value.trim();S.sheetTab=document.getElementById('s-tab').value.trim()||'Workout_Log';S.claudeKey=document.getElementById('s-ckey').value.trim();
-  localStorage.setItem('mp7_k',S.apiKey);localStorage.setItem('mp7_s',S.sheetId);localStorage.setItem('mp7_t',S.sheetTab);localStorage.setItem('mp7_ck',S.claudeKey);
+  S.apiKey=document.getElementById('s-key').value.trim();S.sheetId=document.getElementById('s-id').value.trim();S.sheetTab=document.getElementById('s-tab').value.trim()||'Workout_Log';S.claudeKey=document.getElementById('s-ckey').value.trim();S.scriptUrl=document.getElementById('s-script').value.trim();
+  localStorage.setItem('mp7_k',S.apiKey);localStorage.setItem('mp7_s',S.sheetId);localStorage.setItem('mp7_t',S.sheetTab);localStorage.setItem('mp7_ck',S.claudeKey);localStorage.setItem('mp7_su',S.scriptUrl);
   const st=document.getElementById('s-status');st.textContent='Testing connection…';
   try{
     const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}?key=${S.apiKey}`);
