@@ -231,6 +231,13 @@ select.bare{cursor:pointer}
 .custom-range{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink3);margin-bottom:12px}
 .custom-range input{background:none;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:4px;outline:none;color-scheme:dark}
 .metric-unit{color:var(--ink3);font-size:10px;margin-left:2px}
+.prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+@media(max-width:640px){.prog-grid{grid-template-columns:1fr}}
+.prog-quad{background:var(--surf);border-radius:8px;padding:14px}
+.quad-title{font-size:10px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:baseline;gap:6px}
+.quad-unit{color:var(--ink3);opacity:.7;font-size:9px;text-transform:none;letter-spacing:0}
+.readiness-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.readiness-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink3)}
 
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -402,25 +409,12 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-progress" class="hidden">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
       <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)">Progress</div>
       <button class="btn-o" onclick="exportCSV()">Export CSV</button>
     </div>
-
-    <!-- Recent sessions: last 2 weeks -->
-    <div style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink);margin-bottom:8px">Recent sessions</div>
-    <div id="prog-recent"></div>
-    <div id="prog-more-wrap"></div>
-    <div id="prog-all-panel" class="hidden" style="margin-top:4px"></div>
-
-    <div class="rule" style="margin:18px 0"></div>
-
-    <!-- Volume / Tonnage by muscle -->
+    <!-- Shared filters -->
     <div class="prog-filters">
-      <div class="toggle-group">
-        <button class="toggle-btn on" id="prog-vol-btn" onclick="setProgMetric('volume',this)">Volume</button>
-        <button class="toggle-btn" id="prog-ton-btn" onclick="setProgMetric('tonnage',this)">Tonnage</button>
-      </div>
       <div class="filter-group">
         <button class="filter-btn on" onclick="setProgFilter('week',this)">Week</button>
         <button class="filter-btn" onclick="setProgFilter('month',this)">Month</button>
@@ -429,11 +423,31 @@ select.bare{cursor:pointer}
       </div>
     </div>
     <div id="prog-custom-range" class="custom-range hidden">
-      From <input type="date" id="prog-from" onchange="renderMuscleChart()">
-      to <input type="date" id="prog-to" onchange="renderMuscleChart()">
+      From <input type="date" id="prog-from" onchange="renderProgress()">
+      to <input type="date" id="prog-to" onchange="renderProgress()">
     </div>
-    <div style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink);margin-bottom:4px" id="prog-chart-title">Volume by muscle</div>
-    <table class="muscle-tbl" id="prog-muscle-tbl"></table>
+    <!-- Quadrant grid -->
+    <div class="prog-grid">
+      <div class="prog-quad">
+        <div class="quad-title">Volume <span class="quad-unit">sets × reps</span></div>
+        <div id="prog-vol-chart"></div>
+      </div>
+      <div class="prog-quad">
+        <div class="quad-title">Tonnage <span class="quad-unit">sets × reps × kg</span></div>
+        <div id="prog-ton-chart"></div>
+      </div>
+      <div class="prog-quad">
+        <div class="quad-title">Recent sessions</div>
+        <div id="prog-recent"></div>
+        <div id="prog-more-wrap"></div>
+        <div id="prog-all-panel" class="hidden"></div>
+      </div>
+      <div class="prog-quad">
+        <div class="quad-title">Readiness trends</div>
+        <svg id="prog-readiness-svg" width="100%" height="120" style="display:block;overflow:visible"></svg>
+        <div class="readiness-legend" id="prog-readiness-legend"></div>
+      </div>
+    </div>
   </div>
 
   <div id="v-analysis" class="hidden">
@@ -848,37 +862,56 @@ window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function toRows(s){const rows=[];(s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{const vol=Math.round((parseFloat(ex.kg)||0)*(parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol,s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});if(!rows.length)rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);return rows;}
 async function appendRows(rows){try{if(S.scriptUrl){const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
-let _progMetric='volume',_progFilter='week',_progShowAll=false;
-function sessionRowHtml(s){const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex · ${s.energy} · ${s.soreness}</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol?vol.toLocaleString():''}</span></div>`;}
+let _progFilter='week',_progShowAll=false;
+const SLEEP_VAL={'5h':1/7,'6h':2/7,'6.5h':3/7,'7h':4/7,'7.5h':5/7,'8h':6/7,'9h+':1};
+const ENERGY_VAL={'Drained':0,'Low':0.25,'Moderate':0.5,'Good':0.75,'Charged':1};
+const SORENESS_VAL={'Wrecked':0,'Heavy':0.25,'Moderate':0.5,'Mild':0.75,'Fresh':1};
+const PERF_VAL={'↓ Below par':0,'→ On track':0.5,'↑ Exceeded':1};
 function getFilteredSessions(){
   const now=Date.now(),d=(n)=>new Date(now-n*86400000).toISOString().slice(0,10);
   if(_progFilter==='week')return S.sessions.filter(s=>s.date>=d(7));
   if(_progFilter==='month')return S.sessions.filter(s=>s.date>=d(30));
-  if(_progFilter==='meso'){const start=S.sessions.map(s=>s.date).sort()[0]||d(0);return S.sessions.filter(s=>s.date>=start);}
+  if(_progFilter==='meso'){const start=[...S.sessions].sort((a,b)=>a.date.localeCompare(b.date))[0]?.date||d(0);return S.sessions.filter(s=>s.date>=start);}
   if(_progFilter==='custom'){const f=document.getElementById('prog-from').value,t=document.getElementById('prog-to').value;return S.sessions.filter(s=>(!f||s.date>=f)&&(!t||s.date<=t));}
   return S.sessions;
 }
-function setProgMetric(m,btn){_progMetric=m;document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-chart-title').textContent=(m==='volume'?'Volume':'Tonnage')+' by muscle';renderMuscleChart();}
-function setProgFilter(f,btn){_progFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-custom-range').classList.toggle('hidden',f!=='custom');renderMuscleChart();}
-function renderMuscleChart(){
+function setProgFilter(f,btn){_progFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-custom-range').classList.toggle('hidden',f!=='custom');renderProgress();}
+function sessionRowHtml(s){const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol||''}</span></div>`;}
+function renderMuscleBar(containerId,metric){
   const sessions=getFilteredSessions(),totals={};
-  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(!e.muscle)return;const v=_progMetric==='tonnage'?Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)*(parseFloat(e.kg)||0)):Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));totals[e.muscle]=(totals[e.muscle]||0)+v;}));
-  const max=Math.max(...Object.values(totals),1),unit=_progMetric==='tonnage'?'kg':'reps';
-  document.getElementById('prog-muscle-tbl').innerHTML=MUSCLES.map(m=>`<tr><td style="color:var(--ink2);width:150px">${m}</td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((totals[m]||0)/max*100)}%"></div></div></td><td>${(totals[m]||0).toLocaleString()}${totals[m]?`<span class="metric-unit">${unit}</span>`:''}</td></tr>`).join('');
+  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(!e.muscle)return;const v=metric==='tonnage'?Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)*(parseFloat(e.kg)||0)):Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));totals[e.muscle]=(totals[e.muscle]||0)+v;}));
+  const max=Math.max(...Object.values(totals),1),unit=metric==='tonnage'?'kg':'reps';
+  document.getElementById(containerId).innerHTML=`<table class="muscle-tbl">${MUSCLES.map(m=>`<tr><td style="color:var(--ink2);width:100px;font-size:10px">${m}</td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((totals[m]||0)/max*100)}%"></div></div></td><td style="font-size:10px;text-align:right">${totals[m]?totals[m].toLocaleString()+'<span class=\'metric-unit\'> '+unit+'</span>':''}</td></tr>`).join('')}</table>`;
+}
+function renderReadiness(){
+  const svg=document.getElementById('prog-readiness-svg');
+  const sessions=getFilteredSessions().filter(s=>s.sleep||s.energy||s.soreness||s.perf).sort((a,b)=>a.date.localeCompare(b.date));
+  if(sessions.length<2){svg.innerHTML=`<text x="50%" y="55%" text-anchor="middle" fill="var(--ink3)" font-size="11" font-family="DM Mono,monospace">Need 2+ sessions with readiness data</text>`;document.getElementById('prog-readiness-legend').innerHTML='';return;}
+  const W=400,H=110,PL=4,PR=4,PT=8,PB=18;
+  const n=sessions.length,xs=sessions.map((_,i)=>PL+(i/(n-1))*(W-PL-PR)),y=v=>PT+(1-v)*(H-PT-PB);
+  const metrics=[
+    {label:'Sleep',color:'#4a9fd4',vals:sessions.map(s=>SLEEP_VAL[s.sleep]||0)},
+    {label:'Energy',color:'#7aad2a',vals:sessions.map(s=>ENERGY_VAL[s.energy]||0)},
+    {label:'Freshness',color:'#e8a020',vals:sessions.map(s=>SORENESS_VAL[s.soreness]||0)},
+    {label:'Performance',color:'#9a6fd4',vals:sessions.map(s=>PERF_VAL[s.perf]||0)},
+  ];
+  const lines=metrics.map(m=>`<polyline points="${m.vals.map((v,i)=>`${xs[i]},${y(v)}`).join(' ')}" fill="none" stroke="${m.color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>${m.vals.map((v,i)=>`<circle cx="${xs[i]}" cy="${y(v)}" r="2.5" fill="${m.color}"/>`).join('')}`).join('');
+  const labels=sessions.length<=6?sessions.map((s,i)=>`<text x="${xs[i]}" y="${H-2}" text-anchor="middle" fill="var(--ink3)" font-size="8" font-family="DM Mono,monospace">${s.date.slice(5)}</text>`).join(''):`<text x="${xs[0]}" y="${H-2}" text-anchor="middle" fill="var(--ink3)" font-size="8" font-family="DM Mono,monospace">${sessions[0].date.slice(5)}</text><text x="${xs[n-1]}" y="${H-2}" text-anchor="middle" fill="var(--ink3)" font-size="8" font-family="DM Mono,monospace">${sessions[n-1].date.slice(5)}</text>`;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('preserveAspectRatio','none');
+  svg.innerHTML=lines+labels;
+  document.getElementById('prog-readiness-legend').innerHTML=metrics.map(m=>`<div class="readiness-legend-item"><div style="width:14px;height:2px;background:${m.color};border-radius:1px"></div>${m.label}</div>`).join('');
 }
 function renderProgress(){
+  renderMuscleBar('prog-vol-chart','volume');
+  renderMuscleBar('prog-ton-chart','tonnage');
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
   const recent=sorted.filter(s=>s.date>=cutoff),older=sorted.filter(s=>s.date<cutoff);
-  const recEl=document.getElementById('prog-recent');
-  recEl.innerHTML=recent.length?recent.map(sessionRowHtml).join(''):'<div style="color:var(--ink3);font-size:12px;padding:8px 0">No sessions in the last 2 weeks.</div>';
-  const moreWrap=document.getElementById('prog-more-wrap');
-  if(older.length){moreWrap.innerHTML=`<div class="show-more" id="prog-show-more" onclick="toggleProgAll()">${_progShowAll?'Show less ↑':`Show ${older.length} older session${older.length>1?'s':''} ↓`}</div>`;}
-  else{moreWrap.innerHTML='';}
-  const allPanel=document.getElementById('prog-all-panel');
-  if(_progShowAll&&older.length){allPanel.classList.remove('hidden');allPanel.innerHTML=older.map(sessionRowHtml).join('');}
-  else{allPanel.classList.add('hidden');}
-  renderMuscleChart();
+  document.getElementById('prog-recent').innerHTML=recent.length?recent.map(sessionRowHtml).join(''):'<div style="color:var(--ink3);font-size:11px;padding:6px 0">No sessions in the last 2 weeks.</div>';
+  document.getElementById('prog-more-wrap').innerHTML=older.length?`<div class="show-more" onclick="toggleProgAll()">${_progShowAll?'Show less ↑':`+${older.length} older`}</div>`:'';
+  const ap=document.getElementById('prog-all-panel');
+  if(_progShowAll&&older.length){ap.classList.remove('hidden');ap.innerHTML=older.map(sessionRowHtml).join('');}else{ap.classList.add('hidden');}
+  renderReadiness();
 }
 function toggleProgAll(){_progShowAll=!_progShowAll;renderProgress();}
 function exportCSV(){if(!S.sessions.length){alert('No sessions to export yet.');return;}const h='Date,Week,Phase,Type,GymDay,Superset,Exercise,Muscle,Resistance,Side,KG,Reps,RIR,Sets,Volume,Sleep,Energy,Soreness,Performance,Flagged,Extra,Notes';const rows=[h];S.sessions.forEach(s=>toRows(s).forEach(r=>rows.push(r.map(v=>String(v).includes(',')?`"${v}"`:v).join(','))));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));a.download='mesoplus_export.csv';a.click();}
