@@ -736,14 +736,32 @@ function addExToSS(si){S.supersets[si].exercises.push({name:'',muscle:'',res:'Fr
 
 function getBJJ(){return{gc:document.getElementById('bjj-gc').value,desc:document.getElementById('bjj-desc').value,partner:document.getElementById('bjj-partner').value,drilling:document.getElementById('bjj-drilling').value,good:document.getElementById('bjj-good').value,bad:document.getElementById('bjj-bad').value,subs:document.getElementById('bjj-subs').value,next:document.getElementById('bjj-next').value,positions:[...document.querySelectorAll('.pos-chip.on')].map(b=>b.textContent)};}
 
+function buildCurrentSession(){const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym';return{date:S.selectedDate,week:wk(),phase:ph().name,phaseIdx:S.phaseIdx,dtype:S.dtype,gymDay:S.gymDay,extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:S.supersets.flatMap(ss=>ss.exercises).filter(e=>e.flagged).map(e=>e.name),supersets:JSON.parse(JSON.stringify(S.supersets)),bjj:isBJJ?getBJJ():null};}
+
+const _synced=new Set(JSON.parse(localStorage.getItem('mp7_synced')||'[]'));
+function markSynced(date){_synced.add(date);localStorage.setItem('mp7_synced',JSON.stringify([..._synced]));}
+
+async function autoSave(){
+  try{
+    const sess=buildCurrentSession();
+    const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
+    if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+    persist();
+    if(S.scriptUrl&&!_synced.has(S.selectedDate)){await appendRows(toRows(sess));markSynced(S.selectedDate);}
+  }catch(e){}
+}
+
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSave();});
+window.addEventListener('beforeunload',()=>autoSave());
+
 async function saveSession(){
-  const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym';
-  const sess={date:S.selectedDate,week:wk(),phase:ph().name,phaseIdx:S.phaseIdx,dtype:S.dtype,gymDay:S.gymDay,extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:S.supersets.flatMap(ss=>ss.exercises).filter(e=>e.flagged).map(e=>e.name),supersets:JSON.parse(JSON.stringify(S.supersets)),bjj:isBJJ?getBJJ():null};
+  const sess=buildCurrentSession();
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   S.weekInPhase=Math.min(S.weekInPhase+1,ph().weeks);
   persist();renderPhaseBar();renderAdvBar();renderWeekNav();
-  if(S.apiKey&&S.sheetId){setSave('Saving…');const ok=await appendRows(toRows(sess));setSave(ok?'Saved ✓':'Saved locally · Sheets error',ok);}
+  if(S.scriptUrl){setSave('Saving…');const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Saved ✓':'Saved locally · Sheets error',ok);}
+  else if(S.apiKey&&S.sheetId){setSave('Saving…');const ok=await appendRows(toRows(sess));setSave(ok?'Saved ✓':'Saved locally · Sheets error',ok);}
   else setSave('Saved locally');
 }
 function toRows(s){const rows=[];(s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{const vol=Math.round((parseFloat(ex.kg)||0)*(parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol,s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});if(!rows.length)rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);return rows;}
