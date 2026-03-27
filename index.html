@@ -34,6 +34,9 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .pin-field:focus{border-color:var(--line2)}
 .pin-err{font-size:11px;color:var(--danger);min-height:16px;margin-bottom:10px}
 .pin-setup-note{font-size:10px;color:var(--ink3);margin-top:14px;line-height:1.6}
+.power-btn{background:none;border:none;cursor:pointer;outline:none;padding:6px;border-radius:50%;transition:all .2s;line-height:1;font-size:18px}
+.power-btn.off{color:#444;filter:none}
+.power-btn.on{color:#c0392b;filter:drop-shadow(0 0 6px #c0392b99)}
 .wrap{max-width:900px;margin:0 auto;padding:20px 16px}
 
 /* BUTTONS */
@@ -239,6 +242,7 @@ select.bare{cursor:pointer}
 <!-- PASSWORD GATE -->
 <div id="pin-gate">
   <div class="pin-box">
+    <button class="power-btn off" style="margin-bottom:12px" tabindex="-1">⏻</button>
     <div class="pin-title">Meso<sup>+</sup></div>
     <div class="pin-sub" id="pin-sub">Enter your password</div>
     <div class="pin-err" id="pin-err"></div>
@@ -260,7 +264,7 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-history" onclick="nav('history')">History</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
       <button class="nl" id="nl-settings" onclick="nav('settings')">Setup</button>
-      <button class="nl" onclick="lockApp()" style="color:var(--ink3)" title="Lock">⏻</button>
+      <button class="power-btn on" onclick="lockApp()" title="Lock">⏻</button>
     </div>
   </div>
 
