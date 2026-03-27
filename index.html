@@ -507,10 +507,10 @@ const EX_MUSCLE={'Seated Calf Raises':'Calves','Standing Calf Raises':'Calves','
 const EX_RES={'Seated Calf Raises':'Machine','Romanian Deadlift':'Free Weights','Face Pulls':'Cable','Incline DB Curl':'Free Weights','Bayesian Cable Curl':'Cable','EZ Bar Curl':'Free Weights','Hammer Curl':'Free Weights','Barbell Bench Press':'Free Weights','DB Bench Press':'Free Weights','Pec Deck Fly':'Machine','Chest Supported Row':'Machine','Lat Pulldown':'Machine','Towel Grip Farmer Carry':'Free Weights','Plate Pinch Hold':'Free Weights','Squat':'Free Weights','Front Squat':'Free Weights','Wrist Curl':'Free Weights','Reverse Wrist Curl':'Free Weights','Reverse Pec Deck':'Machine','Overhead Press':'Free Weights','Lateral Raises':'Free Weights','Overhead Cable Triceps Ext':'Cable','Skull Crushers':'Free Weights','Cable Fly':'Cable','Pull-ups':'Bodyweight','Dips':'Bodyweight','Leg Curl':'Machine','Leg Press':'Machine'};
 const MUSCLES=['Chest','Biceps','Forearms','Grip','Delts','Shoulder stability','Back','Hamstrings','Glutes','Quads','Calves','Triceps','Traps','Abs'];
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const SLEEP_C=['5h','6h','6.5h','7h','7.5h','8h','9h+','Custom'];
+const SLEEP_C=['≤5.5h','6h','6.5h','7h','7.5h','8h','≥8.5h'];
 const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
-const SORENESS_C=['Fresh','Mild','Moderate','Heavy','Wrecked'];
-const PERF_C=['↓ Below par','→ On track','↑ Exceeded'];
+const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
+const PERF_C=['Below par','On track','Exceeded'];
 
 let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
@@ -526,7 +526,14 @@ function ph(){return S.phases[S.phaseIdx];}
 
 function init(){
   const saved=localStorage.getItem('mp7');
-  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.weekInPhase=p.weekInPhase||1;S.sessions=p.sessions||[];}
+  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.weekInPhase=p.weekInPhase||1;S.sessions=p.sessions||[];
+    // Migrate old values
+    S.sessions.forEach(s=>{
+      if(s.perf)s.perf=s.perf.replace(/^[↓↑→]\s*/,'');
+      if(s.sleep==='5h')s.sleep='≤5.5h';
+      if(s.sleep==='9h+')s.sleep='≥8.5h';
+    });
+  }
   S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';S.scriptUrl=localStorage.getItem('mp7_su')||'';
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
   if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
@@ -555,18 +562,7 @@ function buildChips(id,opts,sel,cb){
     };
     el.appendChild(b);});
 }
-function handleSleep(v){
-  if(v==='Custom'){
-    document.querySelectorAll('#chips-sleep .chip').forEach(c=>c.classList.toggle('on',c.textContent==='Custom'));
-    const w=document.getElementById('csw');w.classList.add('show');
-    const i=document.getElementById('csi');i.focus();
-    i.oninput=()=>{if(i.value)S.sleep=parseFloat(i.value).toFixed(1)+'h';};
-  } else {
-    document.getElementById('csw').classList.remove('show');
-    document.querySelectorAll('#chips-sleep .chip').forEach(c=>c.classList.toggle('on',c.textContent===v));
-    S.sleep=v;
-  }
-}
+function handleSleep(v){S.sleep=v;}
 
 function renderPhaseBar(){
   document.getElementById('phase-bar').innerHTML=S.phases.map((p,i)=>`
@@ -663,7 +659,7 @@ function loadTemplate(){
 
 function computeSug(){
   const p=ph(),eI=ENERGY_C.indexOf(S.energy),sI=SORENESS_C.indexOf(S.soreness);
-  const mod=(eI>=3?1:eI<=1?-1:0)+(sI>=3?-1:sI===0?1:0);
+  const mod=(eI>=3?1:eI<=1?-1:0)+(sI>=3?1:sI<=1?-1:0);
   const tRIR=Math.max(0,Math.min(5,p.rirNum-mod*0.5));
   const last=[...S.sessions].reverse().find(s=>s.gymDay===S.gymDay&&s.date!==S.selectedDate);
   S.supersets.forEach(ss=>ss.exercises.forEach(ex=>{
@@ -902,10 +898,10 @@ async function fullResync(){
 async function appendRows(rows){try{if(S.scriptUrl){const date=rows[0]?.[0]||'';const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,rows})});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
 let _progFilter='week',_progShowAll=false;
-const SLEEP_VAL={'5h':1/7,'6h':2/7,'6.5h':3/7,'7h':4/7,'7.5h':5/7,'8h':6/7,'9h+':1};
+const SLEEP_VAL={'≤5.5h':1/7,'6h':2/7,'6.5h':3/7,'7h':4/7,'7.5h':5/7,'8h':6/7,'≥8.5h':1};
 const ENERGY_VAL={'Drained':0,'Low':0.25,'Moderate':0.5,'Good':0.75,'Charged':1};
 const SORENESS_VAL={'Wrecked':0,'Heavy':0.25,'Moderate':0.5,'Mild':0.75,'Fresh':1};
-const PERF_VAL={'↓ Below par':0,'→ On track':0.5,'↑ Exceeded':1};
+const PERF_VAL={'Below par':0,'On track':0.5,'Exceeded':1};
 function getFilteredSessions(){
   const now=Date.now(),d=(n)=>new Date(now-n*86400000).toISOString().slice(0,10);
   if(_progFilter==='week')return S.sessions.filter(s=>s.date>=d(7));
