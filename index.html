@@ -22,7 +22,7 @@
 @media(prefers-color-scheme:dark){
   :root{--ink:#e8e8e8;--ink2:#aaa;--ink3:#666;--line:#2a2a2a;--line2:#444;--surf:#1e1e1e;--lift:#141414;--danger-bg:#2a0808;}
 }
-body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;background:var(--lift);min-height:100vh}
+body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;background:var(--lift);min-height:100vh;color-scheme:dark}
 /* PASSWORD GATE */
 #pin-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center}
 #pin-gate.hidden{display:none}
@@ -330,8 +330,8 @@ select.bare{cursor:pointer}
       <div class="sug-bar"><div class="sug-lbl">Today's target</div><div id="sug-text"></div></div>
       <div class="ex-table-wrap">
         <table class="ex-table">
-          <colgroup><col class="c-num"><col class="c-name"><col class="c-res"><col class="c-side"><col class="c-last"><col class="c-sets"><col class="c-kg"><col class="c-reps"><col class="c-rir"><col class="c-act"></colgroup>
-          <thead><tr><th></th><th>Exercise</th><th>Resistance</th><th>Side</th><th>Last week</th><th>Sets</th><th>kg</th><th>Reps</th><th>RIR</th><th></th></tr></thead>
+          <colgroup><col class="c-num"><col class="c-name"><col class="c-res"><col class="c-side"><col class="c-last"><col class="c-kg"><col class="c-sets"><col class="c-reps"><col class="c-rir"><col class="c-act"></colgroup>
+          <thead><tr><th></th><th>Exercise</th><th>Resistance</th><th>Side</th><th>Last week</th><th>kg</th><th>Sets</th><th>Reps</th><th>RIR</th><th></th></tr></thead>
           <tbody id="ex-tbody"></tbody>
         </table>
       </div>
@@ -603,7 +603,7 @@ function renderTable(){
   const tbody=document.getElementById('ex-tbody');tbody.innerHTML='';
   const RES=['Free Weights','Machine','Cable','Bodyweight'],SIDE=['Both','L','R'];
   S.supersets.forEach((ss,si)=>{
-    const vol=ss.exercises.reduce((a,e)=>a+(parseFloat(e.kg)||0)*(parseFloat(e.reps)||0)*(parseFloat(e.sets)||3),0);
+    const vol=ss.exercises.reduce((a,e)=>a+(parseFloat(e.reps)||0)*(parseFloat(e.sets)||3),0);
     const htr=document.createElement('tr');htr.className='ss-hdr-row';
     htr.innerHTML=`<td colspan="10" style="padding:10px 6px 5px;border-top:1px solid var(--line)">
       <div class="ss-hdr-inner">
@@ -627,8 +627,8 @@ function renderTable(){
         <td><select class="ex-mini" onchange="upEx(${si},${ei},'res',this.value)">${rO}</select></td>
         <td><select class="ex-mini" onchange="upEx(${si},${ei},'side',this.value)">${sO}</select></td>
         <td><div class="last-val" title="${ex.lastStr||'—'}">${ex.lastStr||'—'}</div></td>
-        <td><input class="ex-in" type="number" value="${ex.sets||3}" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
         <td><input class="ex-in${isSug?' sug':''}" type="number" value="${kv}" step="2.5" min="0" onchange="upEx(${si},${ei},'kg',this.value)" title="kg"></td>
+        <td><input class="ex-in" type="number" value="${ex.sets||3}" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
         <td><input class="ex-in${isSug?' sug':''}" type="number" value="${rv}" min="1" onchange="upEx(${si},${ei},'reps',this.value)" title="reps"></td>
         <td><input class="ex-in" type="number" value="${rv2}" min="0" max="6" onchange="upEx(${si},${ei},'rir',this.value)" title="RIR"></td>
         <td><div class="ex-act">
@@ -698,8 +698,8 @@ function renderHistory(){
   const list=document.getElementById('hist-list');
   const sessions=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,60);
   if(!sessions.length){list.innerHTML='<div style="color:var(--ink3);padding:12px 0;font-size:12px">No sessions logged yet.</div>';return;}
-  list.innerHTML=sessions.map(s=>{const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.kg)||0)*(parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex · ${s.energy} · ${s.soreness}</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol?vol.toLocaleString():''}</span></div>`;}).join('');
-  const totals={};S.sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(e.muscle)totals[e.muscle]=(totals[e.muscle]||0)+Math.round((parseFloat(e.kg)||0)*(parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));}));
+  list.innerHTML=sessions.map(s=>{const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex · ${s.energy} · ${s.soreness}</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol?vol.toLocaleString():''}</span></div>`;}).join('');
+  const totals={};S.sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(e.muscle)totals[e.muscle]=(totals[e.muscle]||0)+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));}));
   const max=Math.max(...Object.values(totals),1);
   document.getElementById('muscle-tbl').innerHTML=MUSCLES.map(m=>`<tr><td style="color:var(--ink2);width:150px">${m}</td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((totals[m]||0)/max*100)}%"></div></div></td><td>${(totals[m]||0).toLocaleString()}</td></tr>`).join('');
 }
