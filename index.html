@@ -262,6 +262,7 @@ select.bare{cursor:pointer}
       <button type="submit" class="power-btn off" id="pin-submit-btn" style="margin-top:18px;font-size:32px;padding:14px">⏻</button>
     </form>
     <div class="pin-setup-note" id="pin-setup-note"></div>
+    <button type="button" id="pin-toggle" onclick="togglePinMode()" style="background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:18px;cursor:pointer;text-decoration:underline;outline:none"></button>
   </div>
 </div>
 
@@ -813,17 +814,25 @@ function lockApp(){
 }
 function initPin(){
   const stored=localStorage.getItem('mp7_pin');
-  if(!stored){
-    pinMode='setup';
-    document.getElementById('pin-sub').textContent='Create a password';
-    document.getElementById('pin-input').autocomplete='new-password';
-    document.getElementById('pin-input').name='new-password';
-    document.getElementById('pin-confirm-input').style.display='block';
-    document.getElementById('pin-setup-note').textContent='First time setup — Safari will offer to save this to your Keychain.';
-  } else {
-    pinMode='unlock';
-    document.getElementById('pin-sub').textContent='Enter your password and switch on';
-  }
+  if(!stored){applyPinMode('setup');}
+  else{applyPinMode('unlock');}
+  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+}
+function applyPinMode(mode){
+  pinMode=mode;
+  const isSetup=mode==='setup';
+  document.getElementById('pin-sub').textContent=isSetup?'Create a password':'Enter your password and switch on';
+  document.getElementById('pin-input').autocomplete=isSetup?'new-password':'current-password';
+  document.getElementById('pin-input').name=isSetup?'new-password':'password';
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-confirm-input').style.display=isSetup?'block':'none';
+  document.getElementById('pin-confirm-input').value='';
+  document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-setup-note').textContent=isSetup?'First time setup — Safari will offer to save this to your Keychain.':'';
+  document.getElementById('pin-toggle').textContent=isSetup?'Already set up on another device? Log in instead':'Setting up a new device? Create password instead';
+}
+function togglePinMode(){
+  applyPinMode(pinMode==='setup'?'unlock':'setup');
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 
