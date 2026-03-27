@@ -214,7 +214,7 @@ select.bare{cursor:pointer}
 .save-msg{font-size:11px;color:var(--ink3)}
 .save-msg.ok{color:var(--accent)}.save-msg.err{color:var(--danger)}
 
-/* HISTORY */
+/* PROGRESS */
 .h-row{display:grid;grid-template-columns:84px 1fr 64px;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
 .muscle-tbl{width:100%;border-collapse:collapse;margin-top:10px}
 .muscle-tbl td{padding:5px 0;border-top:1px solid var(--line);font-size:11px}
@@ -222,6 +222,15 @@ select.bare{cursor:pointer}
 .bar-cell{padding:5px 10px!important}
 .bar-bg{height:2px;background:var(--line);border-radius:1px}
 .bar-fill{height:100%;background:var(--accent);border-radius:1px}
+.prog-filters{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.toggle-group,.filter-group{display:flex;gap:4px}
+.toggle-btn,.filter-btn{background:none;border:1px solid var(--line);color:var(--ink3);font-family:var(--mono);font-size:11px;padding:5px 10px;cursor:pointer;border-radius:4px;transition:all .12s;outline:none}
+.toggle-btn.on,.filter-btn.on{border-color:var(--ink2);color:var(--ink);background:var(--surf)}
+.show-more{font-size:11px;color:var(--ink3);padding:8px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.show-more:hover{color:var(--ink2)}
+.custom-range{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink3);margin-bottom:12px}
+.custom-range input{background:none;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:4px;outline:none;color-scheme:dark}
+.metric-unit{color:var(--ink3);font-size:10px;margin-left:2px}
 
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -273,7 +282,7 @@ select.bare{cursor:pointer}
     <div class="wordmark">Meso<sup>+</sup></div>
     <div class="nav-links">
       <button class="nl on" id="nl-log" onclick="nav('log')">Log</button>
-      <button class="nl" id="nl-history" onclick="nav('history')">History</button>
+      <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
       <button class="nl" id="nl-settings" onclick="nav('settings')">Setup</button>
       <button class="power-btn on" onclick="lockApp()" title="Lock">⏻</button>
@@ -392,15 +401,39 @@ select.bare{cursor:pointer}
     </div>
   </div>
 
-  <div id="v-history" class="hidden">
+  <div id="v-progress" class="hidden">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
-      <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)">History</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)">Progress</div>
       <button class="btn-o" onclick="exportCSV()">Export CSV</button>
     </div>
-    <div id="hist-list"></div>
-    <div class="rule"></div>
-    <div style="font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink);margin:12px 0 8px">Volume by muscle</div>
-    <table class="muscle-tbl" id="muscle-tbl"></table>
+
+    <!-- Recent sessions: last 2 weeks -->
+    <div style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink);margin-bottom:8px">Recent sessions</div>
+    <div id="prog-recent"></div>
+    <div id="prog-more-wrap"></div>
+    <div id="prog-all-panel" class="hidden" style="margin-top:4px"></div>
+
+    <div class="rule" style="margin:18px 0"></div>
+
+    <!-- Volume / Tonnage by muscle -->
+    <div class="prog-filters">
+      <div class="toggle-group">
+        <button class="toggle-btn on" id="prog-vol-btn" onclick="setProgMetric('volume',this)">Volume</button>
+        <button class="toggle-btn" id="prog-ton-btn" onclick="setProgMetric('tonnage',this)">Tonnage</button>
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn on" onclick="setProgFilter('week',this)">Week</button>
+        <button class="filter-btn" onclick="setProgFilter('month',this)">Month</button>
+        <button class="filter-btn" onclick="setProgFilter('meso',this)">Meso</button>
+        <button class="filter-btn" onclick="setProgFilter('custom',this)">Custom</button>
+      </div>
+    </div>
+    <div id="prog-custom-range" class="custom-range hidden">
+      From <input type="date" id="prog-from" onchange="renderMuscleChart()">
+      to <input type="date" id="prog-to" onchange="renderMuscleChart()">
+    </div>
+    <div style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink);margin-bottom:4px" id="prog-chart-title">Volume by muscle</div>
+    <table class="muscle-tbl" id="prog-muscle-tbl"></table>
   </div>
 
   <div id="v-analysis" class="hidden">
@@ -815,15 +848,39 @@ window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function toRows(s){const rows=[];(s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{const vol=Math.round((parseFloat(ex.kg)||0)*(parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol,s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});if(!rows.length)rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);return rows;}
 async function appendRows(rows){try{if(S.scriptUrl){const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
-function renderHistory(){
-  const list=document.getElementById('hist-list');
-  const sessions=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,60);
-  if(!sessions.length){list.innerHTML='<div style="color:var(--ink3);padding:12px 0;font-size:12px">No sessions logged yet.</div>';return;}
-  list.innerHTML=sessions.map(s=>{const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex · ${s.energy} · ${s.soreness}</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol?vol.toLocaleString():''}</span></div>`;}).join('');
-  const totals={};S.sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(e.muscle)totals[e.muscle]=(totals[e.muscle]||0)+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));}));
-  const max=Math.max(...Object.values(totals),1);
-  document.getElementById('muscle-tbl').innerHTML=MUSCLES.map(m=>`<tr><td style="color:var(--ink2);width:150px">${m}</td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((totals[m]||0)/max*100)}%"></div></div></td><td>${(totals[m]||0).toLocaleString()}</td></tr>`).join('');
+let _progMetric='volume',_progFilter='week',_progShowAll=false;
+function sessionRowHtml(s){const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex · ${s.energy} · ${s.soreness}</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol?vol.toLocaleString():''}</span></div>`;}
+function getFilteredSessions(){
+  const now=Date.now(),d=(n)=>new Date(now-n*86400000).toISOString().slice(0,10);
+  if(_progFilter==='week')return S.sessions.filter(s=>s.date>=d(7));
+  if(_progFilter==='month')return S.sessions.filter(s=>s.date>=d(30));
+  if(_progFilter==='meso'){const start=S.sessions.map(s=>s.date).sort()[0]||d(0);return S.sessions.filter(s=>s.date>=start);}
+  if(_progFilter==='custom'){const f=document.getElementById('prog-from').value,t=document.getElementById('prog-to').value;return S.sessions.filter(s=>(!f||s.date>=f)&&(!t||s.date<=t));}
+  return S.sessions;
 }
+function setProgMetric(m,btn){_progMetric=m;document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-chart-title').textContent=(m==='volume'?'Volume':'Tonnage')+' by muscle';renderMuscleChart();}
+function setProgFilter(f,btn){_progFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-custom-range').classList.toggle('hidden',f!=='custom');renderMuscleChart();}
+function renderMuscleChart(){
+  const sessions=getFilteredSessions(),totals={};
+  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(!e.muscle)return;const v=_progMetric==='tonnage'?Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)*(parseFloat(e.kg)||0)):Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));totals[e.muscle]=(totals[e.muscle]||0)+v;}));
+  const max=Math.max(...Object.values(totals),1),unit=_progMetric==='tonnage'?'kg':'reps';
+  document.getElementById('prog-muscle-tbl').innerHTML=MUSCLES.map(m=>`<tr><td style="color:var(--ink2);width:150px">${m}</td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((totals[m]||0)/max*100)}%"></div></div></td><td>${(totals[m]||0).toLocaleString()}${totals[m]?`<span class="metric-unit">${unit}</span>`:''}</td></tr>`).join('');
+}
+function renderProgress(){
+  const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
+  const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  const recent=sorted.filter(s=>s.date>=cutoff),older=sorted.filter(s=>s.date<cutoff);
+  const recEl=document.getElementById('prog-recent');
+  recEl.innerHTML=recent.length?recent.map(sessionRowHtml).join(''):'<div style="color:var(--ink3);font-size:12px;padding:8px 0">No sessions in the last 2 weeks.</div>';
+  const moreWrap=document.getElementById('prog-more-wrap');
+  if(older.length){moreWrap.innerHTML=`<div class="show-more" id="prog-show-more" onclick="toggleProgAll()">${_progShowAll?'Show less ↑':`Show ${older.length} older session${older.length>1?'s':''} ↓`}</div>`;}
+  else{moreWrap.innerHTML='';}
+  const allPanel=document.getElementById('prog-all-panel');
+  if(_progShowAll&&older.length){allPanel.classList.remove('hidden');allPanel.innerHTML=older.map(sessionRowHtml).join('');}
+  else{allPanel.classList.add('hidden');}
+  renderMuscleChart();
+}
+function toggleProgAll(){_progShowAll=!_progShowAll;renderProgress();}
 function exportCSV(){if(!S.sessions.length){alert('No sessions to export yet.');return;}const h='Date,Week,Phase,Type,GymDay,Superset,Exercise,Muscle,Resistance,Side,KG,Reps,RIR,Sets,Volume,Sleep,Energy,Soreness,Performance,Flagged,Extra,Notes';const rows=[h];S.sessions.forEach(s=>toRows(s).forEach(r=>rows.push(r.map(v=>String(v).includes(',')?`"${v}"`:v).join(','))));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));a.download='mesoplus_export.csv';a.click();}
 
 async function runAnalysis(){
@@ -846,7 +903,7 @@ async function saveSettings(){
   }catch(e){st.textContent='Network error — check credentials';st.style.color='var(--danger)';}
 }
 
-function nav(id){['log','history','analysis','settings'].forEach(v=>{document.getElementById('v-'+v).classList.toggle('hidden',v!==id);document.getElementById('nl-'+v).classList.toggle('on',v===id);});if(id==='history')renderHistory();}
+function nav(id){['log','progress','analysis','settings'].forEach(v=>{document.getElementById('v-'+v).classList.toggle('hidden',v!==id);document.getElementById('nl-'+v).classList.toggle('on',v===id);});if(id==='progress')renderProgress();}
 
 /* PASSWORD GATE */
 let pinMode='unlock'; // unlock | setup
