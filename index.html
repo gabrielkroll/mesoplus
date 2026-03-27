@@ -539,7 +539,9 @@ function init(){
   document.getElementById('pos-chips').innerHTML=BJJ_POS.map(p=>`<button class="pos-chip" onclick="this.classList.toggle('on');markDirty()">${p}</button>`).join('');
   GC.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;document.getElementById('bjj-gc').appendChild(o);});
   document.getElementById('v-log').addEventListener('input',()=>markDirty());
-  renderPhaseBar();renderAdvBar();renderWeekNav();renderDtype();loadTemplate();
+  renderPhaseBar();renderAdvBar();renderWeekNav();renderDtype();
+  const _initSess=S.sessions.find(s=>s.date===S.selectedDate);
+  if(_initSess)loadSess(_initSess);else loadTemplate();
 }
 
 function buildChips(id,opts,sel,cb){
@@ -636,7 +638,7 @@ function resetForm(){
   buildChips('chips-soreness',SORENESS_C,'Fresh',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
   buildChips('chips-perf',PERF_C,'→ On track',v=>{S.perf=v;markDirty();});
 }
-function shiftWeek(d){if(d>0&&S.viewWeekOffset>=0)return;S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;resetForm();loadTemplate();renderWeekNav();}
+function shiftWeek(d){if(d>0&&S.viewWeekOffset>=0)return;autoSaveCurrentDay();S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;const _wSess=S.sessions.find(s=>s.date===vs);if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();}renderWeekNav();}
 
 function renderDtype(){
   const types=['Gym','BJJ + Gym','BJJ','Rest'];
