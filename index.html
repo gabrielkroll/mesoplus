@@ -473,7 +473,7 @@ select.bare{cursor:pointer}
     <div class="s-row"><div class="s-lbl">3 — Sheet ID<div class="s-note">From URL: /spreadsheets/d/<strong style="color:var(--accent)">THIS_PART</strong>/edit — share as "Anyone with link can view"</div></div><div><div class="field-lbl">Sheet ID</div><input class="bare" id="s-id" placeholder="1BxiMVs0..."></div></div>
     <div class="s-row"><div class="s-lbl">4 — Tab name<div class="s-note">Exact tab name in your sheet.</div></div><div><div class="field-lbl">Tab name</div><input class="bare" id="s-tab" value="Workout_Log"></div></div>
     <div class="s-row"><div class="s-lbl">5 — Apps Script URL<div class="s-note">Extensions → Apps Script → Deploy as web app → copy URL. Required for saving sessions to Sheets.</div></div><div><div class="field-lbl">Web app URL</div><input class="bare" id="s-script" placeholder="https://script.google.com/macros/s/.../exec"></div></div>
-    <div style="padding-top:14px;display:flex;gap:8px;align-items:center"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
+    <div style="padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><button class="btn-o" onclick="fullResync()">↺ Full re-sync to Sheets</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
   </div>
 </div>
 
@@ -861,8 +861,28 @@ async function completeDay(){
 
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
-function toRows(s){const rows=[];(s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{const vol=Math.round((parseFloat(ex.kg)||0)*(parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol,s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});if(!rows.length)rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);return rows;}
-async function appendRows(rows){try{if(S.scriptUrl){const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
+function toRows(s){
+  const wk='W'+(s.week||1);
+  const vol=(ex)=>Math.round((parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));
+  const rows=[];
+  (s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol(ex),s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});
+  if(!rows.length)rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);
+  return rows;
+}
+async function fullResync(){
+  if(!S.scriptUrl){setSave('No script URL configured','err');return;}
+  setSave('Re-syncing all sessions…');
+  localStorage.removeItem('mp7_synced');_synced.clear();
+  let ok=true;
+  for(const sess of S.sessions){
+    const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date:sess.date,rows:toRows(sess)})});
+    if(res.ok)_synced.add(sess.date);else ok=false;
+    await new Promise(r=>setTimeout(r,500));
+  }
+  localStorage.setItem('mp7_synced',JSON.stringify([..._synced]));
+  setSave(ok?'All sessions synced ✓':'Some sessions failed','err');
+}
+async function appendRows(rows){try{if(S.scriptUrl){const date=rows[0]?.[0]||'';const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,rows})});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
 let _progFilter='week',_progShowAll=false;
 const SLEEP_VAL={'5h':1/7,'6h':2/7,'6.5h':3/7,'7h':4/7,'7.5h':5/7,'8h':6/7,'9h+':1};
