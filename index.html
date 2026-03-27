@@ -726,8 +726,8 @@ function nav(id){['log','history','analysis','settings'].forEach(v=>{document.ge
 
 /* PASSWORD GATE */
 let pinMode='unlock'; // unlock | setup
-async function hashPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw+'mp7salt'));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
-async function submitPassword(e){
+function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
+function submitPassword(e){
   e.preventDefault();
   const pw=document.getElementById('pin-input').value;
   const err=document.getElementById('pin-err');
@@ -736,11 +736,10 @@ async function submitPassword(e){
     const confirm=document.getElementById('pin-confirm-input').value;
     if(!confirm){err.textContent='Confirm your password';return;}
     if(pw!==confirm){err.textContent='Passwords don\'t match';return;}
-    localStorage.setItem('mp7_pin',await hashPw(pw));
+    localStorage.setItem('mp7_pin',hashPw(pw));
     unlockApp();
   } else {
-    const h=await hashPw(pw);
-    if(h===localStorage.getItem('mp7_pin')){unlockApp();}
+    if(hashPw(pw)===localStorage.getItem('mp7_pin')){unlockApp();}
     else{err.textContent='Wrong password';document.getElementById('pin-input').value='';}
   }
 }
