@@ -162,7 +162,17 @@ select.bare{cursor:pointer}
 .last-val{font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ex-in{background:none;border:none;border-bottom:1px solid transparent;color:var(--ink);font-family:var(--mono);font-size:11px;text-align:left;width:100%;outline:none;padding:2px 0;transition:border-color .12s}
 .ex-in:focus{border-bottom-color:var(--line2)}
-.ex-in.sug{color:var(--accent)}
+.ex-in::placeholder{color:#555;font-style:italic}
+.adopt-btn{background:none;border:none;color:#555;font-size:10px;cursor:pointer;padding:2px 4px;border-radius:3px;transition:all .1s;font-family:var(--mono);outline:none;line-height:1;white-space:nowrap}
+.adopt-btn:hover{color:var(--accent);background:var(--adim)}
+.adopt-bar{display:none;align-items:center;justify-content:space-between;padding:6px 10px;margin-bottom:10px;border:1px solid var(--line);border-radius:5px;font-size:10px;color:var(--ink3)}
+.adopt-bar.show{display:flex}
+.adopt-bar-actions{display:flex;gap:6px}
+.adopt-all-btn{background:none;border:1px solid var(--line);color:var(--ink2);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px;cursor:pointer;transition:all .12s;outline:none}
+.adopt-all-btn:hover{border-color:var(--accent);color:var(--accent)}
+.adopt-undo-btn{background:none;border:none;color:var(--accent);font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;transition:background .1s;border-radius:3px;outline:none;display:none}
+.adopt-undo-btn:hover{background:var(--adim)}
+.adopt-undo-btn.show{display:inline-block}
 .ex-act{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
 .ex-icon-btn{background:none;border:none;color:var(--ink3);font-size:12px;cursor:pointer;padding:3px 4px;border-radius:3px;transition:background .1s,color .1s;line-height:1;font-family:var(--mono);outline:none;white-space:nowrap}
 .ex-icon-btn:hover{background:var(--surf);color:var(--ink)}
@@ -328,6 +338,13 @@ select.bare{cursor:pointer}
     <div id="gym-content">
       <div class="section-title">Gym session</div>
       <div class="sug-bar"><div class="sug-lbl">Today's target</div><div id="sug-text"></div></div>
+      <div class="adopt-bar" id="adopt-bar">
+        <span id="adopt-bar-label">Baseline suggestions available — review before saving</span>
+        <div class="adopt-bar-actions">
+          <button class="adopt-undo-btn" id="adopt-undo-btn" onclick="undoAdopt()">↩ undo</button>
+          <button class="adopt-all-btn" onclick="adoptAll()">✓ Adopt all</button>
+        </div>
+      </div>
       <div class="ex-table-wrap">
         <table class="ex-table">
           <colgroup><col class="c-num"><col class="c-name"><col class="c-res"><col class="c-side"><col class="c-last"><col class="c-kg"><col class="c-sets"><col class="c-reps"><col class="c-rir"><col class="c-act"></colgroup>
@@ -618,20 +635,20 @@ function renderTable(){
       const exO=EX_LIST.map(n=>`<option value="${n}"${n===ex.name?' selected':''}>${n}</option>`).join('');
       const rO=RES.map(r=>`<option value="${r}"${r===ex.res?' selected':''}>${r}</option>`).join('');
       const sO=SIDE.map(s=>`<option value="${s}"${s===ex.side?' selected':''}>${s}</option>`).join('');
-      const sk=ex.sugKg!=null?ex.sugKg:'',sr=ex.sugReps!=null?ex.sugReps:'',srir=ex.sugRIR!=null?ex.sugRIR:'';
-      const kv=ex.kg!==''?ex.kg:sk,rv=ex.reps!==''?ex.reps:sr,rv2=ex.rir!==''?ex.rir:srir;
-      const isSug=ex.kg===''&&sk!=='';
+      const sk=ex.sugKg!=null?String(ex.sugKg):'',sr=ex.sugReps!=null?String(ex.sugReps):'',srir=ex.sugRIR!=null?String(ex.sugRIR):'';
+      const hasSug=sk!==''&&ex.kg===''&&ex.reps==='';
       tr.innerHTML=`
         <td class="ex-num-cell">${si+1}.${ei+1}</td>
         <td><select class="ex-sel" onchange="upEx(${si},${ei},'name',this.value)"><option value="">— select —</option>${exO}</select></td>
         <td><select class="ex-mini" onchange="upEx(${si},${ei},'res',this.value)">${rO}</select></td>
         <td><select class="ex-mini" onchange="upEx(${si},${ei},'side',this.value)">${sO}</select></td>
         <td><div class="last-val" title="${ex.lastStr||'—'}">${ex.lastStr||'—'}</div></td>
-        <td><input class="ex-in${isSug?' sug':''}" type="number" value="${kv}" step="2.5" min="0" onchange="upEx(${si},${ei},'kg',this.value)" title="kg"></td>
+        <td><input class="ex-in" type="number" value="${ex.kg}" placeholder="${sk}" step="2.5" min="0" onchange="upEx(${si},${ei},'kg',this.value)" title="kg"></td>
         <td><input class="ex-in" type="number" value="${ex.sets||3}" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
-        <td><input class="ex-in${isSug?' sug':''}" type="number" value="${rv}" min="1" onchange="upEx(${si},${ei},'reps',this.value)" title="reps"></td>
-        <td><input class="ex-in" type="number" value="${rv2}" min="0" max="6" onchange="upEx(${si},${ei},'rir',this.value)" title="RIR"></td>
+        <td><input class="ex-in" type="number" value="${ex.reps}" placeholder="${sr}" min="1" onchange="upEx(${si},${ei},'reps',this.value)" title="reps"></td>
+        <td><input class="ex-in" type="number" value="${ex.rir}" placeholder="${srir}" min="0" max="6" onchange="upEx(${si},${ei},'rir',this.value)" title="RIR"></td>
         <td><div class="ex-act">
+          ${hasSug?`<button class="adopt-btn" onclick="adoptRow(${si},${ei})" title="Adopt suggestion">✓</button>`:''}
           <button class="ex-icon-btn flag${ex.flagged?' on':''}" onclick="toggleFlag(${si},${ei})" title="${ex.flagged?'Flagged — click to clear':'Flag pain/discomfort'}">⚑</button>
           <button class="ex-icon-btn rm" onclick="removeExWithUndo(${si},${ei})" title="Remove exercise">×</button>
         </div></td>`;
@@ -646,6 +663,42 @@ function renderTable(){
   });
   const undoSSBtn=document.getElementById('undo-ss-global');
   if(undoSSBtn)undoSSBtn.classList.toggle('show',!!undoSSStack);
+  // adopt bar
+  const anyUnadopted=S.supersets.some(ss=>ss.exercises.some(e=>e.sugKg!=null&&e.kg===''&&e.reps===''));
+  const adoptBar=document.getElementById('adopt-bar');
+  if(adoptBar)adoptBar.classList.toggle('show',anyUnadopted);
+}
+
+let adoptUndoStack=null;
+function adoptRow(si,ei){
+  const ex=S.supersets[si].exercises[ei];
+  adoptUndoStack=JSON.parse(JSON.stringify(S.supersets));
+  ex.kg=ex.sugKg!=null?String(ex.sugKg):'';
+  ex.reps=ex.sugReps!=null?String(ex.sugReps):'';
+  ex.rir=ex.sugRIR!=null?String(ex.sugRIR):'';
+  renderTable();showAdoptUndo();
+}
+function adoptAll(){
+  adoptUndoStack=JSON.parse(JSON.stringify(S.supersets));
+  S.supersets.forEach(ss=>ss.exercises.forEach(ex=>{
+    if(ex.sugKg!=null&&ex.kg===''&&ex.reps===''){
+      ex.kg=String(ex.sugKg);ex.reps=String(ex.sugReps);ex.rir=ex.sugRIR!=null?String(ex.sugRIR):'';
+    }
+  }));
+  renderTable();showAdoptUndo();
+}
+function undoAdopt(){
+  if(!adoptUndoStack)return;
+  S.supersets=adoptUndoStack;adoptUndoStack=null;
+  renderTable();
+  const btn=document.getElementById('adopt-undo-btn');
+  if(btn)btn.classList.remove('show');
+}
+function showAdoptUndo(){
+  const btn=document.getElementById('adopt-undo-btn');
+  if(!btn)return;
+  btn.classList.add('show');
+  setTimeout(()=>btn.classList.remove('show'),8000);
 }
 
 function upEx(si,ei,f,v){const ex=S.supersets[si].exercises[ei];if(f==='name'){ex.name=v;ex.muscle=EX_MUSCLE[v]||'';if(EX_RES[v])ex.res=EX_RES[v];}else ex[f]=v;renderTable();}
