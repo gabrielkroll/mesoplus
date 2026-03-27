@@ -242,15 +242,14 @@ select.bare{cursor:pointer}
 <!-- PASSWORD GATE -->
 <div id="pin-gate">
   <div class="pin-box">
-    <button class="power-btn off" style="margin-bottom:12px" tabindex="-1">⏻</button>
     <div class="pin-title">Meso<sup>+</sup></div>
-    <div class="pin-sub" id="pin-sub">Enter your password</div>
+    <div class="pin-sub" id="pin-sub">Enter your password and switch on</div>
     <div class="pin-err" id="pin-err"></div>
     <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
       <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
       <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password">
       <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none">
-      <button type="submit" class="btn-s" style="width:100%" id="pin-submit-btn">Unlock</button>
+      <button type="submit" class="power-btn off" id="pin-submit-btn" style="margin-top:18px;font-size:32px;padding:14px">⏻</button>
     </form>
     <div class="pin-setup-note" id="pin-setup-note"></div>
   </div>
@@ -767,11 +766,10 @@ function initPin(){
     document.getElementById('pin-input').autocomplete='new-password';
     document.getElementById('pin-input').name='new-password';
     document.getElementById('pin-confirm-input').style.display='block';
-    document.getElementById('pin-submit-btn').textContent='Set password';
     document.getElementById('pin-setup-note').textContent='First time setup — Safari will offer to save this to your Keychain.';
   } else {
     pinMode='unlock';
-    document.getElementById('pin-sub').textContent='Enter your password';
+    document.getElementById('pin-sub').textContent='Enter your password and switch on';
   }
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
