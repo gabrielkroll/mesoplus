@@ -49,6 +49,8 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .btn-o:hover{border-color:var(--line2);color:var(--ink)}
 .btn-s{background:var(--ink);border:none;color:var(--lift);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:4px;transition:opacity .12s;white-space:nowrap;outline:none}
 .btn-s:hover{opacity:.8}
+.btn-ghost{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;padding:4px 8px;cursor:pointer;border-radius:4px;transition:all .12s;outline:none;text-decoration:underline}
+.btn-ghost:hover{color:var(--ink)}
 
 /* NAV */
 .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;background:var(--lift);padding-top:16px;margin-top:-16px}
@@ -378,10 +380,14 @@ select.bare{cursor:pointer}
     <div id="rest-content" class="hidden"><div class="rest-card" id="rest-card"></div></div>
 
     <div class="bottom">
-      <span class="save-msg" id="save-msg"></span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="save-msg" id="save-msg"></span>
+        <button class="btn-ghost" id="undo-btn" onclick="undoSession()" style="display:none">↩ Undo</button>
+      </div>
       <div style="display:flex;gap:8px">
         <button class="btn-o" onclick="nav('analysis')">Analyse ↗</button>
-        <button class="btn-s" onclick="saveSession()">Save session</button>
+        <button class="btn-o" onclick="manualSync()">Sync ↑</button>
+        <button class="btn-s" onclick="completeDay()">Complete day</button>
       </div>
     </div>
   </div>
@@ -479,12 +485,13 @@ function init(){
   if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
   if(S.scriptUrl){document.getElementById('s-script').value=S.scriptUrl;}
   S.selectedDate=td();
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>handleSleep(v));
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();});
-  buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;});
-  document.getElementById('pos-chips').innerHTML=BJJ_POS.map(p=>`<button class="pos-chip" onclick="this.classList.toggle('on')">${p}</button>`).join('');
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
+  document.getElementById('pos-chips').innerHTML=BJJ_POS.map(p=>`<button class="pos-chip" onclick="this.classList.toggle('on');markDirty()">${p}</button>`).join('');
   GC.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;document.getElementById('bjj-gc').appendChild(o);});
+  document.getElementById('v-log').addEventListener('input',()=>markDirty());
   renderPhaseBar();renderAdvBar();renderWeekNav();renderDtype();loadTemplate();
 }
 
@@ -553,6 +560,9 @@ function renderWeekNav(){
   });
 }
 function selectDate(date){
+  if(date===S.selectedDate)return;
+  autoSaveCurrentDay();
+  clearTimeout(_syncTimer);_undoPrev=undefined;showUndo(false);_lastSaveTime=null;setSave('');
   S.selectedDate=date;
   const ex=S.sessions.find(s=>s.date===date);
   if(ex)loadSess(ex);else{resetForm();loadTemplate();}
@@ -563,10 +573,10 @@ function loadSess(sess){
   document.getElementById('m-extra').value=sess.extra||'';document.getElementById('m-notes').value=sess.notes||'';
   S.supersets=JSON.parse(JSON.stringify(sess.supersets||[]));
   if(sess.bjj){const b=sess.bjj;['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value=b[k]||'':el.value=b[k]||'';}});if(b.positions)document.querySelectorAll('.pos-chip').forEach(c=>c.classList.toggle('on',b.positions.includes(c.textContent)));}
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>handleSleep(v));
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();});
-  buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;});
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
   renderDtype();computeSug();renderTable();
 }
 function resetForm(){
@@ -574,10 +584,10 @@ function resetForm(){
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
   ['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value='':el.value='';}});
   document.querySelectorAll('.pos-chip').forEach(c=>c.classList.remove('on'));
-  buildChips('chips-sleep',SLEEP_C,'7h',v=>handleSleep(v));
-  buildChips('chips-energy',ENERGY_C,'Moderate',v=>{S.energy=v;computeSug();renderTable();});
-  buildChips('chips-soreness',SORENESS_C,'Fresh',v=>{S.soreness=v;computeSug();renderTable();});
-  buildChips('chips-perf',PERF_C,'→ On track',v=>{S.perf=v;});
+  buildChips('chips-sleep',SLEEP_C,'7h',v=>{handleSleep(v);markDirty();});
+  buildChips('chips-energy',ENERGY_C,'Moderate',v=>{S.energy=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,'Fresh',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-perf',PERF_C,'→ On track',v=>{S.perf=v;markDirty();});
 }
 function shiftWeek(d){if(d>0&&S.viewWeekOffset>=0)return;S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;resetForm();loadTemplate();renderWeekNav();}
 
@@ -741,29 +751,66 @@ function buildCurrentSession(){const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym
 const _synced=new Set(JSON.parse(localStorage.getItem('mp7_synced')||'[]'));
 function markSynced(date){_synced.add(date);localStorage.setItem('mp7_synced',JSON.stringify([..._synced]));}
 
-async function autoSave(){
-  try{
-    const sess=buildCurrentSession();
-    const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
-    if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
-    persist();
-    if(S.scriptUrl&&!_synced.has(S.selectedDate)){await appendRows(toRows(sess));markSynced(S.selectedDate);}
-  }catch(e){}
+let _syncTimer=null,_undoPrev=undefined,_lastSaveTime=null;
+function fmtTime(ts){const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function setSave(msg,type){const el=document.getElementById('save-msg');if(!el)return;el.textContent=msg;el.className='save-msg'+(type==='ok'?' ok':type==='err'?' err':'');}
+function showUndo(v){const b=document.getElementById('undo-btn');if(b)b.style.display=v?'':'none';}
+
+function markDirty(){
+  if(_undoPrev===undefined){const ex=S.sessions.find(s=>s.date===S.selectedDate);_undoPrev=ex?JSON.parse(JSON.stringify(ex)):null;showUndo(true);}
+  const sess=buildCurrentSession();
+  const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
+  if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+  persist();_lastSaveTime=Date.now();
+  setSave('Auto-saved · '+fmtTime(_lastSaveTime));
+  clearTimeout(_syncTimer);
+  if(S.scriptUrl)_syncTimer=setTimeout(()=>syncDayToSheets(S.selectedDate),10000);
 }
 
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSave();});
-window.addEventListener('beforeunload',()=>autoSave());
+async function syncDayToSheets(date){
+  const sess=S.sessions.find(s=>s.date===date);if(!sess)return;
+  const ok=await appendRows(toRows(sess));if(ok)markSynced(date);
+}
 
-async function saveSession(){
+function autoSaveCurrentDay(){
+  const sess=buildCurrentSession();
+  const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
+  if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+  persist();
+  if(S.scriptUrl&&!_synced.has(S.selectedDate))appendRows(toRows(sess)).then(ok=>{if(ok)markSynced(S.selectedDate);});
+}
+
+async function manualSync(){
+  clearTimeout(_syncTimer);setSave('Syncing…');
+  const sess=buildCurrentSession();
+  const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
+  if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+  persist();
+  if(S.scriptUrl){const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Synced ✓':'Sync failed',ok?'ok':'err');setTimeout(()=>{if(_lastSaveTime)setSave('Auto-saved · '+fmtTime(_lastSaveTime));},3000);}
+  else setSave('No sync configured','err');
+}
+
+function undoSession(){
+  clearTimeout(_syncTimer);
+  if(_undoPrev===null){const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);if(ei>=0)S.sessions.splice(ei,1);persist();resetForm();loadTemplate();}
+  else if(_undoPrev){const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);if(ei>=0)S.sessions[ei]=JSON.parse(JSON.stringify(_undoPrev));persist();loadSess(_undoPrev);}
+  _undoPrev=undefined;showUndo(false);_lastSaveTime=null;setSave('Changes undone');
+}
+
+async function completeDay(){
+  clearTimeout(_syncTimer);
   const sess=buildCurrentSession();
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   S.weekInPhase=Math.min(S.weekInPhase+1,ph().weeks);
   persist();renderPhaseBar();renderAdvBar();renderWeekNav();
-  if(S.scriptUrl){setSave('Saving…');const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Saved ✓':'Saved locally · Sheets error',ok);}
-  else if(S.apiKey&&S.sheetId){setSave('Saving…');const ok=await appendRows(toRows(sess));setSave(ok?'Saved ✓':'Saved locally · Sheets error',ok);}
-  else setSave('Saved locally');
+  _undoPrev=undefined;showUndo(false);
+  if(S.scriptUrl){setSave('Syncing…');const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Day complete ✓':'Saved locally · Sync error',ok?'ok':'err');}
+  else setSave('Day complete ✓','ok');
 }
+
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
+window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function toRows(s){const rows=[];(s.supersets||[]).forEach((ss,si)=>{ss.exercises.forEach(ex=>{const vol=Math.round((parseFloat(ex.kg)||0)*(parseFloat(ex.reps)||0)*(parseFloat(ex.sets)||3));rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||3,vol,s.sleep,s.energy,s.soreness,s.perf,ex.flagged?'flagged':'',s.extra||'',s.notes||'']);});});if(!rows.length)rows.push([s.date,s.week,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep,s.energy,s.soreness,s.perf,'',s.extra||'',s.notes||'']);return rows;}
 async function appendRows(rows){try{if(S.scriptUrl){const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 function setSave(msg,ok){const el=document.getElementById('save-msg');el.textContent=msg;el.className='save-msg'+(ok===true?' ok':ok===false?' err':'');if(ok!==false)setTimeout(()=>el.textContent='',4000);}
