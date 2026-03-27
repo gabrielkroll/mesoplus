@@ -51,7 +51,7 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .btn-s:hover{opacity:.8}
 
 /* NAV */
-.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;background:var(--lift);padding-top:16px;margin-top:-16px}
 .wordmark{font-family:var(--serif);font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)}
 .wordmark sup{font-size:13px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
 .nav-links{display:flex;gap:2px}
@@ -198,7 +198,7 @@ select.bare{cursor:pointer}
 .rest-sub{font-size:11px;color:var(--ink3);margin-top:18px;line-height:1.7}
 
 /* BOTTOM */
-.bottom{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
+.bottom{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:14px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--lift);padding-bottom:16px}
 .save-msg{font-size:11px;color:var(--ink3)}
 .save-msg.ok{color:var(--accent)}.save-msg.err{color:var(--danger)}
 
