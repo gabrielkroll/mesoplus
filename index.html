@@ -23,22 +23,17 @@
   :root{--ink:#e8e8e8;--ink2:#aaa;--ink3:#666;--line:#2a2a2a;--line2:#444;--surf:#1e1e1e;--lift:#141414;--danger-bg:#2a0808;}
 }
 body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;background:var(--lift);min-height:100vh}
-/* PIN GATE */
+/* PASSWORD GATE */
 #pin-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center}
 #pin-gate.hidden{display:none}
-.pin-box{text-align:center;max-width:280px;width:100%;padding:0 24px}
+.pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px}
 .pin-title{font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:4px}
 .pin-title sup{font-size:16px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
-.pin-sub{font-size:11px;color:var(--ink3);margin-bottom:28px}
-.pin-dots{display:flex;justify-content:center;gap:10px;margin-bottom:24px}
-.pin-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--line2);transition:background .15s,border-color .15s}
-.pin-dot.filled{background:var(--ink);border-color:var(--ink)}
-.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:200px;margin:0 auto 16px}
-.pin-btn{background:none;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:18px;padding:14px;cursor:pointer;border-radius:6px;transition:all .12s;outline:none}
-.pin-btn:hover{border-color:var(--line2);background:var(--surf)}
-.pin-btn:active{background:var(--line)}
-.pin-err{font-size:11px;color:var(--danger);min-height:16px;margin-bottom:8px}
-.pin-setup-note{font-size:10px;color:var(--ink3);margin-top:12px;line-height:1.6}
+.pin-sub{font-size:11px;color:var(--ink3);margin-bottom:24px}
+.pin-field{width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:14px;color:var(--ink);outline:none;margin-bottom:10px;transition:border-color .12s;text-align:left}
+.pin-field:focus{border-color:var(--line2)}
+.pin-err{font-size:11px;color:var(--danger);min-height:16px;margin-bottom:10px}
+.pin-setup-note{font-size:10px;color:var(--ink3);margin-top:14px;line-height:1.6}
 .wrap{max-width:900px;margin:0 auto;padding:20px 16px}
 
 /* BUTTONS */
@@ -241,32 +236,18 @@ select.bare{cursor:pointer}
 </head>
 <body>
 
-<!-- PIN GATE -->
+<!-- PASSWORD GATE -->
 <div id="pin-gate">
   <div class="pin-box">
     <div class="pin-title">Meso<sup>+</sup></div>
-    <div class="pin-sub" id="pin-sub">Enter your PIN</div>
-    <div class="pin-dots">
-      <div class="pin-dot" id="pd0"></div>
-      <div class="pin-dot" id="pd1"></div>
-      <div class="pin-dot" id="pd2"></div>
-      <div class="pin-dot" id="pd3"></div>
-    </div>
+    <div class="pin-sub" id="pin-sub">Enter your password</div>
     <div class="pin-err" id="pin-err"></div>
-    <div class="pin-grid">
-      <button class="pin-btn" onclick="pinKey('1')">1</button>
-      <button class="pin-btn" onclick="pinKey('2')">2</button>
-      <button class="pin-btn" onclick="pinKey('3')">3</button>
-      <button class="pin-btn" onclick="pinKey('4')">4</button>
-      <button class="pin-btn" onclick="pinKey('5')">5</button>
-      <button class="pin-btn" onclick="pinKey('6')">6</button>
-      <button class="pin-btn" onclick="pinKey('7')">7</button>
-      <button class="pin-btn" onclick="pinKey('8')">8</button>
-      <button class="pin-btn" onclick="pinKey('9')">9</button>
-      <button class="pin-btn" onclick="pinKey('back')" style="font-size:13px;color:var(--ink3)">⌫</button>
-      <button class="pin-btn" onclick="pinKey('0')">0</button>
-      <button class="pin-btn" onclick="pinKey('clear')" style="font-size:10px;color:var(--ink3)">CLR</button>
-    </div>
+    <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
+      <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
+      <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password">
+      <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none">
+      <button type="submit" class="btn-s" style="width:100%" id="pin-submit-btn">Unlock</button>
+    </form>
     <div class="pin-setup-note" id="pin-setup-note"></div>
   </div>
 </div>
@@ -743,48 +724,54 @@ async function saveSettings(){
 
 function nav(id){['log','history','analysis','settings'].forEach(v=>{document.getElementById('v-'+v).classList.toggle('hidden',v!==id);document.getElementById('nl-'+v).classList.toggle('on',v===id);});if(id==='history')renderHistory();}
 
-/* PIN GATE */
-let pinBuf='',pinMode='unlock'; // modes: unlock | setup | confirm
-let pinPending='';
-async function hashPin(pin){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pin+'mp7salt'));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
-function pinDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('filled',i<pinBuf.length);}
-async function pinKey(k){
-  if(k==='clear'){pinBuf='';pinDots();document.getElementById('pin-err').textContent='';return;}
-  if(k==='back'){pinBuf=pinBuf.slice(0,-1);pinDots();return;}
-  if(pinBuf.length>=4)return;
-  pinBuf+=k;pinDots();
-  if(pinBuf.length<4)return;
-  const h=await hashPin(pinBuf);
-  if(pinMode==='unlock'){
-    const stored=localStorage.getItem('mp7_pin');
-    if(h===stored){document.getElementById('pin-gate').classList.add('hidden');pinBuf='';}
-    else{document.getElementById('pin-err').textContent='Wrong PIN';pinBuf='';pinDots();setTimeout(()=>document.getElementById('pin-err').textContent='',1500);}
-  } else if(pinMode==='setup'){
-    pinPending=h;pinMode='confirm';pinBuf='';pinDots();
-    document.getElementById('pin-sub').textContent='Confirm your PIN';
-    document.getElementById('pin-err').textContent='';
-  } else if(pinMode==='confirm'){
-    if(h===pinPending){localStorage.setItem('mp7_pin',h);document.getElementById('pin-gate').classList.add('hidden');pinBuf='';pinMode='unlock';}
-    else{document.getElementById('pin-err').textContent='PINs don\'t match — try again';pinMode='setup';pinPending='';pinBuf='';pinDots();document.getElementById('pin-sub').textContent='Set a 4-digit PIN';}
+/* PASSWORD GATE */
+let pinMode='unlock'; // unlock | setup
+async function hashPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw+'mp7salt'));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function submitPassword(e){
+  e.preventDefault();
+  const pw=document.getElementById('pin-input').value;
+  const err=document.getElementById('pin-err');
+  if(!pw){err.textContent='Enter your password';return;}
+  if(pinMode==='setup'){
+    const confirm=document.getElementById('pin-confirm-input').value;
+    if(!confirm){err.textContent='Confirm your password';return;}
+    if(pw!==confirm){err.textContent='Passwords don\'t match';return;}
+    localStorage.setItem('mp7_pin',await hashPw(pw));
+    unlockApp();
+  } else {
+    const h=await hashPw(pw);
+    if(h===localStorage.getItem('mp7_pin')){unlockApp();}
+    else{err.textContent='Wrong password';document.getElementById('pin-input').value='';}
   }
 }
-function lockApp(){document.getElementById('pin-gate').classList.remove('hidden');pinBuf='';pinDots();document.getElementById('pin-err').textContent='';}
+function unlockApp(){
+  document.getElementById('pin-gate').classList.add('hidden');
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-confirm-input').value='';
+  document.getElementById('pin-err').textContent='';
+}
+function lockApp(){
+  document.getElementById('pin-gate').classList.remove('hidden');
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-err').textContent='';
+  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+}
 function initPin(){
   const stored=localStorage.getItem('mp7_pin');
   if(!stored){
     pinMode='setup';
-    document.getElementById('pin-sub').textContent='Set a 4-digit PIN';
-    document.getElementById('pin-setup-note').textContent='First time setup — choose a PIN to protect your data.';
+    document.getElementById('pin-sub').textContent='Create a password';
+    document.getElementById('pin-input').autocomplete='new-password';
+    document.getElementById('pin-input').name='new-password';
+    document.getElementById('pin-confirm-input').style.display='block';
+    document.getElementById('pin-submit-btn').textContent='Set password';
+    document.getElementById('pin-setup-note').textContent='First time setup — Safari will offer to save this to your Keychain.';
   } else {
     pinMode='unlock';
-    document.getElementById('pin-sub').textContent='Enter your PIN';
+    document.getElementById('pin-sub').textContent='Enter your password';
   }
+  setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
-document.addEventListener('keydown',e=>{
-  if(document.getElementById('pin-gate').classList.contains('hidden'))return;
-  if(e.key>='0'&&e.key<='9')pinKey(e.key);
-  else if(e.key==='Backspace')pinKey('back');
-});
 
 initPin();
 init();
