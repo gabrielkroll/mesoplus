@@ -359,6 +359,10 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-settings" class="hidden">
+    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Claude AI setup</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Required for smart analysis · console.anthropic.com → API Keys</div>
+    <div class="s-row"><div class="s-lbl">Claude API key<div class="s-note">Stored locally in your browser. Never sent anywhere except Anthropic.</div></div><div><div class="field-lbl">API key</div><input class="bare" type="password" id="s-ckey" placeholder="sk-ant-..."></div></div>
+    <div style="height:20px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Google Sheets setup</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">One-time · free Google account · ~15 min</div>
     <div class="s-row"><div class="s-lbl">1 — Enable Sheets API<div class="s-note">Google Cloud Console → New project → APIs & Services → Google Sheets API → Enable</div></div><a class="s-link" href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">console.cloud.google.com ↗</a></div>
@@ -404,7 +408,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Fresh','Mild','Moderate','Heavy','Wrecked'];
 const PERF_C=['↓ Below par','→ On track','↑ Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'7h',energy:'Moderate',soreness:'Fresh',perf:'→ On track',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log'};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'7h',energy:'Moderate',soreness:'Fresh',perf:'→ On track',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:''};
 let undoExStack=null,undoSSStack=null;
 
 const td=()=>new Date().toISOString().split('T')[0];
@@ -419,8 +423,9 @@ function ph(){return S.phases[S.phaseIdx];}
 function init(){
   const saved=localStorage.getItem('mp7');
   if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.weekInPhase=p.weekInPhase||1;S.sessions=p.sessions||[];}
-  S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';
+  S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
+  if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
   S.selectedDate=td();
   buildChips('chips-sleep',SLEEP_C,S.sleep,v=>handleSleep(v));
   buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();});
@@ -672,12 +677,13 @@ async function runAnalysis(){
   const out=document.getElementById('a-out');out.className='a-out loading';out.textContent='Asking Claude…';
   const p=ph(),flagged=[...new Set(S.sessions.flatMap(s=>s.flagged||[]))].filter(Boolean);
   const prompt=`You are a hypertrophy + BJJ coach.\nGoals: Chest, Biceps, Forearms, Grip (primary) · Delts, Shoulder stability, Back (secondary). BJJ: Gracie Combatives.\nPhase: ${p.name} · RIR ${p.rir} · Week ${wk()}. Flexible mesocycle.\nFlagged exercises (pain/discomfort): ${flagged.length?flagged.join(', '):'none'}.\nScope: ${document.getElementById('a-scope').value}. Focus: ${document.getElementById('a-focus').value}.\nSessions: ${JSON.stringify(S.sessions.slice(-8),null,2)}\n${document.getElementById('a-data').value?'Extra data:\n'+document.getElementById('a-data').value:''}\nDirect. Specific. Exact kg/rep targets where relevant. Max 300 words.`;
-  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});const d=await res.json();out.className='a-out';out.textContent=d.content?.[0]?.text||'No response.';}catch(e){out.className='a-out';out.textContent='Error: '+e.message;}
+  if(!S.claudeKey){out.className='a-out';out.textContent='No Claude API key — add it in Setup tab.';return;}
+  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:prompt}]})});const d=await res.json();out.className='a-out';out.textContent=d.content?.[0]?.text||d.error?.message||'No response.';}catch(e){out.className='a-out';out.textContent='Error: '+e.message;}
 }
 
 async function saveSettings(){
-  S.apiKey=document.getElementById('s-key').value.trim();S.sheetId=document.getElementById('s-id').value.trim();S.sheetTab=document.getElementById('s-tab').value.trim()||'Workout_Log';
-  localStorage.setItem('mp7_k',S.apiKey);localStorage.setItem('mp7_s',S.sheetId);localStorage.setItem('mp7_t',S.sheetTab);
+  S.apiKey=document.getElementById('s-key').value.trim();S.sheetId=document.getElementById('s-id').value.trim();S.sheetTab=document.getElementById('s-tab').value.trim()||'Workout_Log';S.claudeKey=document.getElementById('s-ckey').value.trim();
+  localStorage.setItem('mp7_k',S.apiKey);localStorage.setItem('mp7_s',S.sheetId);localStorage.setItem('mp7_t',S.sheetTab);localStorage.setItem('mp7_ck',S.claudeKey);
   const st=document.getElementById('s-status');st.textContent='Testing connection…';
   try{
     const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}?key=${S.apiKey}`);
