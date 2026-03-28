@@ -529,15 +529,85 @@ const REST_QUOTES=[
   {q:"Sleep is the greatest legal performance-enhancing drug that most people are neglecting.",attr:"Matthew Walker"},
 ];
 const TEMPLATES={
-  1:[{label:'Posterior + Calves',exercises:[{name:'Seated Calf Raises',muscle:'Calves',res:'Machine',side:'Both',rf:15,rc:20,sets:3},{name:'Romanian Deadlift',muscle:'Hamstrings',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3}]},{label:'Shoulder + Biceps',exercises:[{name:'Face Pulls',muscle:'Shoulder stability',res:'Cable',side:'Both',rf:12,rc:20,sets:3},{name:'Incline DB Curl',muscle:'Biceps',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}]},{label:'Chest + Back',exercises:[{name:'Barbell Bench Press',muscle:'Chest',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Chest Supported Row',muscle:'Back',res:'Machine',side:'Both',rf:10,rc:15,sets:3}]},{label:'Biceps + Grip',exercises:[{name:'Bayesian Cable Curl',muscle:'Biceps',res:'Cable',side:'Both',rf:10,rc:15,sets:3},{name:'Towel Grip Farmer Carry',muscle:'Grip',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}]}],
-  2:[{label:'Lower + Forearms',exercises:[{name:'Squat',muscle:'Quads',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Wrist Curl',muscle:'Forearms',res:'Free Weights',side:'Both',rf:12,rc:20,sets:3}]},{label:'Delts + Chest',exercises:[{name:'Reverse Pec Deck',muscle:'Delts',res:'Machine',side:'Both',rf:12,rc:15,sets:3},{name:'Pec Deck Fly',muscle:'Chest',res:'Machine',side:'Both',rf:12,rc:15,sets:3}]},{label:'Back + Chest',exercises:[{name:'Chest Supported Row',muscle:'Back',res:'Machine',side:'Both',rf:10,rc:15,sets:3},{name:'DB Bench Press',muscle:'Chest',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3}]},{label:'Biceps + Triceps',exercises:[{name:'EZ Bar Curl',muscle:'Biceps',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Overhead Cable Triceps Ext',muscle:'Triceps',res:'Cable',side:'Both',rf:10,rc:15,sets:3}]}],
-  3:[{label:'Posterior + Calves',exercises:[{name:'Standing Calf Raises',muscle:'Calves',res:'Free Weights',side:'Both',rf:15,rc:25,sets:3},{name:'Romanian Deadlift',muscle:'Hamstrings',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3}]},{label:'Shoulder + Biceps',exercises:[{name:'Face Pulls',muscle:'Shoulder stability',res:'Cable',side:'Both',rf:12,rc:20,sets:3},{name:'Incline DB Curl',muscle:'Biceps',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}]},{label:'Chest + Back',exercises:[{name:'Barbell Bench Press',muscle:'Chest',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Chest Supported Row',muscle:'Back',res:'Machine',side:'Both',rf:10,rc:15,sets:3}]},{label:'Biceps + Grip',exercises:[{name:'Hammer Curl',muscle:'Biceps',res:'Free Weights',side:'Both',rf:10,rc:12,sets:3},{name:'Plate Pinch Hold',muscle:'Grip',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}]}],
-  4:[{label:'Lower + Forearms',exercises:[{name:'Front Squat',muscle:'Quads',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Reverse Wrist Curl',muscle:'Forearms',res:'Free Weights',side:'Both',rf:12,rc:20,sets:3}]},{label:'Delts + Chest',exercises:[{name:'Reverse Pec Deck',muscle:'Delts',res:'Machine',side:'Both',rf:12,rc:15,sets:3},{name:'Pec Deck Fly',muscle:'Chest',res:'Machine',side:'Both',rf:12,rc:15,sets:3}]},{label:'Chest + Back',exercises:[{name:'DB Bench Press',muscle:'Chest',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Lat Pulldown',muscle:'Back',res:'Machine',side:'Both',rf:10,rc:15,sets:3}]},{label:'Biceps + Triceps',exercises:[{name:'EZ Bar Curl',muscle:'Biceps',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},{name:'Overhead Cable Triceps Ext',muscle:'Triceps',res:'Cable',side:'Both',rf:10,rc:15,sets:3}]}],
+  1:[
+    {label:'Calves + Hamstrings',exercises:[
+      {name:'Seated Calf Raises',muscle:'Calves',muscle2:'',res:'Machine',side:'Both',rf:15,rc:20,sets:3},
+      {name:'Romanian Deadlift',muscle:'Hamstrings',muscle2:'Glutes',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3}
+    ]},
+    {label:'Delts + Biceps',exercises:[
+      {name:'Face Pulls',muscle:'Delts',muscle2:'Stability',res:'Cable',side:'Both',rf:12,rc:20,sets:3},
+      {name:'Incline DB Curl',muscle:'Biceps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}
+    ]},
+    {label:'Chest + Back',exercises:[
+      {name:'Barbell Bench Press',muscle:'Chest',muscle2:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Chest Supported Row',muscle:'Back',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:3}
+    ]},
+    {label:'Biceps + Forearms',exercises:[
+      {name:'Bayesian Cable Curl',muscle:'Biceps',muscle2:'',res:'Cable',side:'Both',rf:10,rc:15,sets:3},
+      {name:'Towel Grip Farmer Carry',muscle:'Forearms',muscle2:'Grip',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}
+    ]}
+  ],
+  2:[
+    {label:'Quads + Forearms',exercises:[
+      {name:'Squat',muscle:'Quads',muscle2:'Glutes',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Wrist Curl',muscle:'Forearms',muscle2:'Grip',res:'Free Weights',side:'Both',rf:12,rc:20,sets:3}
+    ]},
+    {label:'Delts + Chest',exercises:[
+      {name:'Reverse Pec Deck',muscle:'Delts',muscle2:'Stability',res:'Machine',side:'Both',rf:12,rc:15,sets:3},
+      {name:'Pec Deck Fly',muscle:'Chest',muscle2:'',res:'Machine',side:'Both',rf:12,rc:15,sets:3}
+    ]},
+    {label:'Back + Chest',exercises:[
+      {name:'Chest Supported Row',muscle:'Back',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:3},
+      {name:'DB Bench Press',muscle:'Chest',muscle2:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3}
+    ]},
+    {label:'Biceps + Triceps',exercises:[
+      {name:'EZ Bar Curl',muscle:'Biceps',muscle2:'Forearms',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Overhead Cable Triceps Ext',muscle:'Triceps',muscle2:'',res:'Cable',side:'Both',rf:10,rc:15,sets:3}
+    ]}
+  ],
+  3:[
+    {label:'Calves + Hamstrings',exercises:[
+      {name:'Standing Calf Raises',muscle:'Calves',muscle2:'',res:'Free Weights',side:'Both',rf:15,rc:25,sets:3},
+      {name:'Romanian Deadlift',muscle:'Hamstrings',muscle2:'Glutes',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3}
+    ]},
+    {label:'Delts + Biceps',exercises:[
+      {name:'Face Pulls',muscle:'Delts',muscle2:'Stability',res:'Cable',side:'Both',rf:12,rc:20,sets:3},
+      {name:'Incline DB Curl',muscle:'Biceps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}
+    ]},
+    {label:'Chest + Back',exercises:[
+      {name:'Barbell Bench Press',muscle:'Chest',muscle2:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Chest Supported Row',muscle:'Back',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:3}
+    ]},
+    {label:'Biceps + Forearms',exercises:[
+      {name:'Hammer Curl',muscle:'Biceps',muscle2:'Forearms',res:'Free Weights',side:'Both',rf:10,rc:12,sets:3},
+      {name:'Plate Pinch Hold',muscle:'Forearms',muscle2:'Grip',res:'Free Weights',side:'Both',rf:10,rc:15,sets:3}
+    ]}
+  ],
+  4:[
+    {label:'Quads + Forearms',exercises:[
+      {name:'Front Squat',muscle:'Quads',muscle2:'Glutes',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Reverse Wrist Curl',muscle:'Forearms',muscle2:'Grip',res:'Free Weights',side:'Both',rf:12,rc:20,sets:3}
+    ]},
+    {label:'Delts + Chest',exercises:[
+      {name:'Reverse Pec Deck',muscle:'Delts',muscle2:'Stability',res:'Machine',side:'Both',rf:12,rc:15,sets:3},
+      {name:'Pec Deck Fly',muscle:'Chest',muscle2:'',res:'Machine',side:'Both',rf:12,rc:15,sets:3}
+    ]},
+    {label:'Chest + Back',exercises:[
+      {name:'DB Bench Press',muscle:'Chest',muscle2:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Lat Pulldown',muscle:'Back',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:3}
+    ]},
+    {label:'Biceps + Triceps',exercises:[
+      {name:'EZ Bar Curl',muscle:'Biceps',muscle2:'Forearms',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3},
+      {name:'Overhead Cable Triceps Ext',muscle:'Triceps',muscle2:'',res:'Cable',side:'Both',rf:10,rc:15,sets:3}
+    ]}
+  ],
 };
-const EX_LIST=['Seated Calf Raises','Standing Calf Raises','Romanian Deadlift','Face Pulls','Incline DB Curl','Bayesian Cable Curl','EZ Bar Curl','Hammer Curl','Barbell Bench Press','DB Bench Press','Incline DB Bench Press','Pec Deck Fly','Chest Supported Row','Lat Pulldown','Towel Grip Farmer Carry','Plate Pinch Hold','Squat','Front Squat','Wrist Curl','Reverse Wrist Curl','Reverse Pec Deck','Overhead Press','Lateral Raises','Overhead Cable Triceps Ext','Skull Crushers','Cable Fly','Pull-ups','Dips','Leg Curl','Leg Press'];
-const EX_MUSCLE={'Seated Calf Raises':'Calves','Standing Calf Raises':'Calves','Romanian Deadlift':'Hamstrings','Face Pulls':'Shoulder stability','Incline DB Curl':'Biceps','Bayesian Cable Curl':'Biceps','EZ Bar Curl':'Biceps','Hammer Curl':'Biceps','Barbell Bench Press':'Chest','DB Bench Press':'Chest','Incline DB Bench Press':'Chest','Pec Deck Fly':'Chest','Chest Supported Row':'Back','Lat Pulldown':'Back','Towel Grip Farmer Carry':'Grip','Plate Pinch Hold':'Grip','Squat':'Quads','Front Squat':'Quads','Wrist Curl':'Forearms','Reverse Wrist Curl':'Forearms','Reverse Pec Deck':'Delts','Overhead Press':'Delts','Lateral Raises':'Delts','Overhead Cable Triceps Ext':'Triceps','Skull Crushers':'Triceps','Cable Fly':'Chest','Pull-ups':'Back','Dips':'Triceps','Leg Curl':'Hamstrings','Leg Press':'Quads'};
+const EX_MUSCLE={'Seated Calf Raises':'Calves','Standing Calf Raises':'Calves','Romanian Deadlift':'Hamstrings','Face Pulls':'Delts','Incline DB Curl':'Biceps','Bayesian Cable Curl':'Biceps','EZ Bar Curl':'Biceps','Hammer Curl':'Biceps','Barbell Bench Press':'Chest','DB Bench Press':'Chest','Incline DB Bench Press':'Chest','Pec Deck Fly':'Chest','Chest Supported Row':'Back','Lat Pulldown':'Back','Towel Grip Farmer Carry':'Forearms','Plate Pinch Hold':'Forearms','Squat':'Quads','Front Squat':'Quads','Wrist Curl':'Forearms','Reverse Wrist Curl':'Forearms','Reverse Pec Deck':'Delts','Overhead Press':'Delts','Lateral Raises':'Delts','Overhead Cable Triceps Ext':'Triceps','Skull Crushers':'Triceps','Cable Fly':'Chest','Pull-ups':'Back','Dips':'Triceps','Leg Curl':'Hamstrings','Leg Press':'Quads'};
+const EX_MUSCLE2={'Romanian Deadlift':'Glutes','Squat':'Glutes','Front Squat':'Glutes','Leg Press':'Glutes','Leg Curl':'Glutes','Face Pulls':'Stability','Reverse Pec Deck':'Stability','Hammer Curl':'Forearms','EZ Bar Curl':'Forearms','Towel Grip Farmer Carry':'Grip','Plate Pinch Hold':'Grip','Wrist Curl':'Grip','Reverse Wrist Curl':'Grip'};
 const EX_RES={'Seated Calf Raises':'Machine','Romanian Deadlift':'Free Weights','Face Pulls':'Cable','Incline DB Curl':'Free Weights','Bayesian Cable Curl':'Cable','EZ Bar Curl':'Free Weights','Hammer Curl':'Free Weights','Barbell Bench Press':'Free Weights','DB Bench Press':'Free Weights','Pec Deck Fly':'Machine','Chest Supported Row':'Machine','Lat Pulldown':'Machine','Towel Grip Farmer Carry':'Free Weights','Plate Pinch Hold':'Free Weights','Squat':'Free Weights','Front Squat':'Free Weights','Wrist Curl':'Free Weights','Reverse Wrist Curl':'Free Weights','Reverse Pec Deck':'Machine','Overhead Press':'Free Weights','Lateral Raises':'Free Weights','Overhead Cable Triceps Ext':'Cable','Skull Crushers':'Free Weights','Cable Fly':'Cable','Pull-ups':'Bodyweight','Dips':'Bodyweight','Leg Curl':'Machine','Leg Press':'Machine'};
-const MUSCLES=['Chest','Biceps','Forearms','Grip','Delts','Shoulder stability','Back','Hamstrings','Glutes','Quads','Calves','Triceps','Traps','Abs'];
+const EX_GROUPS={'Chest':['Barbell Bench Press','DB Bench Press','Incline DB Bench Press','Pec Deck Fly','Cable Fly'],'Back':['Chest Supported Row','Lat Pulldown','Pull-ups'],'Biceps':['Incline DB Curl','Bayesian Cable Curl','EZ Bar Curl','Hammer Curl'],'Triceps':['Overhead Cable Triceps Ext','Skull Crushers','Dips'],'Delts':['Face Pulls','Reverse Pec Deck','Overhead Press','Lateral Raises'],'Forearms':['Wrist Curl','Reverse Wrist Curl','Towel Grip Farmer Carry','Plate Pinch Hold'],'Quads':['Squat','Front Squat','Leg Press'],'Hamstrings':['Romanian Deadlift','Leg Curl'],'Calves':['Seated Calf Raises','Standing Calf Raises']};
+const EX_LIST=Object.values(EX_GROUPS).flat();
+const MUSCLES=['Chest','Biceps','Forearms','Grip','Delts','Stability','Back','Hamstrings','Glutes','Quads','Calves','Triceps','Traps','Abs'];
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const SLEEP_C=['≤5.5h','6h','6.5h','7h','7.5h','8h','≥8.5h'];
 const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
@@ -750,7 +820,7 @@ function fixGymDays(){
   persist();
 }
 function loadTemplate(){
-  S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
+  S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,muscle2:e.muscle2||'',res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
   computeSug();renderTable();
 }
 
@@ -791,7 +861,7 @@ function renderTable(){
     tbody.appendChild(htr);
     ss.exercises.forEach((ex,ei)=>{
       const tr=document.createElement('tr');tr.className='ex-divider';
-      const exO=EX_LIST.map(n=>`<option value="${n}"${n===ex.name?' selected':''}>${n}</option>`).join('');
+      const exO=Object.entries(EX_GROUPS).map(([grp,exs])=>`<optgroup label="${grp}">${exs.map(n=>`<option value="${n}"${n===ex.name?' selected':''}>${n}</option>`).join('')}</optgroup>`).join('');
       const rO=RES.map(r=>`<option value="${r}"${r===ex.res?' selected':''}>${r}</option>`).join('');
       const sO=SIDE.map(s=>`<option value="${s}"${s===ex.side?' selected':''}>${s}</option>`).join('');
       const sk=ex.sugKg!=null?String(ex.sugKg):'',sr=ex.sugReps!=null?String(ex.sugReps):'',srir=ex.sugRIR!=null?String(ex.sugRIR):'';
@@ -860,7 +930,7 @@ function showAdoptUndo(){
   setTimeout(()=>btn.classList.remove('show'),8000);
 }
 
-function upEx(si,ei,f,v){const ex=S.supersets[si].exercises[ei];if(f==='name'){ex.name=v;ex.muscle=EX_MUSCLE[v]||'';if(EX_RES[v])ex.res=EX_RES[v];}else ex[f]=v;renderTable();}
+function upEx(si,ei,f,v){const ex=S.supersets[si].exercises[ei];if(f==='name'){ex.name=v;ex.muscle=EX_MUSCLE[v]||'';ex.muscle2=EX_MUSCLE2[v]||'';if(EX_RES[v])ex.res=EX_RES[v];}else ex[f]=v;renderTable();}
 function toggleFlag(si,ei){const ex=S.supersets[si].exercises[ei];ex.flagged=!ex.flagged;renderTable();}
 
 function removeExWithUndo(si,ei){
@@ -887,8 +957,8 @@ function undoSS(){
   S.supersets.splice(undoSSStack.idx,0,undoSSStack.data);
   undoSSStack=null;renderTable();
 }
-function addSuperset(){S.supersets.push({label:'',exercises:[{name:'',muscle:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:'',kg:'',reps:'',rir:'',flagged:false}]});renderTable();}
-function addExToSS(si){S.supersets[si].exercises.push({name:'',muscle:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:'',kg:'',reps:'',rir:'',flagged:false});renderTable();}
+function addSuperset(){S.supersets.push({label:'',exercises:[{name:'',muscle:'',muscle2:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:'',kg:'',reps:'',rir:'',flagged:false}]});renderTable();}
+function addExToSS(si){S.supersets[si].exercises.push({name:'',muscle:'',muscle2:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:'',kg:'',reps:'',rir:'',flagged:false});renderTable();}
 
 function getBJJ(){return{gc:document.getElementById('bjj-gc').value,desc:document.getElementById('bjj-desc').value,partner:document.getElementById('bjj-partner').value,drilling:document.getElementById('bjj-drilling').value,good:document.getElementById('bjj-good').value,bad:document.getElementById('bjj-bad').value,subs:document.getElementById('bjj-subs').value,next:document.getElementById('bjj-next').value,positions:[...document.querySelectorAll('.pos-chip.on')].map(b=>b.textContent)};}
 
