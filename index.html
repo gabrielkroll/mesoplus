@@ -247,10 +247,12 @@ select.bare{cursor:pointer}
 /* PROFILE MENU */
 .profile-wrap{position:relative}
 .profile-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--lift);border:1px solid var(--line);border-radius:6px;padding:4px;min-width:130px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.12)}
-.pmenu-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--ink2);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:4px;transition:all .12s;white-space:nowrap;outline:none}
+.pmenu-item{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;background:none;border:none;color:var(--ink2);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:4px;transition:all .12s;white-space:nowrap;outline:none}
 .pmenu-item:hover{background:var(--surf);color:var(--ink)}
 .pmenu-item.danger:hover{color:var(--danger);background:var(--danger-bg)}
 .pmenu-divider{height:1px;background:var(--line);margin:4px 0}
+.power-icon{color:#c0392b;filter:drop-shadow(0 0 5px #c0392b99);font-size:13px;margin-left:8px}
+.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;font-size:8px;flex-shrink:0;margin-right:5px}
 
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -305,11 +307,11 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
       <div class="profile-wrap">
-        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()">Profile</button>
+        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()"><span class="profile-avatar" id="profile-avatar"></span><span id="profile-name">Profile</span></button>
         <div class="profile-menu hidden" id="profile-menu">
           <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
-          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Logout</button>
+          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Turn off <span class="power-icon">⏻</span></button>
         </div>
       </div>
     </div>
@@ -483,6 +485,9 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-settings" class="hidden">
+    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Profile</div>
+    <div class="s-row"><div class="s-lbl">Your name<div class="s-note">Shown in the nav.</div></div><div><div class="field-lbl">Name</div><input class="bare" id="s-name" placeholder="Your name" oninput="updateProfileNav()"></div></div>
+    <div style="height:24px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Mesocycle</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
     <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
@@ -567,6 +572,7 @@ function init(){
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
   if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
   if(S.scriptUrl){document.getElementById('s-script').value=S.scriptUrl;}
+  const _name=localStorage.getItem('mp7_name')||'';if(_name){document.getElementById('s-name').value=_name;}updateProfileNav();
   document.getElementById('s-meso-start').value=S.mesoStart;
   S.selectedDate=td();
   buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
@@ -1120,6 +1126,7 @@ function nav(id){['log','progress','analysis','settings'].forEach(v=>{document.g
 function toggleProfileMenu(){const m=document.getElementById('profile-menu');m.classList.toggle('hidden');}
 function closeProfileMenu(){document.getElementById('profile-menu')?.classList.add('hidden');}
 document.addEventListener('click',e=>{const w=document.querySelector('.profile-wrap');if(w&&!w.contains(e.target))closeProfileMenu();});
+function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';document.getElementById('profile-avatar').textContent=initials;document.getElementById('profile-name').textContent=first||'Profile';}
 
 /* PASSWORD GATE */
 let pinMode='unlock'; // unlock | setup
