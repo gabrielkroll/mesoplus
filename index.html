@@ -40,7 +40,7 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 #setup-import-gate{position:fixed;inset:0;background:var(--lift);z-index:9998;display:flex;align-items:center;justify-content:center}
 #setup-import-gate.hidden{display:none}
 .setup-export-result{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:12px}
-.setup-qr-wrap{background:#fff;padding:10px;border-radius:6px}
+.setup-qr-wrap{background:#fff;padding:16px;border-radius:8px}
 .setup-link-row{display:flex;gap:6px;width:100%;align-items:center}
 .setup-link-input{flex:1;font-family:var(--mono);font-size:9px;background:none;border:1px solid var(--line);border-radius:4px;padding:6px 8px;color:var(--ink2);outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .setup-countdown{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em}
@@ -1336,7 +1336,7 @@ function generateSetupToken(){
   result.style.display='flex';
   const qrEl=document.getElementById('setup-qr');
   qrEl.innerHTML='';
-  new QRCode(qrEl,{text:url,width:160,height:160,colorDark:'#000000',colorLight:'#ffffff'});
+  new QRCode(qrEl,{text:url,width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   startExportCountdown(120);
 }
 function startExportCountdown(seconds){
