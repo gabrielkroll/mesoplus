@@ -311,9 +311,11 @@ select.bare{cursor:pointer}
       <div class="profile-wrap">
         <button class="nl" id="nl-profile" onclick="toggleProfileMenu()" style="display:inline-flex;align-items:center"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
         <div class="profile-menu hidden" id="profile-menu">
+          <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Profile</button>
+          <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Program</button>
           <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
-          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Lock app <span class="power-icon">⏻</span></button>
+          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Log out <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="margin-left:6px;vertical-align:middle"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
         </div>
       </div>
     </div>
