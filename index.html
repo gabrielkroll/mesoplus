@@ -380,7 +380,10 @@ select.bare{cursor:pointer}
     <div class="dtype-empty hidden" id="dtype-empty"><strong>What kind of session is today?</strong>Select Gym, BJJ, or Rest above to start logging.</div>
 
     <div id="gym-content">
-      <div class="section-title">Gym session</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+        <div class="section-title" style="margin-bottom:0">Gym session</div>
+        <div id="gym-template-tag" style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em"></div>
+      </div>
       <div class="sug-bar"><div class="sug-lbl">Today's target</div><div id="sug-text"></div></div>
       <div class="adopt-bar" id="adopt-bar">
         <span id="adopt-bar-label">Baseline suggestions available — review before saving</span>
@@ -792,6 +795,9 @@ function renderDtype(){
   const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym';
   document.getElementById('dtype-empty').classList.toggle('hidden',S.dtype!=='');
   document.getElementById('gym-content').classList.toggle('hidden',!isGym);
+  const dayLabels={1:'A',2:'B',3:'C',4:'D'};
+  const tag=document.getElementById('gym-template-tag');
+  if(tag)tag.textContent=isGym?`Full Body ABCD · Day ${dayLabels[S.gymDay]||S.gymDay}`:'';
   document.getElementById('bjj-content').classList.toggle('hidden',!isBJJ);
   document.getElementById('rest-content').classList.toggle('hidden',S.dtype!=='Rest');
   if(S.dtype==='Rest'){const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;}
