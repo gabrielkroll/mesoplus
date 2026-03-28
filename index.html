@@ -253,7 +253,7 @@ select.bare{cursor:pointer}
 .pmenu-item.danger:hover{color:var(--danger);background:var(--danger-bg)}
 .pmenu-divider{height:1px;background:var(--line);margin:4px 0}
 .power-icon{color:#c0392b;filter:drop-shadow(0 0 5px #c0392b99);font-size:13px;margin-left:8px}
-.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;font-size:8px;flex-shrink:0;margin-right:5px}
+.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;flex-shrink:0;margin-left:5px}
 
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -287,16 +287,17 @@ select.bare{cursor:pointer}
 <div id="pin-gate">
   <div class="pin-box">
     <div class="pin-title">Meso<sup>+</sup></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em" id="pin-subtitle">Your personal training log</div>
     <div class="pin-form-wrap">
       <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
         <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
-        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password">
+        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Enter password" autocomplete="current-password">
         <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none;margin-top:8px">
         <div class="pin-err" id="pin-err"></div>
-        <button type="submit" class="btn-s" style="width:100%;margin-top:8px">Log in</button>
+        <button type="submit" class="btn-s" style="width:100%;margin-top:10px" id="pin-submit">Log in</button>
       </form>
     </div>
-    <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">Setting up a new device? Create password instead</button>
+    <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">New device? Create a password</button>
   </div>
 </div>
 
@@ -308,7 +309,7 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
       <div class="profile-wrap">
-        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()"><span class="profile-avatar" id="profile-avatar"></span><span id="profile-name">Profile</span></button>
+        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
         <div class="profile-menu hidden" id="profile-menu">
           <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
@@ -959,6 +960,7 @@ async function completeDay(){
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function sessionHasData(s){
+  if(s.dtype==='Rest')return true;
   if(s.sleep||s.energy||s.soreness||s.perf||s.extra||s.notes)return true;
   return(s.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
 }
@@ -1127,7 +1129,7 @@ function nav(id){['log','progress','analysis','settings'].forEach(v=>{document.g
 function toggleProfileMenu(){const m=document.getElementById('profile-menu');m.classList.toggle('hidden');}
 function closeProfileMenu(){document.getElementById('profile-menu')?.classList.add('hidden');}
 document.addEventListener('click',e=>{const w=document.querySelector('.profile-wrap');if(w&&!w.contains(e.target))closeProfileMenu();});
-function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';document.getElementById('profile-avatar').textContent=initials;document.getElementById('profile-name').textContent=first||'Profile';}
+function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';document.getElementById('profile-name').textContent=first||'Profile';}
 
 /* PASSWORD GATE */
 let pinMode='unlock';
@@ -1173,8 +1175,9 @@ function applyPinMode(mode){
   document.getElementById('pin-confirm-input').style.display=isSetup?'block':'none';
   document.getElementById('pin-confirm-input').value='';
   document.getElementById('pin-err').textContent='';
-  document.getElementById('pin-toggle').textContent=isSetup?'Already set up on another device? Log in instead':'Setting up a new device? Create password instead';
-  document.querySelector('#pin-form .btn-s').textContent=isSetup?'Create password':'Log in';
+  document.getElementById('pin-subtitle').textContent=isSetup?'Choose a password to protect your data':'Your personal training log';
+  document.getElementById('pin-submit').textContent=isSetup?'Create password':'Log in';
+  document.getElementById('pin-toggle').textContent=isSetup?'Already have a password? Log in':'New device? Create a password';
 }
 function togglePinMode(){
   applyPinMode(pinMode==='setup'?'unlock':'setup');
