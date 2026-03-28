@@ -9,6 +9,7 @@
 <title>Meso+</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -36,6 +37,14 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .pin-err{font-size:11px;color:var(--danger);min-height:0;margin:4px 0 0;text-align:left}
 .pin-toggle-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:28px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;outline:none;line-height:1.6}
 .pin-toggle-btn:hover{color:var(--ink2)}
+#setup-import-gate{position:fixed;inset:0;background:var(--lift);z-index:9998;display:flex;align-items:center;justify-content:center}
+#setup-import-gate.hidden{display:none}
+.setup-export-result{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.setup-qr-wrap{background:#fff;padding:10px;border-radius:6px}
+.setup-link-row{display:flex;gap:6px;width:100%;align-items:center}
+.setup-link-input{flex:1;font-family:var(--mono);font-size:9px;background:none;border:1px solid var(--line);border-radius:4px;padding:6px 8px;color:var(--ink2);outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.setup-countdown{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em}
+.setup-countdown.urgent{color:var(--danger)}
 .power-btn{background:none;border:none;cursor:pointer;outline:none;padding:6px;border-radius:50%;transition:all .2s;line-height:1;font-size:18px}
 .power-btn.off{color:#444;filter:none}
 .power-btn.on{color:#c0392b;filter:drop-shadow(0 0 6px #c0392b99)}
@@ -301,6 +310,23 @@ select.bare{cursor:pointer}
   </div>
 </div>
 
+<!-- DEVICE SETUP IMPORT GATE -->
+<div id="setup-import-gate" class="hidden">
+  <div class="pin-box">
+    <div class="pin-title">Meso<sup>+</sup></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em">Device setup detected</div>
+    <div class="pin-form-wrap">
+      <form onsubmit="importFromToken(event)" autocomplete="on">
+        <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
+        <input type="password" id="import-pw" class="pin-field" name="password" placeholder="Enter your password to import" autocomplete="current-password">
+        <div class="pin-err" id="import-err"></div>
+        <button type="submit" class="btn-s" style="width:100%;margin-top:10px">Import &amp; set up this device</button>
+      </form>
+    </div>
+    <button type="button" class="pin-toggle-btn" onclick="dismissSetupImport()">Set up manually instead</button>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="nav">
     <div class="wordmark">Meso<sup>+</sup></div>
@@ -516,6 +542,26 @@ select.bare{cursor:pointer}
     <div class="s-row"><div class="s-lbl">4 — Tab name<div class="s-note">Exact tab name in your sheet.</div></div><div><div class="field-lbl">Tab name</div><input class="bare" id="s-tab" value="Workout_Log"></div></div>
     <div class="s-row"><div class="s-lbl">5 — Apps Script URL<div class="s-note">Extensions → Apps Script → Deploy as web app → copy URL. Required for saving sessions to Sheets.</div></div><div><div class="field-lbl">Web app URL</div><input class="bare" id="s-script" placeholder="https://script.google.com/macros/s/.../exec"></div></div>
     <div style="padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><button class="btn-o" onclick="fullResync()">↺ Re-sync to Sheets</button><button class="btn-o" onclick="importFromSheets()">↓ Import from Sheets</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
+    <div style="height:28px"></div>
+    <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Transfer to another device</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:14px">Generates a 2-minute password-protected link. Scan the QR or copy the link on the new device. Expires automatically — one use only.</div>
+    <div class="s-row">
+      <div class="s-lbl">Generate transfer<div class="s-note">Your password is required. The link is signed and encrypted — useless without it.</div></div>
+      <div>
+        <div class="field-lbl">Confirm password</div>
+        <input class="bare" type="password" id="export-pw" placeholder="Your password" autocomplete="current-password">
+        <button class="btn-s" onclick="generateSetupToken()" style="margin-top:8px">Generate QR + link</button>
+        <div class="pin-err" id="export-err" style="text-align:left;margin-top:6px"></div>
+      </div>
+    </div>
+    <div class="setup-export-result" id="setup-export-result" style="display:none">
+      <div class="setup-qr-wrap"><div id="setup-qr"></div></div>
+      <div class="setup-link-row">
+        <input class="setup-link-input" id="setup-link" readonly>
+        <button class="btn-o" id="copy-setup-btn" onclick="copySetupLink()" style="white-space:nowrap;flex-shrink:0">Copy</button>
+      </div>
+      <div class="setup-countdown" id="setup-countdown"></div>
+    </div>
   </div>
 </div>
 
@@ -1267,6 +1313,111 @@ function togglePinMode(){
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 
+/* DEVICE SETUP TRANSFER */
+let _countdownTimer=null;
+function generateSetupToken(){
+  const pw=document.getElementById('export-pw').value;
+  const err=document.getElementById('export-err');
+  err.textContent='';
+  if(!pw){err.textContent='Enter your password';return;}
+  if(hashPw(pw)!==localStorage.getItem('mp7_pin')){err.textContent='Wrong password';return;}
+  const payload={
+    exp:Date.now()+2*60*1000,
+    n:localStorage.getItem('mp7_name')||'',
+    k:S.apiKey,s:S.sheetId,t:S.sheetTab,
+    ck:S.claudeKey,su:S.scriptUrl,ms:S.mesoStart
+  };
+  const payloadStr=JSON.stringify(payload);
+  const sig=hashPw(payloadStr+hashPw(pw));
+  const token=btoa(JSON.stringify({p:payloadStr,sig}));
+  const url=window.location.origin+window.location.pathname+'?setup='+encodeURIComponent(token);
+  document.getElementById('setup-link').value=url;
+  const result=document.getElementById('setup-export-result');
+  result.style.display='flex';
+  const qrEl=document.getElementById('setup-qr');
+  qrEl.innerHTML='';
+  new QRCode(qrEl,{text:url,width:160,height:160,colorDark:'#000000',colorLight:'#ffffff'});
+  startExportCountdown(120);
+}
+function startExportCountdown(seconds){
+  clearInterval(_countdownTimer);
+  const el=document.getElementById('setup-countdown');
+  const result=document.getElementById('setup-export-result');
+  function tick(){
+    if(seconds<=0){
+      clearInterval(_countdownTimer);
+      result.style.display='none';
+      document.getElementById('export-pw').value='';
+      document.getElementById('export-err').textContent='Link expired — generate a new one';
+      return;
+    }
+    const m=Math.floor(seconds/60),s=seconds%60;
+    el.textContent=`Expires in ${m}:${String(s).padStart(2,'0')}`;
+    el.className='setup-countdown'+(seconds<=30?' urgent':'');
+    seconds--;
+  }
+  tick();
+  _countdownTimer=setInterval(tick,1000);
+}
+function copySetupLink(){
+  navigator.clipboard.writeText(document.getElementById('setup-link').value).then(()=>{
+    const btn=document.getElementById('copy-setup-btn');
+    btn.textContent='Copied!';setTimeout(()=>{btn.textContent='Copy';},2000);
+  });
+}
+function checkSetupToken(){
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('setup');
+  if(!token)return;
+  window._pendingSetupToken=decodeURIComponent(token);
+  document.getElementById('setup-import-gate').classList.remove('hidden');
+  document.getElementById('pin-gate').classList.add('hidden');
+}
+function importFromToken(e){
+  e.preventDefault();
+  const pw=document.getElementById('import-pw').value;
+  const err=document.getElementById('import-err');
+  const token=window._pendingSetupToken;
+  if(!token||!pw){err.textContent='Enter your password';return;}
+  try{
+    const{p:payloadStr,sig}=JSON.parse(atob(token));
+    const payload=JSON.parse(payloadStr);
+    if(Date.now()>payload.exp){err.textContent='Link expired — ask for a new one';return;}
+    const used=JSON.parse(localStorage.getItem('mp7_used_tokens')||'[]');
+    const tokenHash=hashPw(token.slice(0,80));
+    if(used.includes(tokenHash)){err.textContent='Link already used — generate a new one';return;}
+    const expectedSig=hashPw(payloadStr+hashPw(pw));
+    if(sig!==expectedSig){err.textContent='Wrong password';return;}
+    localStorage.setItem('mp7_name',payload.n||'');
+    localStorage.setItem('mp7_k',payload.k||'');
+    localStorage.setItem('mp7_s',payload.s||'');
+    localStorage.setItem('mp7_t',payload.t||'Workout_Log');
+    localStorage.setItem('mp7_ck',payload.ck||'');
+    localStorage.setItem('mp7_su',payload.su||'');
+    localStorage.setItem('mp7_pin',hashPw(pw));
+    used.push(tokenHash);
+    localStorage.setItem('mp7_used_tokens',JSON.stringify(used.slice(-20)));
+    window.history.replaceState({},document.title,window.location.pathname);
+    S.apiKey=payload.k||'';S.sheetId=payload.s||'';S.sheetTab=payload.t||'Workout_Log';
+    S.claudeKey=payload.ck||'';S.scriptUrl=payload.su||'';
+    if(payload.ms)S.mesoStart=payload.ms;
+    if(payload.n&&document.getElementById('s-name'))document.getElementById('s-name').value=payload.n;
+    updateProfileNav();
+    document.getElementById('setup-import-gate').classList.add('hidden');
+    window._pendingSetupToken=null;
+    unlockApp();
+    nav('profile');
+  }catch(ex){err.textContent='Invalid link — please generate a new one';}
+}
+function dismissSetupImport(){
+  document.getElementById('setup-import-gate').classList.add('hidden');
+  window._pendingSetupToken=null;
+  window.history.replaceState({},document.title,window.location.pathname);
+  document.getElementById('pin-gate').classList.remove('hidden');
+  initPin();
+}
+
+checkSetupToken();
 initPin();
 init();
 </script>
