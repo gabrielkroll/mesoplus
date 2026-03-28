@@ -1141,11 +1141,18 @@ function updateProfileNav(){const name=(document.getElementById('s-name')?.value
 let pinMode='unlock',pinActivated=false;
 function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
 function activatePin(){
-  if(pinActivated)return;
-  pinActivated=true;
-  document.getElementById('pin-power-btn').classList.add('on');
-  document.getElementById('pin-pw-area').classList.add('show');
-  setTimeout(()=>document.getElementById('pin-input').focus(),400);
+  if(pinActivated){
+    pinActivated=false;
+    document.getElementById('pin-power-btn').classList.remove('on');
+    document.getElementById('pin-pw-area').classList.remove('show');
+    document.getElementById('pin-input').value='';
+    document.getElementById('pin-err').textContent='';
+  } else {
+    pinActivated=true;
+    document.getElementById('pin-power-btn').classList.add('on');
+    document.getElementById('pin-pw-area').classList.add('show');
+    setTimeout(()=>document.getElementById('pin-input').focus(),400);
+  }
 }
 function submitPassword(e){
   e.preventDefault();
