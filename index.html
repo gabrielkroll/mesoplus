@@ -18,6 +18,7 @@
   --accent:#7aad2a;--adim:#7aad2a14;
   --danger:#d44040;--danger-bg:#fff0f0;
   --mono:'DM Mono',monospace;--serif:'Instrument Serif',serif;
+  --sp1:4px;--sp2:8px;--sp3:12px;--sp4:16px;--sp5:24px;--sp6:32px;--sp7:48px;
 }
 @media(prefers-color-scheme:dark){
   :root{--ink:#e8e8e8;--ink2:#aaa;--ink3:#666;--line:#2a2a2a;--line2:#444;--surf:#1e1e1e;--lift:#141414;--danger-bg:#2a0808;}
@@ -85,11 +86,11 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .ps-name{font-size:8px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
 .ps-rir{font-size:10px;font-family:var(--serif);font-style:italic;margin:1px 0}
 .ps-wks{font-size:8px;color:var(--ink3)}
-.adv-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.adv-info{flex:1;min-width:160px}
+.adv-row{display:flex;flex-direction:column;gap:var(--sp3)}
+.adv-info{}
 .adv-phase{font-size:12px;font-family:var(--serif);font-style:italic}
-.adv-sub{font-size:10px;color:var(--ink3);margin-top:2px;line-height:1.5}
-.adv-btns{display:flex;gap:2px;flex-wrap:wrap}
+.adv-sub{font-size:10px;color:var(--ink3);margin-top:var(--sp1);line-height:1.5}
+.adv-btns{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp1)}
 
 /* WEEK NAV */
 .week-nav{display:flex;align-items:center;gap:6px;margin-bottom:16px}
@@ -102,7 +103,7 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .day-pills{display:flex;gap:3px;flex:1;min-width:0}
 
 /* SESSION HEAD */
-.sess-head{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.sess-head{display:flex;align-items:flex-end;gap:var(--sp3);margin-bottom:var(--sp3)}
 .week-big{font-family:var(--serif);font-style:italic;font-size:44px;line-height:1;flex-shrink:0;color:var(--ink)}
 .phase-lbl{font-size:10px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
 .phase-note-text{font-size:11px;color:var(--ink3);line-height:1.5}
@@ -462,6 +463,10 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-settings" class="hidden">
+    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Mesocycle</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
+    <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"></div></div>
+    <div style="height:24px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Claude AI setup</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Required for smart analysis · console.anthropic.com → API Keys</div>
     <div class="s-row"><div class="s-lbl">Claude API key<div class="s-note">Stored locally in your browser. Never sent anywhere except Anthropic.</div></div><div><div class="field-lbl">API key</div><input class="bare" type="password" id="s-ckey" placeholder="sk-ant-..."></div></div>
@@ -512,7 +517,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,weekInPhase:1,selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'Gym',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 
 const td=()=>new Date().toISOString().split('T')[0];
@@ -520,24 +525,26 @@ function ws(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r
 function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
-function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,weekInPhase:S.weekInPhase,sessions:S.sessions}));}
-function wk(){let w=0;for(let i=0;i<S.phaseIdx;i++)w+=S.phases[i].weeks;return w+S.weekInPhase;}
-function ph(){return S.phases[S.phaseIdx];}
+function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions}));}
+function mesoWkFor(dateStr){const ms=new Date(S.mesoStart+'T12:00:00'),d=new Date(ws(dateStr)+'T12:00:00');return Math.max(1,Math.floor((d-ms)/(7*86400000))+1);}
+function mesoWk(){return mesoWkFor(td());}
+function derivedPhase(){let w=mesoWk(),cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(w<=cum)return{phaseIdx:i,weekInPhase:w-(cum-S.phases[i].weeks)};}return{phaseIdx:S.phases.length-1,weekInPhase:S.phases[S.phases.length-1].weeks};}
+function ph(){return S.phases[derivedPhase().phaseIdx];}
 
 function init(){
   const saved=localStorage.getItem('mp7');
-  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.weekInPhase=p.weekInPhase||1;S.sessions=p.sessions||[];
-    // Migrate old values
+  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=p.mesoStart||ws(td());S.sessions=p.sessions||[];
     S.sessions.forEach(s=>{
       if(s.perf)s.perf=s.perf.replace(/^[↓↑→]\s*/,'');
       if(s.sleep==='5h')s.sleep='≤5.5h';
       if(s.sleep==='9h+')s.sleep='≥8.5h';
     });
-  }
+  } else {S.mesoStart=ws(td());}
   S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';S.scriptUrl=localStorage.getItem('mp7_su')||'';
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
   if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
   if(S.scriptUrl){document.getElementById('s-script').value=S.scriptUrl;}
+  document.getElementById('s-meso-start').value=S.mesoStart;
   S.selectedDate=td();
   buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
   buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();markDirty();});
@@ -565,32 +572,39 @@ function buildChips(id,opts,sel,cb){
 function handleSleep(v){S.sleep=v;}
 
 function renderPhaseBar(){
-  document.getElementById('phase-bar').innerHTML=S.phases.map((p,i)=>`
-    <div class="pseg${i===S.phaseIdx?' cur':''}" onclick="jumpPhase(${i})" title="${p.name} · RIR ${p.rir} · ${p.weeks} weeks"
-      style="${i===S.phaseIdx?`border-color:${p.color};background:${p.color}12`:''}">
-      <div class="ps-name" style="color:${i===S.phaseIdx?p.color:'var(--ink3)'}">${p.abbr}</div>
-      <div class="ps-rir" style="color:${i===S.phaseIdx?p.color:'var(--ink3)'}">RIR ${p.rir}</div>
-      <div class="ps-wks">${p.weeks}w</div>
-    </div>`).join('');
+  const dp=derivedPhase();
+  let cum=0;
+  document.getElementById('phase-bar').innerHTML=S.phases.map((p,i)=>{
+    const wStart=cum+1,wEnd=cum+p.weeks;cum+=p.weeks;
+    const isCur=i===dp.phaseIdx;
+    let wLabel=p.weeks===1?`W${wStart}`:p.weeks<=3?Array.from({length:p.weeks},(_,k)=>`W${wStart+k}`).join(', '):`W${wStart}–W${wEnd}`;
+    return `<div class="pseg${isCur?' cur':''}" onclick="jumpPhase(${i})" title="${p.name} · RIR ${p.rir} · ${p.weeks} weeks"
+      style="${isCur?`border-color:${p.color};background:${p.color}12`:''}">
+      <div class="ps-name" style="color:${isCur?p.color:'var(--ink3)'}">${p.abbr}</div>
+      <div class="ps-rir" style="color:${isCur?p.color:'var(--ink3)'}">RIR ${p.rir}</div>
+      <div class="ps-wks" style="color:${isCur?p.color:'var(--ink3)'}">${wLabel}</div>
+    </div>`;
+  }).join('');
   const p=ph();
-  document.getElementById('week-big').textContent='W'+wk();
   document.getElementById('phase-lbl').textContent=p.name;
   document.getElementById('phase-lbl').style.color=p.color;
   document.getElementById('phase-note').textContent=p.note;
 }
 function renderAdvBar(){
-  const p=ph(),next=S.phases[S.phaseIdx+1];
-  document.getElementById('adv-phase').textContent=`${p.name} · Week ${S.weekInPhase} of ${p.weeks} · RIR target ${p.rir}`;
+  const dp=derivedPhase(),p=S.phases[dp.phaseIdx],next=S.phases[dp.phaseIdx+1];
+  document.getElementById('adv-phase').textContent=`${p.name} · W${dp.weekInPhase} of ${p.weeks} · RIR target ${p.rir}`;
   document.getElementById('adv-phase').style.color=p.color;
   document.getElementById('adv-sub').textContent=next?`${p.load}. Advance when ready, adjust weeks freely.`:`Deload complete — start new mesocycle when ready.`;
 }
-function jumpPhase(i){S.phaseIdx=i;S.weekInPhase=1;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
-function advPhase(d){const n=S.phaseIdx+d;if(n<0||n>=S.phases.length)return;S.phaseIdx=n;S.weekInPhase=1;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
-function addWeek(d){const p=ph();p.weeks=Math.max(1,p.weeks+d);persist();renderPhaseBar();renderAdvBar();}
+function jumpPhase(i){S.phaseIdx=i;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
+function advPhase(d){const n=S.phaseIdx+d;if(n<0||n>=S.phases.length)return;S.phaseIdx=n;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
+function addWeek(d){const p=S.phases[S.phaseIdx];p.weeks=Math.max(1,p.weeks+d);persist();renderPhaseBar();renderAdvBar();}
+function saveMesoStart(v){if(!v)return;S.mesoStart=v;persist();renderPhaseBar();renderAdvBar();renderWeekNav();}
 
 function renderWeekNav(){
   const t=td(),wss=ws(t),vs=addD(wss,S.viewWeekOffset*7),ve=addD(vs,6);
-  document.getElementById('wl-main').textContent=`W${wk()} · Week ${iw(vs)}`;
+  document.getElementById('wl-main').textContent=`W${mesoWkFor(vs)} · Week ${iw(vs)}`;
+  document.getElementById('week-big').textContent='W'+mesoWkFor(vs);
   document.getElementById('wl-sub').textContent=`${fmt(vs)} – ${fmt(ve)}`;
   document.getElementById('btn-prev').disabled=false;
   document.getElementById('btn-next').disabled=S.viewWeekOffset>=0;
@@ -618,7 +632,7 @@ function selectDate(date){
   renderWeekNav();
 }
 function loadSess(sess){
-  S.dtype=sess.dtype||'Gym';S.gymDay=sess.gymDay||1;S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
+  S.dtype=sess.dtype||'';S.gymDay=sess.gymDay||1;S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
   document.getElementById('m-extra').value=sess.extra||'';document.getElementById('m-notes').value=sess.notes||'';
   S.supersets=JSON.parse(JSON.stringify(sess.supersets||[]));
   if(sess.bjj){const b=sess.bjj;['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value=b[k]||'':el.value=b[k]||'';}});if(b.positions)document.querySelectorAll('.pos-chip').forEach(c=>c.classList.toggle('on',b.positions.includes(c.textContent)));}
@@ -629,7 +643,7 @@ function loadSess(sess){
   renderDtype();computeSug();renderTable();
 }
 function resetForm(){
-  S.dtype='Gym';S.sleep='';S.energy='';S.soreness='';S.perf='';
+  S.dtype='';S.sleep='';S.energy='';S.soreness='';S.perf='';
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
   ['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value='':el.value='';}});
   document.querySelectorAll('.pos-chip').forEach(c=>c.classList.remove('on'));
@@ -653,7 +667,7 @@ function renderDtype(){
 function setDtype(t){S.dtype=t;renderDtype();}
 
 function loadTemplate(){
-  S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:e.sets,kg:'',reps:'',rir:'',flagged:false}))}));
+  S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
   computeSug();renderTable();
 }
 
@@ -706,7 +720,7 @@ function renderTable(){
         <td><select class="ex-mini" onchange="upEx(${si},${ei},'side',this.value)">${sO}</select></td>
         <td><div class="last-val" title="${ex.lastStr||'—'}">${ex.lastStr||'—'}</div></td>
         <td><input class="ex-in" type="number" value="${ex.kg}" placeholder="${sk}" step="2.5" min="0" onchange="upEx(${si},${ei},'kg',this.value)" title="kg"></td>
-        <td><input class="ex-in" type="number" value="${ex.sets||3}" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
+        <td><input class="ex-in" type="number" value="${ex.sets||''}" placeholder="3" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
         <td><input class="ex-in" type="number" value="${ex.reps}" placeholder="${sr}" min="1" onchange="upEx(${si},${ei},'reps',this.value)" title="reps"></td>
         <td><input class="ex-in" type="number" value="${ex.rir}" placeholder="${srir}" min="0" max="6" onchange="upEx(${si},${ei},'rir',this.value)" title="RIR"></td>
         <td><div class="ex-act">
@@ -790,12 +804,12 @@ function undoSS(){
   S.supersets.splice(undoSSStack.idx,0,undoSSStack.data);
   undoSSStack=null;renderTable();
 }
-function addSuperset(){S.supersets.push({label:'',exercises:[{name:'',muscle:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3,kg:'',reps:'',rir:'',flagged:false}]});renderTable();}
-function addExToSS(si){S.supersets[si].exercises.push({name:'',muscle:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:3,kg:'',reps:'',rir:'',flagged:false});renderTable();}
+function addSuperset(){S.supersets.push({label:'',exercises:[{name:'',muscle:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:'',kg:'',reps:'',rir:'',flagged:false}]});renderTable();}
+function addExToSS(si){S.supersets[si].exercises.push({name:'',muscle:'',res:'Free Weights',side:'Both',rf:8,rc:12,sets:'',kg:'',reps:'',rir:'',flagged:false});renderTable();}
 
 function getBJJ(){return{gc:document.getElementById('bjj-gc').value,desc:document.getElementById('bjj-desc').value,partner:document.getElementById('bjj-partner').value,drilling:document.getElementById('bjj-drilling').value,good:document.getElementById('bjj-good').value,bad:document.getElementById('bjj-bad').value,subs:document.getElementById('bjj-subs').value,next:document.getElementById('bjj-next').value,positions:[...document.querySelectorAll('.pos-chip.on')].map(b=>b.textContent)};}
 
-function buildCurrentSession(){const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym';return{date:S.selectedDate,week:wk(),phase:ph().name,phaseIdx:S.phaseIdx,dtype:S.dtype,gymDay:S.gymDay,extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:S.supersets.flatMap(ss=>ss.exercises).filter(e=>e.flagged).map(e=>e.name),supersets:JSON.parse(JSON.stringify(S.supersets)),bjj:isBJJ?getBJJ():null};}
+function buildCurrentSession(){const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym';const dp=derivedPhase();return{date:S.selectedDate,week:mesoWk(),phase:ph().name,phaseIdx:dp.phaseIdx,dtype:S.dtype,gymDay:S.gymDay,extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:S.supersets.flatMap(ss=>ss.exercises).filter(e=>e.flagged).map(e=>e.name),supersets:JSON.parse(JSON.stringify(S.supersets)),bjj:isBJJ?getBJJ():null};}
 
 const _synced=new Set(JSON.parse(localStorage.getItem('mp7_synced')||'[]'));
 function markSynced(date){_synced.add(date);localStorage.setItem('mp7_synced',JSON.stringify([..._synced]));}
