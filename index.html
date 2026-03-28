@@ -307,6 +307,12 @@ select.bare{cursor:pointer}
       </form>
     </div>
     <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">New device? Create a password</button>
+    <div id="pin-standalone-note" style="display:none;margin-top:16px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--ink3);line-height:1.7;text-align:left;max-width:260px">
+      <span style="color:var(--ink2);display:block;margin-bottom:4px">Home screen app detected</span>
+      This is a separate session from Safari — your Safari password won't work here yet.<br><br>
+      <strong style="color:var(--ink2)">Option 1:</strong> Open a setup transfer link from Setup → Transfer to another device.<br>
+      <strong style="color:var(--ink2)">Option 2:</strong> Create a new password below — then import your data from Sheets.
+    </div>
   </div>
 </div>
 
@@ -1291,7 +1297,11 @@ function lockApp(){
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
-  applyPinMode(localStorage.getItem('mp7_pin')?'unlock':'setup');
+  const hasPin=!!localStorage.getItem('mp7_pin');
+  const isStandalone=navigator.standalone===true;
+  const note=document.getElementById('pin-standalone-note');
+  if(note)note.style.display=(isStandalone&&!hasPin)?'block':'none';
+  applyPinMode(hasPin?'unlock':'setup');
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function applyPinMode(mode){
