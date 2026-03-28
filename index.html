@@ -1581,8 +1581,7 @@ function fillSheet(){
   document.getElementById('esi-rir').placeholder=ex.sugRIR!=null?String(ex.sugRIR):'—';
   const{prevSI,nextSI,nextEI}=sheetNeighbors(si,ei);
   document.getElementById('esi-prev').disabled=(prevSI===-1);
-  document.getElementById('esi-next').disabled=(nextSI===-1);
-  document.getElementById('esi-save-btn').textContent=(nextSI!==-1)?'Save & next →':'Save & close';
+  document.getElementById('esi-save-btn').textContent=(nextSI!==-1)?'Next →':'Complete day';
 }
 function saveSheetData(){
   if(_sheetSI<0||_sheetEI<0)return;
@@ -1598,7 +1597,7 @@ function saveSheetAndNext(){
   saveSheetData();
   const{nextSI,nextEI}=sheetNeighbors(_sheetSI,_sheetEI);
   if(nextSI!==-1){_sheetSI=nextSI;_sheetEI=nextEI;fillSheet();setTimeout(()=>document.getElementById('esi-kg').focus(),50);}
-  else closeSheet();
+  else{closeSheet();completeDay();}
 }
 function sheetNav(dir){
   saveSheetData();
@@ -1683,8 +1682,7 @@ init();
   </div>
   <div class="ex-sheet-footer">
     <button class="ex-sheet-nav-btn" id="esi-prev" onclick="sheetNav(-1)" aria-label="Previous exercise">←</button>
-    <button class="ex-sheet-save-btn" id="esi-save-btn" onclick="saveSheetAndNext()">Save</button>
-    <button class="ex-sheet-nav-btn" id="esi-next" onclick="sheetNav(1)" aria-label="Next exercise">→</button>
+    <button class="ex-sheet-save-btn" id="esi-save-btn" onclick="saveSheetAndNext()">Next →</button>
   </div>
 </div>
 
