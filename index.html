@@ -938,7 +938,8 @@ function toRows(s){
 async function fullResync(){
   const st=document.getElementById('s-status');
   if(!S.scriptUrl){if(st){st.textContent='No script URL configured';st.style.color='var(--danger)';}return;}
-  if(st){st.textContent='Re-syncing all sessions…';st.style.color='var(--ink3)';}
+  if(st){st.textContent='Clearing sheet…';st.style.color='var(--ink3)';}
+  try{await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'clearAll'})});}catch(e){}
   localStorage.removeItem('mp7_synced');_synced.clear();
   let failed=0;
   const toSync=S.sessions.filter(s=>sessionHasData(s));
