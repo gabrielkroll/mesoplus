@@ -563,7 +563,7 @@ function init(){
   document.getElementById('v-log').addEventListener('input',()=>markDirty());
   renderPhaseBar();renderAdvBar();renderWeekNav();renderDtype();
   const _initSess=S.sessions.find(s=>s.date===S.selectedDate);
-  if(_initSess)loadSess(_initSess);else loadTemplate();
+  if(_initSess)loadSess(_initSess);else{S.gymDay=derivedGymDay(S.selectedDate);loadTemplate();}
 }
 
 function buildChips(id,opts,sel,cb){
@@ -625,7 +625,7 @@ function saveMesoStart(v){
 function minWeekOffset(){return Math.round((utcDay(ws(S.mesoStart))-utcDay(ws(td())))/(7*86400000));}
 function maxWeekOffset(){return S.phases.reduce((a,p)=>a+p.weeks,0)-mesoWk();}
 function phaseIdxFor(mw){let cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(mw<=cum)return i;}return S.phases.length-1;}
-function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();S.phaseIdx=phaseIdxFor(mesoWk());const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();loadTemplate();renderDtype();}renderWeekNav();renderPhaseBar();renderAdvBar();}
+function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();S.phaseIdx=phaseIdxFor(mesoWk());const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();S.gymDay=derivedGymDay(S.selectedDate);loadTemplate();renderDtype();}renderWeekNav();renderPhaseBar();renderAdvBar();}
 
 function renderWeekNav(){
   const t=td(),wss=ws(t),vs=addD(wss,S.viewWeekOffset*7),ve=addD(vs,6);
@@ -655,7 +655,7 @@ function selectDate(date){
   clearTimeout(_syncTimer);_undoPrev=undefined;showUndo(false);_lastSaveTime=null;setSave('');
   S.selectedDate=date;
   const ex=S.sessions.find(s=>s.date===date);
-  if(ex)loadSess(ex);else{resetForm();loadTemplate();renderDtype();}
+  if(ex)loadSess(ex);else{resetForm();S.gymDay=derivedGymDay(date);loadTemplate();renderDtype();}
   renderWeekNav();
 }
 function loadSess(sess){
@@ -688,7 +688,7 @@ function shiftWeek(d){
   S.selectedDate=vs;
   S.phaseIdx=phaseIdxFor(mesoWkFor(vs));
   const _wSess=S.sessions.find(s=>s.date===vs);
-  if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();renderDtype();}
+  if(_wSess)loadSess(_wSess);else{resetForm();S.gymDay=derivedGymDay(vs);loadTemplate();renderDtype();}
   renderWeekNav();renderPhaseBar();renderAdvBar();
 }
 
@@ -705,6 +705,13 @@ function renderDtype(){
 }
 function setDtype(t){S.dtype=S.dtype===t?'':t;renderDtype();if(S.dtype)markDirty();}
 
+function derivedGymDay(date){
+  const mon=ws(date);
+  const gymTypes=['Gym','BJJ + Gym'];
+  const count=S.sessions.filter(s=>s.date>=mon&&s.date<date&&gymTypes.includes(s.dtype)).length;
+  const maxDay=Object.keys(TEMPLATES).length;
+  return(count%maxDay)+1;
+}
 function loadTemplate(){
   S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
   computeSug();renderTable();
@@ -896,7 +903,7 @@ async function manualSync(){
 
 function undoSession(){
   clearTimeout(_syncTimer);
-  if(_undoPrev===null){const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);if(ei>=0)S.sessions.splice(ei,1);persist();resetForm();loadTemplate();}
+  if(_undoPrev===null){const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);if(ei>=0)S.sessions.splice(ei,1);persist();resetForm();S.gymDay=derivedGymDay(S.selectedDate);loadTemplate();}
   else if(_undoPrev){const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);if(ei>=0)S.sessions[ei]=JSON.parse(JSON.stringify(_undoPrev));persist();loadSess(_undoPrev);}
   _undoPrev=undefined;showUndo(false);_lastSaveTime=null;setSave('Changes undone');
 }
