@@ -484,7 +484,7 @@ select.bare{cursor:pointer}
     <div class="s-row"><div class="s-lbl">3 — Sheet ID<div class="s-note">From URL: /spreadsheets/d/<strong style="color:var(--accent)">THIS_PART</strong>/edit — share as "Anyone with link can view"</div></div><div><div class="field-lbl">Sheet ID</div><input class="bare" id="s-id" placeholder="1BxiMVs0..."></div></div>
     <div class="s-row"><div class="s-lbl">4 — Tab name<div class="s-note">Exact tab name in your sheet.</div></div><div><div class="field-lbl">Tab name</div><input class="bare" id="s-tab" value="Workout_Log"></div></div>
     <div class="s-row"><div class="s-lbl">5 — Apps Script URL<div class="s-note">Extensions → Apps Script → Deploy as web app → copy URL. Required for saving sessions to Sheets.</div></div><div><div class="field-lbl">Web app URL</div><input class="bare" id="s-script" placeholder="https://script.google.com/macros/s/.../exec"></div></div>
-    <div style="padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><button class="btn-o" onclick="fullResync()">↺ Full re-sync to Sheets</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
+    <div style="padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><button class="btn-o" onclick="fullResync()">↺ Re-sync to Sheets</button><button class="btn-o" onclick="importFromSheets()">↓ Import from Sheets</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
   </div>
 </div>
 
@@ -936,17 +936,69 @@ function toRows(s){
   return rows;
 }
 async function fullResync(){
-  if(!S.scriptUrl){setSave('No script URL configured','err');return;}
-  setSave('Re-syncing all sessions…');
+  const st=document.getElementById('s-status');
+  if(!S.scriptUrl){if(st){st.textContent='No script URL configured';st.style.color='var(--danger)';}return;}
+  if(st){st.textContent='Re-syncing all sessions…';st.style.color='var(--ink3)';}
   localStorage.removeItem('mp7_synced');_synced.clear();
-  let ok=true;
-  for(const sess of S.sessions){
-    const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date:sess.date,rows:toRows(sess)})});
-    if(res.ok)_synced.add(sess.date);else ok=false;
-    await new Promise(r=>setTimeout(r,500));
+  let failed=0;
+  const toSync=S.sessions.filter(s=>sessionHasData(s));
+  for(let i=0;i<toSync.length;i++){
+    const sess=toSync[i];
+    if(st)st.textContent=`Syncing ${i+1}/${toSync.length}…`;
+    const ok=await appendRows(toRows(sess));
+    if(ok)_synced.add(sess.date);else failed++;
+    if(i<toSync.length-1)await new Promise(r=>setTimeout(r,400));
   }
   localStorage.setItem('mp7_synced',JSON.stringify([..._synced]));
-  setSave(ok?'All sessions synced ✓':'Some sessions failed','err');
+  if(st){
+    if(!toSync.length){st.textContent='No sessions to sync';st.style.color='var(--ink3)';}
+    else if(!failed){st.textContent=`All ${toSync.length} sessions synced ✓`;st.style.color='var(--accent)';}
+    else{st.textContent=`${failed} of ${toSync.length} sessions failed`;st.style.color='var(--danger)';}
+  }
+}
+async function importFromSheets(){
+  const st=document.getElementById('s-status');
+  if(!S.apiKey||!S.sheetId){if(st){st.textContent='API key and Sheet ID required to import';st.style.color='var(--danger)';}return;}
+  if(st){st.textContent='Reading from Sheets…';st.style.color='var(--ink3)';}
+  try{
+    const range=encodeURIComponent(`${S.sheetTab}!A:V`);
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${range}?key=${S.apiKey}`);
+    if(!res.ok){const err=await res.json();if(st){st.textContent='Error: '+(err.error?.message||'Could not read sheet');st.style.color='var(--danger)';}return;}
+    const data=await res.json();
+    const allRows=data.values||[];
+    // Skip header row if first cell is not a date
+    const start=allRows.length&&!/^\d{4}-\d{2}-\d{2}$/.test(allRows[0]?.[0])?1:0;
+    // Group sheet rows by date
+    const byDate={};
+    for(let i=start;i<allRows.length;i++){
+      const r=allRows[i];const date=r[0];
+      if(!date||!/^\d{4}-\d{2}-\d{2}$/.test(date))continue;
+      if(!byDate[date])byDate[date]=[];
+      byDate[date].push(r);
+    }
+    const dates=Object.keys(byDate);
+    if(!dates.length){if(st){st.textContent='No rows found in sheet';st.style.color='var(--ink3)';}return;}
+    let imported=0,skipped=0;
+    for(const date of dates){
+      if(S.sessions.find(s=>s.date===date)){skipped++;continue;}
+      const dateRows=byDate[date];const first=dateRows[0];
+      const sess={date,week:parseInt((first[1]||'').replace('W',''))||1,phase:first[2]||'',dtype:first[3]||'',gymDay:parseInt(first[4])||1,sleep:first[15]||'',energy:first[16]||'',soreness:first[17]||'',perf:first[18]||'',extra:first[20]||'',notes:first[21]||'',supersets:[]};
+      const bySS={};
+      for(const r of dateRows){
+        const ssNum=parseInt(r[5])||0;
+        if(!ssNum||!r[6])continue;
+        if(!bySS[ssNum])bySS[ssNum]=[];
+        bySS[ssNum].push({name:r[6]||'',muscle:r[7]||'',res:r[8]||'',side:r[9]||'Both',kg:r[10]||'',reps:r[11]||'',rir:r[12]||'',sets:r[13]||'',flagged:r[19]==='flagged'});
+      }
+      sess.supersets=Object.keys(bySS).map(Number).sort((a,b)=>a-b).map(n=>({exercises:bySS[n]}));
+      S.sessions.push(sess);imported++;
+    }
+    persist();
+    if(st){
+      if(!imported&&!skipped){st.textContent='Nothing to import';st.style.color='var(--ink3)';}
+      else{st.textContent=`Imported ${imported} session${imported!==1?'s':''}${skipped?' · '+skipped+' already existed':''} ✓`;st.style.color='var(--accent)';}
+    }
+  }catch(e){if(st){st.textContent='Import failed: '+e.message;st.style.color='var(--danger)';}}
 }
 async function appendRows(rows){try{if(S.scriptUrl){const date=rows[0]?.[0]||'';const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,rows})});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
