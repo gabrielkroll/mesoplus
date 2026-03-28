@@ -925,7 +925,7 @@ function toRows(s){
   const rows=[];
   (s.supersets||[]).forEach((ss,si)=>{
     ss.exercises.forEach(ex=>{
-      if(!ex.name)return;
+      if(!ex.name||(!ex.kg&&!ex.reps&&!ex.rir))return;
       rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||'',vol(ex)||'',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'',ex.flagged?'flagged':'',s.extra||'',s.notes||'']);
     });
   });
