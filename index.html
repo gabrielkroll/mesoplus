@@ -30,18 +30,21 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px;display:flex;flex-direction:column;align-items:center}
 .pin-title{font-family:var(--serif);font-style:italic;font-size:52px;color:var(--ink);margin-bottom:0;letter-spacing:-.02em}
 .pin-title sup{font-size:22px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
-.pin-power-wrap{display:inline-flex;align-items:center;justify-content:center;margin:36px 0 28px}
-@keyframes pin-sheen{0%,68%{background-position:180% 0}88%,100%{background-position:-80% 0}}
-@keyframes pin-poweroff{0%{-webkit-text-fill-color:#c0392b;filter:drop-shadow(0 0 16px #c0392bcc)}70%{-webkit-text-fill-color:#555;filter:none}100%{-webkit-text-fill-color:#444;filter:none}}
-.pin-power-btn{background:transparent;border:none;cursor:pointer;outline:none;font-size:48px;line-height:1;padding:14px;border-radius:50%;background-image:linear-gradient(100deg,#444 0%,#444 47%,#aaa 50%,#444 53%,#444 100%);background-size:350% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:pin-sheen 9s linear infinite;transition:filter .7s ease}
-.pin-power-btn.on{background:transparent;background-image:none;-webkit-background-clip:unset;background-clip:unset;-webkit-text-fill-color:#c0392b;color:#c0392b;animation:none;filter:drop-shadow(0 0 16px #c0392bcc)}
-.pin-power-btn.powering-off{background-image:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;animation:pin-poweroff 1s ease forwards!important}
-.pin-pw-area{width:100%;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .35s ease}
-.pin-pw-area.show{max-height:220px;opacity:1}
-.pin-field{width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:14px;color:var(--ink);outline:none;margin-bottom:0;transition:border-color .12s;text-align:left}
-.pin-field:focus{border-color:var(--line2)}
-.pin-err{font-size:11px;color:var(--danger);min-height:0;margin:4px 0 0;text-align:left}
-.pin-toggle-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:28px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;outline:none;line-height:1.6}
+.pin-label{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:28px;letter-spacing:.08em;text-transform:uppercase}
+.pin-dots{display:flex;gap:14px;margin:16px 0 6px;justify-content:center}
+.pin-dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--line2);transition:background .12s,border-color .12s}
+.pin-dot.filled{background:var(--ink);border-color:var(--ink)}
+@keyframes pin-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.pin-dots.shake{animation:pin-shake .35s ease}
+.pin-dot.err{background:var(--danger);border-color:var(--danger)}
+.pin-err{font-size:10px;color:var(--danger);min-height:14px;margin:2px 0 0;text-align:center;font-family:var(--mono)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px;width:210px}
+.pin-key{background:var(--surf);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:var(--mono);font-size:17px;padding:15px 10px;cursor:pointer;transition:background .08s;outline:none;user-select:none;-webkit-user-select:none}
+.pin-key:hover{background:var(--line)}
+.pin-key:active{background:var(--line2);transform:scale(.95)}
+.pin-key.ghost{background:none;border-color:transparent;color:var(--ink3);font-size:10px;padding:10px}
+.pin-key.ghost:hover{color:var(--ink2);background:none}
+.pin-toggle-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:20px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;outline:none;line-height:1.6}
 .pin-toggle-btn:hover{color:var(--ink2)}
 .power-btn{background:none;border:none;cursor:pointer;outline:none;padding:6px;border-radius:50%;transition:all .2s;line-height:1;font-size:18px}
 .power-btn.off{color:#444;filter:none}
@@ -260,7 +263,7 @@ select.bare{cursor:pointer}
 .pmenu-item.danger:hover{color:var(--danger);background:var(--danger-bg)}
 .pmenu-divider{height:1px;background:var(--line);margin:4px 0}
 .power-icon{color:#c0392b;filter:drop-shadow(0 0 5px #c0392b99);font-size:13px;margin-left:8px}
-.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;font-size:8px;flex-shrink:0;margin-right:5px}
+.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;flex-shrink:0;margin-left:5px}
 
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -290,23 +293,33 @@ select.bare{cursor:pointer}
 </head>
 <body>
 
-<!-- PASSWORD GATE -->
+<!-- PIN GATE -->
 <div id="pin-gate">
   <div class="pin-box">
     <div class="pin-title">Meso<sup>+</sup></div>
-    <div class="pin-power-wrap">
-      <button type="button" class="pin-power-btn" id="pin-power-btn" onclick="activatePin()">⏻</button>
+    <div class="pin-label" id="pin-label">Enter PIN</div>
+    <div class="pin-dots" id="pin-dots">
+      <span class="pin-dot" id="pd0"></span>
+      <span class="pin-dot" id="pd1"></span>
+      <span class="pin-dot" id="pd2"></span>
+      <span class="pin-dot" id="pd3"></span>
     </div>
-    <div class="pin-pw-area" id="pin-pw-area">
-      <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
-        <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
-        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password" disabled>
-        <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none">
-        <div class="pin-err" id="pin-err"></div>
-        <button type="submit" class="btn-s" style="width:100%;margin-top:8px">Enter</button>
-      </form>
+    <div class="pin-err" id="pin-err"></div>
+    <div class="pin-pad">
+      <button type="button" class="pin-key" onclick="pinKey('1')">1</button>
+      <button type="button" class="pin-key" onclick="pinKey('2')">2</button>
+      <button type="button" class="pin-key" onclick="pinKey('3')">3</button>
+      <button type="button" class="pin-key" onclick="pinKey('4')">4</button>
+      <button type="button" class="pin-key" onclick="pinKey('5')">5</button>
+      <button type="button" class="pin-key" onclick="pinKey('6')">6</button>
+      <button type="button" class="pin-key" onclick="pinKey('7')">7</button>
+      <button type="button" class="pin-key" onclick="pinKey('8')">8</button>
+      <button type="button" class="pin-key" onclick="pinKey('9')">9</button>
+      <button type="button" class="pin-key ghost" id="pin-mode-key" onclick="togglePinMode()"></button>
+      <button type="button" class="pin-key" onclick="pinKey('0')">0</button>
+      <button type="button" class="pin-key" onclick="pinDel()">⌫</button>
     </div>
-    <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">Setting up a new device? Create password instead</button>
+    <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">Setting up a new device? Create PIN instead</button>
   </div>
 </div>
 
@@ -318,11 +331,11 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
       <div class="profile-wrap">
-        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()"><span class="profile-avatar" id="profile-avatar"></span><span id="profile-name">Profile</span></button>
+        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
         <div class="profile-menu hidden" id="profile-menu">
           <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
-          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Turn off <span class="power-icon">⏻</span></button>
+          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Lock app <span class="power-icon">⏻</span></button>
         </div>
       </div>
     </div>
@@ -969,6 +982,7 @@ async function completeDay(){
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function sessionHasData(s){
+  if(s.dtype==='Rest')return true;
   if(s.sleep||s.energy||s.soreness||s.perf||s.extra||s.notes)return true;
   return(s.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
 }
@@ -1137,82 +1151,88 @@ function nav(id){['log','progress','analysis','settings'].forEach(v=>{document.g
 function toggleProfileMenu(){const m=document.getElementById('profile-menu');m.classList.toggle('hidden');}
 function closeProfileMenu(){document.getElementById('profile-menu')?.classList.add('hidden');}
 document.addEventListener('click',e=>{const w=document.querySelector('.profile-wrap');if(w&&!w.contains(e.target))closeProfileMenu();});
-function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';document.getElementById('profile-avatar').textContent=initials;document.getElementById('profile-name').textContent=first||'Profile';}
+function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';document.getElementById('profile-name').textContent=first||'Profile';}
 
 /* PASSWORD GATE */
-let pinMode='unlock',pinActivated=false;
+let pinMode='unlock',pinBuffer='',pinFirst='';
 function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
-function activatePin(){
-  if(pinActivated){
-    pinActivated=false;
-    const btn=document.getElementById('pin-power-btn');
-    btn.classList.remove('on');
-    btn.classList.add('powering-off');
-    setTimeout(()=>btn.classList.remove('powering-off'),1000);
-    document.getElementById('pin-pw-area').classList.remove('show');
-    const _pi=document.getElementById('pin-input');_pi.value='';_pi.disabled=true;
-    document.getElementById('pin-err').textContent='';
-  } else {
-    pinActivated=true;
-    document.getElementById('pin-power-btn').classList.add('on');
-    document.getElementById('pin-pw-area').classList.add('show');
-    setTimeout(()=>{const i=document.getElementById('pin-input');i.disabled=false;i.focus();},400);
+function pinKey(d){
+  if(pinBuffer.length>=4)return;
+  pinBuffer+=d;
+  updatePinDots();
+  if(pinBuffer.length===4)setTimeout(submitPin,120);
+}
+function pinDel(){
+  pinBuffer=pinBuffer.slice(0,-1);
+  updatePinDots();
+  document.getElementById('pin-err').textContent='';
+}
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('pd'+i);
+    dot.classList.toggle('filled',i<pinBuffer.length);
+    dot.classList.remove('err');
   }
 }
-function submitPassword(e){
-  e.preventDefault();
-  const pw=document.getElementById('pin-input').value;
-  const err=document.getElementById('pin-err');
-  if(!pw){err.textContent='Enter your password';return;}
+function pinShakeError(msg){
+  const dots=document.getElementById('pin-dots');
+  for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.add('err');
+  dots.classList.remove('shake');void dots.offsetWidth;dots.classList.add('shake');
+  document.getElementById('pin-err').textContent=msg;
+  pinBuffer='';
+  setTimeout(()=>{updatePinDots();dots.classList.remove('shake');},400);
+}
+function submitPin(){
   if(pinMode==='setup'){
-    const confirm=document.getElementById('pin-confirm-input').value;
-    if(!confirm){err.textContent='Confirm your password';return;}
-    if(pw!==confirm){err.textContent='Passwords don\'t match';return;}
-    localStorage.setItem('mp7_pin',hashPw(pw));
-    unlockApp();
+    if(!pinFirst){
+      pinFirst=pinBuffer;pinBuffer='';
+      updatePinDots();
+      document.getElementById('pin-label').textContent='Confirm PIN';
+      document.getElementById('pin-err').textContent='';
+    } else {
+      if(pinBuffer===pinFirst){
+        localStorage.setItem('mp7_pin',hashPw(pinBuffer));
+        unlockApp();
+      } else {
+        pinFirst='';
+        pinShakeError('PINs don\'t match — try again');
+        setTimeout(()=>{document.getElementById('pin-label').textContent='Set PIN';},420);
+      }
+    }
   } else {
-    if(hashPw(pw)===localStorage.getItem('mp7_pin')){unlockApp();}
-    else{err.textContent='Wrong password';document.getElementById('pin-input').value='';}
+    if(hashPw(pinBuffer)===localStorage.getItem('mp7_pin')){unlockApp();}
+    else pinShakeError('Wrong PIN');
   }
 }
 function unlockApp(){
   document.getElementById('pin-gate').classList.add('hidden');
-  document.getElementById('pin-input').value='';
-  document.getElementById('pin-confirm-input').value='';
+  pinBuffer='';pinFirst='';updatePinDots();
   document.getElementById('pin-err').textContent='';
 }
 function lockApp(){
   document.getElementById('pin-gate').classList.remove('hidden');
-  const _lpi=document.getElementById('pin-input');_lpi.value='';_lpi.disabled=true;
+  pinBuffer='';pinFirst='';updatePinDots();
   document.getElementById('pin-err').textContent='';
-  pinActivated=false;
-  document.getElementById('pin-power-btn').classList.remove('on');
-  document.getElementById('pin-pw-area').classList.remove('show');
   applyPinMode('unlock');
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
-  const stored=localStorage.getItem('mp7_pin');
-  if(!stored){applyPinMode('setup');}
-  else{applyPinMode('unlock');}
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+  applyPinMode(localStorage.getItem('mp7_pin')?'unlock':'setup');
 }
 function applyPinMode(mode){
-  pinMode=mode;
-  const isSetup=mode==='setup';
-  document.getElementById('pin-input').autocomplete=isSetup?'new-password':'current-password';
-  document.getElementById('pin-input').name=isSetup?'new-password':'password';
-  document.getElementById('pin-input').value='';
-  document.getElementById('pin-confirm-input').style.display=isSetup?'block':'none';
-  document.getElementById('pin-confirm-input').value='';
+  pinMode=mode;pinBuffer='';pinFirst='';
+  updatePinDots();
   document.getElementById('pin-err').textContent='';
-  document.getElementById('pin-toggle').textContent=isSetup?'Already set up on another device? Log in instead':'Setting up a new device? Create password instead';
-  if(isSetup)activatePin();
+  const isSetup=mode==='setup';
+  document.getElementById('pin-label').textContent=isSetup?'Set PIN':'Enter PIN';
+  document.getElementById('pin-toggle').textContent=isSetup?'Already have a PIN? Log in instead':'Setting up a new device? Create PIN instead';
+  document.getElementById('pin-mode-key').textContent='';
 }
-function togglePinMode(){
-  applyPinMode(pinMode==='setup'?'unlock':'setup');
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
-}
+function togglePinMode(){applyPinMode(pinMode==='setup'?'unlock':'setup');}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('pin-gate').classList.contains('hidden'))return;
+  if(e.key>='0'&&e.key<='9')pinKey(e.key);
+  else if(e.key==='Backspace')pinDel();
+});
 
 initPin();
 init();
