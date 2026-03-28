@@ -532,7 +532,8 @@ function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);r
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
 function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions}));}
-function mesoWkFor(dateStr){const ms=new Date(ws(S.mesoStart)+'T12:00:00'),d=new Date(ws(dateStr)+'T12:00:00');return Math.max(1,Math.floor((d-ms)/(7*86400000))+1);}
+function utcDay(s){const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);}
+function mesoWkFor(dateStr){return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(S.mesoStart)))/(7*86400000))+1);}
 function mesoWk(){return mesoWkFor(td());}
 function derivedPhase(){let w=mesoWk(),cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(w<=cum)return{phaseIdx:i,weekInPhase:w-(cum-S.phases[i].weeks)};}return{phaseIdx:S.phases.length-1,weekInPhase:S.phases[S.phases.length-1].weeks};}
 function ph(){return S.phases[derivedPhase().phaseIdx];}
@@ -617,11 +618,11 @@ function saveMesoStart(v){
   if(!v)return;
   v=ws(v);document.getElementById('s-meso-start').value=v;
   const warn=document.getElementById('s-meso-warn');
-  const weeksAgo=Math.round((new Date(ws(td())+'T12:00:00')-new Date(ws(v)+'T12:00:00'))/(7*86400000));
+  const weeksAgo=Math.round((utcDay(ws(td()))-utcDay(ws(v)))/(7*86400000));
   if(warn){if(weeksAgo>3){warn.style.color='var(--danger)';warn.textContent=weeksAgo+' weeks ago — consider starting from the current week.';}else{warn.textContent='';}}
   S.mesoStart=v;persist();renderPhaseBar();renderAdvBar();renderWeekNav();
 }
-function minWeekOffset(){const ms=new Date(ws(S.mesoStart)+'T12:00:00'),cur=new Date(ws(td())+'T12:00:00');return Math.round((ms-cur)/(7*86400000));}
+function minWeekOffset(){return Math.round((utcDay(ws(S.mesoStart))-utcDay(ws(td())))/(7*86400000));}
 function maxWeekOffset(){return S.phases.reduce((a,p)=>a+p.weeks,0)-mesoWk();}
 function phaseIdxFor(mw){let cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(mw<=cum)return i;}return S.phases.length-1;}
 function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();S.phaseIdx=phaseIdxFor(mesoWk());const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();loadTemplate();renderDtype();}renderWeekNav();renderPhaseBar();renderAdvBar();}
