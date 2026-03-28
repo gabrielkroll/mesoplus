@@ -244,6 +244,14 @@ select.bare{cursor:pointer}
 .readiness-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .readiness-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink3)}
 
+/* PROFILE MENU */
+.profile-wrap{position:relative}
+.profile-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--lift);border:1px solid var(--line);border-radius:6px;padding:4px;min-width:130px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.pmenu-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--ink2);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:4px;transition:all .12s;white-space:nowrap;outline:none}
+.pmenu-item:hover{background:var(--surf);color:var(--ink)}
+.pmenu-item.danger:hover{color:var(--danger);background:var(--danger-bg)}
+.pmenu-divider{height:1px;background:var(--line);margin:4px 0}
+
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
 .a-out.loading{color:var(--ink3);font-style:italic}
@@ -296,8 +304,14 @@ select.bare{cursor:pointer}
       <button class="nl on" id="nl-log" onclick="nav('log')">Log</button>
       <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
-      <button class="nl" id="nl-settings" onclick="nav('settings')">Setup</button>
-      <button class="power-btn on" onclick="lockApp()" title="Lock">⏻</button>
+      <div class="profile-wrap">
+        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()">Profile</button>
+        <div class="profile-menu hidden" id="profile-menu">
+          <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
+          <div class="pmenu-divider"></div>
+          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Logout</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1102,7 +1116,10 @@ async function saveSettings(){
   }catch(e){st.textContent='Network error — check credentials';st.style.color='var(--danger)';}
 }
 
-function nav(id){['log','progress','analysis','settings'].forEach(v=>{document.getElementById('v-'+v).classList.toggle('hidden',v!==id);document.getElementById('nl-'+v).classList.toggle('on',v===id);});if(id==='progress')renderProgress();}
+function nav(id){['log','progress','analysis','settings'].forEach(v=>{document.getElementById('v-'+v).classList.toggle('hidden',v!==id);const el=document.getElementById('nl-'+v);if(el)el.classList.toggle('on',v===id);});const pp=document.getElementById('nl-profile');if(pp)pp.classList.toggle('on',id==='settings');if(id==='progress')renderProgress();}
+function toggleProfileMenu(){const m=document.getElementById('profile-menu');m.classList.toggle('hidden');}
+function closeProfileMenu(){document.getElementById('profile-menu')?.classList.add('hidden');}
+document.addEventListener('click',e=>{const w=document.querySelector('.profile-wrap');if(w&&!w.contains(e.target))closeProfileMenu();});
 
 /* PASSWORD GATE */
 let pinMode='unlock'; // unlock | setup
