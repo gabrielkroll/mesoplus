@@ -994,6 +994,9 @@ async function importFromSheets(){
       S.sessions.push(sess);imported++;
     }
     persist();
+    // Refresh UI if the currently viewed day was just imported
+    const cur=S.sessions.find(s=>s.date===S.selectedDate);
+    if(cur)loadSess(cur);
     if(st){
       if(!imported&&!skipped){st.textContent='Nothing to import';st.style.color='var(--ink3)';}
       else{st.textContent=`Imported ${imported} session${imported!==1?'s':''}${skipped?' · '+skipped+' already existed':''} ✓`;st.style.color='var(--accent)';}
