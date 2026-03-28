@@ -100,6 +100,8 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .week-label{flex-shrink:0;padding:0 2px}
 .wl-main{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1;white-space:nowrap;color:var(--ink)}
 .wl-sub{font-size:9px;color:var(--ink3);white-space:nowrap;margin-top:1px}
+.btn-today{background:none;border:none;color:var(--accent);font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;margin-top:2px;outline:none;text-decoration:underline;text-underline-offset:2px}
+.btn-today:hover{opacity:.7}
 .day-pills{display:flex;gap:3px;flex:1;min-width:0}
 
 /* SESSION HEAD */
@@ -126,7 +128,9 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 select.bare{cursor:pointer}
 
 /* DAY TYPE */
-.dtype-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.dtype-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:var(--sp3)}
+.dtype-empty{padding:var(--sp6) var(--sp4);text-align:center;color:var(--ink3);font-size:11px;border:1px dashed var(--line);border-radius:6px;margin-bottom:var(--sp4);line-height:1.7}
+.dtype-empty strong{display:block;color:var(--ink2);margin-bottom:var(--sp1);font-weight:400}
 
 /* SECTION TITLE */
 .section-title{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;padding-top:2px}
@@ -320,6 +324,7 @@ select.bare{cursor:pointer}
       <div class="week-label">
         <div class="wl-main" id="wl-main"></div>
         <div class="wl-sub" id="wl-sub"></div>
+        <button class="btn-today hidden" id="btn-today" onclick="goToday()">today</button>
       </div>
       <div class="day-pills" id="day-pills"></div>
       <button class="wnav-arr" id="btn-next" onclick="shiftWeek(1)" disabled>→</button>
@@ -354,6 +359,7 @@ select.bare{cursor:pointer}
     </div>
 
     <div class="dtype-row" id="dtype-row"></div>
+    <div class="dtype-empty hidden" id="dtype-empty"><strong>What kind of session is today?</strong>Select Gym, BJJ, or Rest above to start logging.</div>
 
     <div id="gym-content">
       <div class="section-title">Gym session</div>
@@ -465,7 +471,7 @@ select.bare{cursor:pointer}
   <div id="v-settings" class="hidden">
     <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Mesocycle</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
-    <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"></div></div>
+    <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
     <div style="height:24px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:4px">Claude AI setup</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Required for smart analysis · console.anthropic.com → API Keys</div>
@@ -571,18 +577,21 @@ function buildChips(id,opts,sel,cb){
 }
 function handleSleep(v){S.sleep=v;}
 
+function phaseWeekRange(idx){let cum=0;for(let i=0;i<idx;i++)cum+=S.phases[i].weeks;const p=S.phases[idx],wS=cum+1,wE=cum+p.weeks;return p.weeks===1?`W${wS}`:p.weeks<=3?Array.from({length:p.weeks},(_,k)=>`W${wS+k}`).join(', '):`W${wS}–W${wE}`;}
 function renderPhaseBar(){
   const dp=derivedPhase();
   let cum=0;
   document.getElementById('phase-bar').innerHTML=S.phases.map((p,i)=>{
     const wStart=cum+1,wEnd=cum+p.weeks;cum+=p.weeks;
-    const isCur=i===dp.phaseIdx;
+    const isCur=i===dp.phaseIdx,isSel=i===S.phaseIdx;
     let wLabel=p.weeks===1?`W${wStart}`:p.weeks<=3?Array.from({length:p.weeks},(_,k)=>`W${wStart+k}`).join(', '):`W${wStart}–W${wEnd}`;
-    return `<div class="pseg${isCur?' cur':''}" onclick="jumpPhase(${i})" title="${p.name} · RIR ${p.rir} · ${p.weeks} weeks"
-      style="${isCur?`border-color:${p.color};background:${p.color}12`:''}">
-      <div class="ps-name" style="color:${isCur?p.color:'var(--ink3)'}">${p.abbr}</div>
-      <div class="ps-rir" style="color:${isCur?p.color:'var(--ink3)'}">RIR ${p.rir}</div>
-      <div class="ps-wks" style="color:${isCur?p.color:'var(--ink3)'}">${wLabel}</div>
+    let style='',cls='pseg';
+    if(isCur){style=`border-color:${p.color};background:${p.color}12`;cls+=' cur';}
+    else if(isSel){style=`border-color:${p.color};opacity:.7`;}
+    return `<div class="${cls}" onclick="jumpPhase(${i})" title="${p.name} · RIR ${p.rir} · ${p.weeks} weeks" style="${style}">
+      <div class="ps-name" style="color:${isCur||isSel?p.color:'var(--ink3)'}">${p.abbr}</div>
+      <div class="ps-rir" style="color:${isCur||isSel?p.color:'var(--ink3)'}">RIR ${p.rir}</div>
+      <div class="ps-wks" style="color:${isCur||isSel?p.color:'var(--ink3)'}">${wLabel}</div>
     </div>`;
   }).join('');
   const p=ph();
@@ -591,23 +600,35 @@ function renderPhaseBar(){
   document.getElementById('phase-note').textContent=p.note;
 }
 function renderAdvBar(){
-  const dp=derivedPhase(),p=S.phases[dp.phaseIdx],next=S.phases[dp.phaseIdx+1];
-  document.getElementById('adv-phase').textContent=`${p.name} · W${dp.weekInPhase} of ${p.weeks} · RIR target ${p.rir}`;
+  const dp=derivedPhase(),p=S.phases[S.phaseIdx],next=S.phases[S.phaseIdx+1];
+  const isCurrent=S.phaseIdx===dp.phaseIdx;
+  const weekLabel=isCurrent?`W${dp.weekInPhase} of ${p.weeks}`:phaseWeekRange(S.phaseIdx);
+  document.getElementById('adv-phase').textContent=`${p.name} · ${weekLabel} · RIR target ${p.rir}`;
   document.getElementById('adv-phase').style.color=p.color;
-  document.getElementById('adv-sub').textContent=next?`${p.load}. Advance when ready, adjust weeks freely.`:`Deload complete — start new mesocycle when ready.`;
+  if(isCurrent){document.getElementById('adv-sub').textContent=next?`${p.load}. Advance when ready, adjust weeks freely.`:`Deload complete — start new mesocycle when ready.`;}
+  else{document.getElementById('adv-sub').textContent=p.note;}
 }
 function jumpPhase(i){S.phaseIdx=i;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
 function advPhase(d){const n=S.phaseIdx+d;if(n<0||n>=S.phases.length)return;S.phaseIdx=n;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
 function addWeek(d){const p=S.phases[S.phaseIdx];p.weeks=Math.max(1,p.weeks+d);persist();renderPhaseBar();renderAdvBar();}
-function saveMesoStart(v){if(!v)return;S.mesoStart=v;persist();renderPhaseBar();renderAdvBar();renderWeekNav();}
+function saveMesoStart(v){
+  if(!v)return;
+  const warn=document.getElementById('s-meso-warn');
+  const weeksAgo=Math.round((new Date(ws(td())+'T12:00:00')-new Date(ws(v)+'T12:00:00'))/(7*86400000));
+  if(warn){if(weeksAgo>3){warn.style.color='var(--danger)';warn.textContent=`${weeksAgo} weeks ago — phases may not align. Consider starting from the current week unless reconstructing a past meso.`;}else{warn.textContent='';}}
+  S.mesoStart=v;persist();renderPhaseBar();renderAdvBar();renderWeekNav();
+}
+function minWeekOffset(){const ms=new Date(ws(S.mesoStart)+'T12:00:00'),cur=new Date(ws(td())+'T12:00:00');return Math.round((ms-cur)/(7*86400000));}
+function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();loadTemplate();}renderWeekNav();}
 
 function renderWeekNav(){
   const t=td(),wss=ws(t),vs=addD(wss,S.viewWeekOffset*7),ve=addD(vs,6);
   document.getElementById('wl-main').textContent=`W${mesoWkFor(vs)} · Week ${iw(vs)}`;
   document.getElementById('week-big').textContent='W'+mesoWkFor(vs);
   document.getElementById('wl-sub').textContent=`${fmt(vs)} – ${fmt(ve)}`;
-  document.getElementById('btn-prev').disabled=false;
-  document.getElementById('btn-next').disabled=S.viewWeekOffset>=0;
+  document.getElementById('btn-prev').disabled=S.viewWeekOffset<=minWeekOffset();
+  document.getElementById('btn-next').disabled=false;
+  document.getElementById('btn-today').classList.toggle('hidden',S.viewWeekOffset===0);
   const pills=document.getElementById('day-pills');pills.innerHTML='';
   DAYS.forEach((day,i)=>{
     const date=addD(vs,i),isToday=date===t,isFuture=date>t,isSel=date===S.selectedDate;
@@ -652,19 +673,20 @@ function resetForm(){
   buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
   buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
 }
-function shiftWeek(d){if(d>0&&S.viewWeekOffset>=0)return;autoSaveCurrentDay();S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;const _wSess=S.sessions.find(s=>s.date===vs);if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();}renderWeekNav();}
+function shiftWeek(d){if(d<0&&S.viewWeekOffset<=minWeekOffset())return;autoSaveCurrentDay();S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;const _wSess=S.sessions.find(s=>s.date===vs);if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();}renderWeekNav();}
 
 function renderDtype(){
   const types=['Gym','BJJ + Gym','BJJ','Rest'];
   document.getElementById('dtype-row').innerHTML=types.map(t=>`<button class="chip${S.dtype===t?' on':''}" onclick="setDtype('${t}')">${t}</button>`).join('');
   const isGym=S.dtype==='Gym'||S.dtype==='BJJ + Gym';
   const isBJJ=S.dtype==='BJJ'||S.dtype==='BJJ + Gym';
+  document.getElementById('dtype-empty').classList.toggle('hidden',S.dtype!=='');
   document.getElementById('gym-content').classList.toggle('hidden',!isGym);
   document.getElementById('bjj-content').classList.toggle('hidden',!isBJJ);
   document.getElementById('rest-content').classList.toggle('hidden',S.dtype!=='Rest');
   if(S.dtype==='Rest'){const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;}
 }
-function setDtype(t){S.dtype=t;renderDtype();}
+function setDtype(t){S.dtype=S.dtype===t?'':t;renderDtype();markDirty();}
 
 function loadTemplate(){
   S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
@@ -840,7 +862,7 @@ async function syncDayToSheets(date){
 function autoSaveCurrentDay(){
   const sess=buildCurrentSession();
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
-  if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+  if(ei>=0)S.sessions[ei]=sess;else if(sessionHasData(sess))S.sessions.push(sess);
   persist();
   if(S.scriptUrl&&!_synced.has(S.selectedDate)&&sessionHasData(sess))appendRows(toRows(sess)).then(ok=>{if(ok)markSynced(S.selectedDate);});
 }
