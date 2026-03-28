@@ -547,6 +547,7 @@ function init(){
       if(s.sleep==='9h+')s.sleep='≥8.5h';
     });
     S.sessions=S.sessions.filter(s=>sessionHasData(s));
+    fixGymDays();
   } else {S.mesoStart=ws(td());}
   S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';S.scriptUrl=localStorage.getItem('mp7_su')||'';
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
@@ -711,6 +712,20 @@ function derivedGymDay(date){
   const count=S.sessions.filter(s=>s.date>=mon&&s.date<date&&gymTypes.includes(s.dtype)).length;
   const maxDay=Object.keys(TEMPLATES).length;
   return(count%maxDay)+1;
+}
+function fixGymDays(){
+  const gymTypes=['Gym','BJJ + Gym'];
+  const maxDay=Object.keys(TEMPLATES).length;
+  const sorted=[...S.sessions].sort((a,b)=>a.date.localeCompare(b.date));
+  for(let i=0;i<sorted.length;i++){
+    const sess=sorted[i];
+    if(!gymTypes.includes(sess.dtype))continue;
+    const mon=ws(sess.date);
+    const count=sorted.slice(0,i).filter(s=>s.date>=mon&&gymTypes.includes(s.dtype)).length;
+    const ei=S.sessions.findIndex(s=>s.date===sess.date);
+    if(ei>=0)S.sessions[ei].gymDay=(count%maxDay)+1;
+  }
+  persist();
 }
 function loadTemplate(){
   S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
@@ -1001,7 +1016,7 @@ async function importFromSheets(){
       sess.supersets=Object.keys(bySS).map(Number).sort((a,b)=>a-b).map(n=>({exercises:bySS[n]}));
       S.sessions.push(sess);imported++;
     }
-    persist();
+    fixGymDays();
     // Refresh UI if the currently viewed day was just imported
     const cur=S.sessions.find(s=>s.date===S.selectedDate);
     if(cur)loadSess(cur);
