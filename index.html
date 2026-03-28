@@ -253,7 +253,7 @@ select.bare{cursor:pointer}
 .pmenu-item.danger:hover{color:var(--danger);background:var(--danger-bg)}
 .pmenu-divider{height:1px;background:var(--line);margin:4px 0}
 .power-icon{color:#c0392b;filter:drop-shadow(0 0 5px #c0392b99);font-size:13px;margin-left:8px}
-.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;flex-shrink:0;margin-left:5px}
+.profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid currentColor;flex-shrink:0;margin-left:5px;vertical-align:middle}
 
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -309,7 +309,7 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
       <div class="profile-wrap">
-        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
+        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()" style="display:inline-flex;align-items:center"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
         <div class="profile-menu hidden" id="profile-menu">
           <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
