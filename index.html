@@ -30,14 +30,7 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px;display:flex;flex-direction:column;align-items:center}
 .pin-title{font-family:var(--serif);font-style:italic;font-size:52px;color:var(--ink);margin-bottom:0;letter-spacing:-.02em}
 .pin-title sup{font-size:22px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
-.pin-power-wrap{display:inline-flex;align-items:center;justify-content:center;margin:36px 0 28px}
-@keyframes pin-sheen{0%,68%{background-position:180% 0}88%,100%{background-position:-80% 0}}
-@keyframes pin-poweroff{0%{-webkit-text-fill-color:#c0392b;filter:drop-shadow(0 0 16px #c0392bcc)}70%{-webkit-text-fill-color:#555;filter:none}100%{-webkit-text-fill-color:#444;filter:none}}
-.pin-power-btn{background:transparent;border:none;cursor:pointer;outline:none;font-size:48px;line-height:1;padding:14px;border-radius:50%;background-image:linear-gradient(100deg,#444 0%,#444 47%,#aaa 50%,#444 53%,#444 100%);background-size:350% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:pin-sheen 9s linear infinite;transition:filter .7s ease}
-.pin-power-btn.on{background:transparent;background-image:none;-webkit-background-clip:unset;background-clip:unset;-webkit-text-fill-color:#c0392b;color:#c0392b;animation:none;filter:drop-shadow(0 0 16px #c0392bcc)}
-.pin-power-btn.powering-off{background-image:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;animation:pin-poweroff 1s ease forwards!important}
-.pin-pw-area{width:100%;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .35s ease}
-.pin-pw-area.show{max-height:220px;opacity:1}
+.pin-form-wrap{width:100%;margin-top:32px}
 .pin-field{width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:14px;color:var(--ink);outline:none;margin-bottom:0;transition:border-color .12s;text-align:left}
 .pin-field:focus{border-color:var(--line2)}
 .pin-err{font-size:11px;color:var(--danger);min-height:0;margin:4px 0 0;text-align:left}
@@ -290,20 +283,17 @@ select.bare{cursor:pointer}
 </head>
 <body>
 
-<!-- PASSWORD GATE -->
+<!-- LOGIN GATE -->
 <div id="pin-gate">
   <div class="pin-box">
     <div class="pin-title">Meso<sup>+</sup></div>
-    <div class="pin-power-wrap">
-      <button type="button" class="pin-power-btn" id="pin-power-btn" onclick="activatePin()">⏻</button>
-    </div>
-    <div class="pin-pw-area" id="pin-pw-area">
+    <div class="pin-form-wrap">
       <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
         <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
-        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password" disabled>
-        <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none">
+        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password">
+        <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none;margin-top:8px">
         <div class="pin-err" id="pin-err"></div>
-        <button type="submit" class="btn-s" style="width:100%;margin-top:8px">Enter</button>
+        <button type="submit" class="btn-s" style="width:100%;margin-top:8px">Log in</button>
       </form>
     </div>
     <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">Setting up a new device? Create password instead</button>
@@ -322,7 +312,7 @@ select.bare{cursor:pointer}
         <div class="profile-menu hidden" id="profile-menu">
           <button class="pmenu-item" onclick="nav('settings');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
-          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Turn off <span class="power-icon">⏻</span></button>
+          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Lock app <span class="power-icon">⏻</span></button>
         </div>
       </div>
     </div>
@@ -1140,25 +1130,8 @@ document.addEventListener('click',e=>{const w=document.querySelector('.profile-w
 function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';document.getElementById('profile-avatar').textContent=initials;document.getElementById('profile-name').textContent=first||'Profile';}
 
 /* PASSWORD GATE */
-let pinMode='unlock',pinActivated=false;
+let pinMode='unlock';
 function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
-function activatePin(){
-  if(pinActivated){
-    pinActivated=false;
-    const btn=document.getElementById('pin-power-btn');
-    btn.classList.remove('on');
-    btn.classList.add('powering-off');
-    setTimeout(()=>btn.classList.remove('powering-off'),1000);
-    document.getElementById('pin-pw-area').classList.remove('show');
-    const _pi=document.getElementById('pin-input');_pi.value='';_pi.disabled=true;
-    document.getElementById('pin-err').textContent='';
-  } else {
-    pinActivated=true;
-    document.getElementById('pin-power-btn').classList.add('on');
-    document.getElementById('pin-pw-area').classList.add('show');
-    setTimeout(()=>{const i=document.getElementById('pin-input');i.disabled=false;i.focus();},400);
-  }
-}
 function submitPassword(e){
   e.preventDefault();
   const pw=document.getElementById('pin-input').value;
@@ -1183,31 +1156,25 @@ function unlockApp(){
 }
 function lockApp(){
   document.getElementById('pin-gate').classList.remove('hidden');
-  const _lpi=document.getElementById('pin-input');_lpi.value='';_lpi.disabled=true;
-  document.getElementById('pin-err').textContent='';
-  pinActivated=false;
-  document.getElementById('pin-power-btn').classList.remove('on');
-  document.getElementById('pin-pw-area').classList.remove('show');
   applyPinMode('unlock');
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
-  const stored=localStorage.getItem('mp7_pin');
-  if(!stored){applyPinMode('setup');}
-  else{applyPinMode('unlock');}
+  applyPinMode(localStorage.getItem('mp7_pin')?'unlock':'setup');
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function applyPinMode(mode){
   pinMode=mode;
   const isSetup=mode==='setup';
-  document.getElementById('pin-input').autocomplete=isSetup?'new-password':'current-password';
-  document.getElementById('pin-input').name=isSetup?'new-password':'password';
-  document.getElementById('pin-input').value='';
+  const inp=document.getElementById('pin-input');
+  inp.autocomplete=isSetup?'new-password':'current-password';
+  inp.name=isSetup?'new-password':'password';
+  inp.value='';
   document.getElementById('pin-confirm-input').style.display=isSetup?'block':'none';
   document.getElementById('pin-confirm-input').value='';
   document.getElementById('pin-err').textContent='';
   document.getElementById('pin-toggle').textContent=isSetup?'Already set up on another device? Log in instead':'Setting up a new device? Create password instead';
-  if(isSetup)activatePin();
+  document.querySelector('#pin-form .btn-s').textContent=isSetup?'Create password':'Log in';
 }
 function togglePinMode(){
   applyPinMode(pinMode==='setup'?'unlock':'setup');
