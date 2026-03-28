@@ -27,14 +27,21 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 /* PASSWORD GATE */
 #pin-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center}
 #pin-gate.hidden{display:none}
-.pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px}
-.pin-title{font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:4px}
-.pin-title sup{font-size:16px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
-.pin-sub{font-size:11px;color:var(--ink3);margin-bottom:24px}
+.pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px;display:flex;flex-direction:column;align-items:center}
+.pin-title{font-family:var(--serif);font-style:italic;font-size:52px;color:var(--ink);margin-bottom:0;letter-spacing:-.02em}
+.pin-title sup{font-size:22px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
+.pin-power-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;margin:36px 0 28px;border-radius:50%;overflow:hidden}
+.pin-power-wrap::before{content:'';position:absolute;top:-50%;left:-150%;width:45%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-15deg);animation:pin-sheen 6s ease-in-out infinite;pointer-events:none}
+@keyframes pin-sheen{0%,58%{left:-150%;opacity:0}63%{opacity:1}78%,100%{left:160%;opacity:0}}
+.pin-power-btn{background:none;border:none;cursor:pointer;outline:none;font-size:56px;line-height:1;padding:14px;border-radius:50%;color:#444;transition:color .5s ease,filter .5s ease}
+.pin-power-btn.on{color:#c0392b;filter:drop-shadow(0 0 14px #c0392baa)}
+.pin-pw-area{width:100%;max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .35s ease}
+.pin-pw-area.show{max-height:220px;opacity:1}
 .pin-field{width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:14px;color:var(--ink);outline:none;margin-bottom:10px;transition:border-color .12s;text-align:left}
 .pin-field:focus{border-color:var(--line2)}
-.pin-err{font-size:11px;color:var(--danger);min-height:16px;margin-bottom:10px}
-.pin-setup-note{font-size:10px;color:var(--ink3);margin-top:14px;line-height:1.6}
+.pin-err{font-size:11px;color:var(--danger);min-height:14px;margin-bottom:8px;text-align:left}
+.pin-toggle-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:28px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;outline:none;line-height:1.6}
+.pin-toggle-btn:hover{color:var(--ink2)}
 .power-btn{background:none;border:none;cursor:pointer;outline:none;padding:6px;border-radius:50%;transition:all .2s;line-height:1;font-size:18px}
 .power-btn.off{color:#444;filter:none}
 .power-btn.on{color:#c0392b;filter:drop-shadow(0 0 6px #c0392b99)}
@@ -286,16 +293,19 @@ select.bare{cursor:pointer}
 <div id="pin-gate">
   <div class="pin-box">
     <div class="pin-title">Meso<sup>+</sup></div>
-    <div class="pin-sub" id="pin-sub">Enter your password and switch on</div>
-    <div class="pin-err" id="pin-err"></div>
-    <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
-      <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
-      <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password">
-      <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none">
-      <button type="submit" class="power-btn off" id="pin-submit-btn" style="margin-top:18px;font-size:32px;padding:14px">⏻</button>
-    </form>
-    <div class="pin-setup-note" id="pin-setup-note"></div>
-    <button type="button" id="pin-toggle" onclick="togglePinMode()" style="background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:18px;cursor:pointer;text-decoration:underline;outline:none"></button>
+    <div class="pin-power-wrap">
+      <button type="button" class="pin-power-btn" id="pin-power-btn" onclick="activatePin()">⏻</button>
+    </div>
+    <div class="pin-pw-area" id="pin-pw-area">
+      <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
+        <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
+        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Password" autocomplete="current-password">
+        <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none">
+        <div class="pin-err" id="pin-err"></div>
+        <button type="submit" class="btn-s" style="width:100%">Enter</button>
+      </form>
+    </div>
+    <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">Setting up a new device? Create password instead</button>
   </div>
 </div>
 
@@ -1129,8 +1139,15 @@ document.addEventListener('click',e=>{const w=document.querySelector('.profile-w
 function updateProfileNav(){const name=(document.getElementById('s-name')?.value||'').trim();localStorage.setItem('mp7_name',name);const first=name.split(' ')[0]||'';const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';document.getElementById('profile-avatar').textContent=initials;document.getElementById('profile-name').textContent=first||'Profile';}
 
 /* PASSWORD GATE */
-let pinMode='unlock'; // unlock | setup
+let pinMode='unlock',pinActivated=false;
 function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
+function activatePin(){
+  if(pinActivated)return;
+  pinActivated=true;
+  document.getElementById('pin-power-btn').classList.add('on');
+  document.getElementById('pin-pw-area').classList.add('show');
+  setTimeout(()=>document.getElementById('pin-input').focus(),400);
+}
 function submitPassword(e){
   e.preventDefault();
   const pw=document.getElementById('pin-input').value;
@@ -1157,6 +1174,10 @@ function lockApp(){
   document.getElementById('pin-gate').classList.remove('hidden');
   document.getElementById('pin-input').value='';
   document.getElementById('pin-err').textContent='';
+  pinActivated=false;
+  document.getElementById('pin-power-btn').classList.remove('on');
+  document.getElementById('pin-pw-area').classList.remove('show');
+  applyPinMode('unlock');
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
@@ -1168,15 +1189,14 @@ function initPin(){
 function applyPinMode(mode){
   pinMode=mode;
   const isSetup=mode==='setup';
-  document.getElementById('pin-sub').textContent=isSetup?'Create a password':'Enter your password and switch on';
   document.getElementById('pin-input').autocomplete=isSetup?'new-password':'current-password';
   document.getElementById('pin-input').name=isSetup?'new-password':'password';
   document.getElementById('pin-input').value='';
   document.getElementById('pin-confirm-input').style.display=isSetup?'block':'none';
   document.getElementById('pin-confirm-input').value='';
   document.getElementById('pin-err').textContent='';
-  document.getElementById('pin-setup-note').textContent=isSetup?'First time setup — Safari will offer to save this to your Keychain.':'';
   document.getElementById('pin-toggle').textContent=isSetup?'Already set up on another device? Log in instead':'Setting up a new device? Create password instead';
+  if(isSetup)activatePin();
 }
 function togglePinMode(){
   applyPinMode(pinMode==='setup'?'unlock':'setup');
