@@ -545,6 +545,7 @@ function init(){
       if(s.sleep==='5h')s.sleep='≤5.5h';
       if(s.sleep==='9h+')s.sleep='≥8.5h';
     });
+    S.sessions=S.sessions.filter(s=>sessionHasData(s));
   } else {S.mesoStart=ws(td());}
   S.apiKey=localStorage.getItem('mp7_k')||'';S.sheetId=localStorage.getItem('mp7_s')||'';S.sheetTab=localStorage.getItem('mp7_t')||'Workout_Log';S.claudeKey=localStorage.getItem('mp7_ck')||'';S.scriptUrl=localStorage.getItem('mp7_su')||'';
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
@@ -594,10 +595,11 @@ function renderPhaseBar(){
       <div class="ps-wks" style="color:${isCur||isSel?p.color:'var(--ink3)'}">${wLabel}</div>
     </div>`;
   }).join('');
-  const p=ph();
-  document.getElementById('phase-lbl').textContent=p.name;
-  document.getElementById('phase-lbl').style.color=p.color;
-  document.getElementById('phase-note').textContent=p.note;
+  const vs=addD(ws(td()),S.viewWeekOffset*7);
+  const viewedP=S.phases[phaseIdxFor(mesoWkFor(vs))];
+  document.getElementById('phase-lbl').textContent=viewedP.name;
+  document.getElementById('phase-lbl').style.color=viewedP.color;
+  document.getElementById('phase-note').textContent=viewedP.note;
 }
 function renderAdvBar(){
   const dp=derivedPhase(),p=S.phases[S.phaseIdx],next=S.phases[S.phaseIdx+1];
@@ -615,11 +617,13 @@ function saveMesoStart(v){
   if(!v)return;
   const warn=document.getElementById('s-meso-warn');
   const weeksAgo=Math.round((new Date(ws(td())+'T12:00:00')-new Date(ws(v)+'T12:00:00'))/(7*86400000));
-  if(warn){if(weeksAgo>3){warn.style.color='var(--danger)';warn.textContent=`${weeksAgo} weeks ago — phases may not align. Consider starting from the current week unless reconstructing a past meso.`;}else{warn.textContent='';}}
+  if(warn){if(weeksAgo>3){warn.style.color='var(--danger)';warn.textContent=weeksAgo+' weeks ago — consider starting from the current week.';}else{warn.textContent='';}}
   S.mesoStart=v;persist();renderPhaseBar();renderAdvBar();renderWeekNav();
 }
 function minWeekOffset(){const ms=new Date(ws(S.mesoStart)+'T12:00:00'),cur=new Date(ws(td())+'T12:00:00');return Math.round((ms-cur)/(7*86400000));}
-function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();loadTemplate();}renderWeekNav();}
+function maxWeekOffset(){return S.phases.reduce((a,p)=>a+p.weeks,0)-mesoWk();}
+function phaseIdxFor(mw){let cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(mw<=cum)return i;}return S.phases.length-1;}
+function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();S.phaseIdx=phaseIdxFor(mesoWk());const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();loadTemplate();renderDtype();}renderWeekNav();renderPhaseBar();renderAdvBar();}
 
 function renderWeekNav(){
   const t=td(),wss=ws(t),vs=addD(wss,S.viewWeekOffset*7),ve=addD(vs,6);
@@ -627,7 +631,7 @@ function renderWeekNav(){
   document.getElementById('week-big').textContent='W'+mesoWkFor(vs);
   document.getElementById('wl-sub').textContent=`${fmt(vs)} – ${fmt(ve)}`;
   document.getElementById('btn-prev').disabled=S.viewWeekOffset<=minWeekOffset();
-  document.getElementById('btn-next').disabled=false;
+  document.getElementById('btn-next').disabled=S.viewWeekOffset>=maxWeekOffset();
   document.getElementById('btn-today').classList.toggle('hidden',S.viewWeekOffset===0);
   const pills=document.getElementById('day-pills');pills.innerHTML='';
   DAYS.forEach((day,i)=>{
@@ -649,7 +653,7 @@ function selectDate(date){
   clearTimeout(_syncTimer);_undoPrev=undefined;showUndo(false);_lastSaveTime=null;setSave('');
   S.selectedDate=date;
   const ex=S.sessions.find(s=>s.date===date);
-  if(ex)loadSess(ex);else{resetForm();loadTemplate();}
+  if(ex)loadSess(ex);else{resetForm();loadTemplate();renderDtype();}
   renderWeekNav();
 }
 function loadSess(sess){
@@ -673,7 +677,18 @@ function resetForm(){
   buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
   buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
 }
-function shiftWeek(d){if(d<0&&S.viewWeekOffset<=minWeekOffset())return;autoSaveCurrentDay();S.viewWeekOffset+=d;const vs=addD(ws(td()),S.viewWeekOffset*7);S.selectedDate=vs;const _wSess=S.sessions.find(s=>s.date===vs);if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();}renderWeekNav();}
+function shiftWeek(d){
+  if(d<0&&S.viewWeekOffset<=minWeekOffset())return;
+  if(d>0&&S.viewWeekOffset>=maxWeekOffset())return;
+  autoSaveCurrentDay();
+  S.viewWeekOffset+=d;
+  const vs=addD(ws(td()),S.viewWeekOffset*7);
+  S.selectedDate=vs;
+  S.phaseIdx=phaseIdxFor(mesoWkFor(vs));
+  const _wSess=S.sessions.find(s=>s.date===vs);
+  if(_wSess)loadSess(_wSess);else{resetForm();loadTemplate();renderDtype();}
+  renderWeekNav();renderPhaseBar();renderAdvBar();
+}
 
 function renderDtype(){
   const types=['Gym','BJJ + Gym','BJJ','Rest'];
@@ -686,7 +701,7 @@ function renderDtype(){
   document.getElementById('rest-content').classList.toggle('hidden',S.dtype!=='Rest');
   if(S.dtype==='Rest'){const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;}
 }
-function setDtype(t){S.dtype=S.dtype===t?'':t;renderDtype();markDirty();}
+function setDtype(t){S.dtype=S.dtype===t?'':t;renderDtype();if(S.dtype)markDirty();}
 
 function loadTemplate(){
   S.supersets=TEMPLATES[S.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({name:e.name,muscle:e.muscle,res:e.res,side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false}))}));
