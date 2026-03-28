@@ -269,6 +269,24 @@ select.bare{cursor:pointer}
 .power-icon{color:#c0392b;filter:drop-shadow(0 0 5px #c0392b99);font-size:13px;margin-left:8px}
 .profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid currentColor;flex-shrink:0;margin-left:5px;vertical-align:middle}
 
+/* SETTINGS HUB */
+.settings-card{border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:12px}
+.settings-card-title{font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:16px}
+.settings-nav-table{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.settings-nav-row{display:flex;align-items:center;width:100%;padding:14px 16px;background:none;border:none;text-align:left;cursor:pointer;transition:background .12s;min-height:52px;font-family:var(--mono);-webkit-tap-highlight-color:transparent;outline:none}
+.settings-nav-row:hover{background:var(--surf)}
+.settings-nav-row:active{background:var(--surf)}
+.settings-nav-content{flex:1;min-width:0}
+.settings-nav-label{font-size:13px;color:var(--ink)}
+.settings-nav-sub{font-size:10px;color:var(--ink3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings-nav-chevron{font-size:18px;color:var(--line2);margin-left:10px;flex-shrink:0;line-height:1}
+.settings-nav-divider{height:1px;background:var(--line);margin-left:16px}
+.settings-nav-row.danger .settings-nav-label{color:var(--danger)}
+/* Back button — mobile only */
+.detail-back{display:none}
+@media(max-width:600px){
+  .detail-back{display:flex;align-items:center;gap:4px;background:none;border:none;color:var(--accent);font-family:var(--mono);font-size:12px;padding:0;margin-bottom:20px;cursor:pointer;outline:none;min-height:44px;-webkit-tap-highlight-color:transparent}
+}
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
 .a-out.loading{color:var(--ink3);font-style:italic}
@@ -604,17 +622,45 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-profile" class="hidden">
-    <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Profile</div>
-    <div class="s-row"><div class="s-lbl">Your name<div class="s-note">Shown in the nav.</div></div><div><div class="field-lbl">Name</div><input class="bare" id="s-name" placeholder="Your name" oninput="updateProfileNav()"></div></div>
+    <div class="settings-card">
+      <div class="settings-card-title">Profile</div>
+      <div class="s-row" style="border-bottom:none;padding-bottom:0"><div class="s-lbl">Your name<div class="s-note">Shown in the nav.</div></div><div><div class="field-lbl">Name</div><input class="bare" id="s-name" placeholder="Your name" oninput="updateProfileNav()"></div></div>
+    </div>
+    <div class="settings-nav-table">
+      <button class="settings-nav-row" onclick="nav('program')">
+        <div class="settings-nav-content">
+          <div class="settings-nav-label">Program</div>
+          <div class="settings-nav-sub" id="hub-program-sub"></div>
+        </div>
+        <div class="settings-nav-chevron">›</div>
+      </button>
+      <div class="settings-nav-divider"></div>
+      <button class="settings-nav-row" onclick="nav('setup')">
+        <div class="settings-nav-content">
+          <div class="settings-nav-label">Setup</div>
+          <div class="settings-nav-sub" id="hub-setup-sub"></div>
+        </div>
+        <div class="settings-nav-chevron">›</div>
+      </button>
+    </div>
+    <div class="settings-nav-table">
+      <button class="settings-nav-row danger" onclick="lockApp()">
+        <div class="settings-nav-content">
+          <div class="settings-nav-label">Log out</div>
+        </div>
+      </button>
+    </div>
   </div>
 
   <div id="v-program" class="hidden">
+    <button class="detail-back" onclick="nav('profile')">‹ Profile</button>
     <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Program</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
     <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
   </div>
 
   <div id="v-setup" class="hidden">
+    <button class="detail-back" onclick="nav('profile')">‹ Profile</button>
     <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Setup</div>
     <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Claude AI</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Required for smart analysis · console.anthropic.com → API Keys</div>
@@ -1363,7 +1409,19 @@ function nav(id){
   ['log','progress','analysis'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
   const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','program','setup'].includes(id));
   if(id==='progress')renderProgress();
+  if(id==='profile')updateHubSubtitles();
   closeProfileMenu();
+}
+function updateHubSubtitles(){
+  const progEl=document.getElementById('hub-program-sub');
+  if(progEl){const w=mesoWk();progEl.textContent=`Full Body ABCD · W${w} ${ph().abbr}`;}
+  const setupEl=document.getElementById('hub-setup-sub');
+  if(setupEl){
+    const parts=[];
+    if(S.sheetId||S.scriptUrl)parts.push('Sheets');
+    if(S.claudeKey)parts.push('Claude');
+    setupEl.textContent=parts.length?parts.join(' · ')+' connected':'Not configured';
+  }
 }
 function toggleProfileMenu(){const m=document.getElementById('profile-menu');m.classList.toggle('hidden');}
 function closeProfileMenu(){document.getElementById('profile-menu')?.classList.add('hidden');}
