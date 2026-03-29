@@ -1215,8 +1215,21 @@ async function manualSync(){
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   persist();
-  if(S.scriptUrl){if(!sessionHasData(sess)){setSave('Nothing to sync — log some data first','err');return;}const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Synced ✓':'Sync failed',ok?'ok':'err');setTimeout(()=>{if(_lastSaveTime)setSave('Auto-saved · '+fmtTime(_lastSaveTime));},3000);}
-  else setSave('No sync configured','err');
+  const canSync=S.scriptUrl||S.apiKey;
+  if(!canSync){setSave('No sync configured — add Sheets credentials in Setup','err');return;}
+  if(!sessionHasData(sess)){setSave('Nothing to sync — log some data first','err');return;}
+  const rows=toRows(sess);
+  console.log('[sync] rows to send:',JSON.stringify(rows));
+  if(!rows.length){setSave('No data rows generated — check session data','err');return;}
+  try{
+    const ok=await appendRows(rows);
+    if(ok)markSynced(S.selectedDate);
+    setSave(ok?'Synced ✓':'Sync failed — check console for details',ok?'ok':'err');
+  }catch(e){
+    console.error('[sync] error:',e);
+    setSave('Sync error: '+e.message,'err');
+  }
+  setTimeout(()=>{if(_lastSaveTime)setSave('Auto-saved · '+fmtTime(_lastSaveTime));},3000);
 }
 
 function undoSession(){
