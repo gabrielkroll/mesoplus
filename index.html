@@ -1242,22 +1242,30 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function sessionHasData(s){
   if(s.dtype==='Rest')return true;
+  if(s.dtype==='BJJ'||s.dtype==='BJJ + Gym'){
+    const b=s.bjj||{};
+    if(b.gc||b.desc||b.partner||b.drilling||b.good||b.bad||b.subs||b.next||(b.positions||[]).length)return true;
+  }
   if(s.sleep||s.energy||s.soreness||s.perf||s.extra||s.notes)return true;
   return(s.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
 }
 function toRows(s){
   const wk='W'+(s.week||1);
   const vol=(ex)=>Math.round((parseFloat(ex.reps)||0)*(parseFloat(ex.sets||0)));
+  const isBJJ=s.dtype==='BJJ'||s.dtype==='BJJ + Gym';
+  const b=s.bjj||{};
+  // Columns W–AE: BJJ session data
+  const bjjCols=isBJJ?[b.gc||'',b.desc||'',(b.positions||[]).join(', '),b.partner||'',b.drilling||'',b.good||'',b.bad||'',b.subs||'',b.next||'']:[];
   const rows=[];
   (s.supersets||[]).forEach((ss,si)=>{
     ss.exercises.forEach(ex=>{
       if(!ex.name||(!ex.kg&&!ex.reps&&!ex.rir))return;
-      rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||'',vol(ex)||'',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'',ex.flagged?'flagged':'',s.extra||'',s.notes||'']);
+      rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||'',vol(ex)||'',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'',ex.flagged?'flagged':'',s.extra||'',s.notes||'',...bjjCols]);
     });
   });
-  // Only write a header-only row if no exercises but session has readiness data
+  // Write a session-level row when no exercises (Rest, BJJ, readiness-only)
   if(!rows.length&&sessionHasData(s)){
-    rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'','',s.extra||'',s.notes||'']);
+    rows.push([s.date,wk,s.phase,s.dtype,s.gymDay,'','','','','','','','','','',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'','',s.extra||'',s.notes||'',...bjjCols]);
   }
   return rows;
 }
@@ -1288,7 +1296,7 @@ async function importFromSheets(){
   if(!S.apiKey||!S.sheetId){if(st){st.textContent='API key and Sheet ID required to import';st.style.color='var(--danger)';}return;}
   if(st){st.textContent='Reading from Sheets…';st.style.color='var(--ink3)';}
   try{
-    const range=encodeURIComponent(`${S.sheetTab}!A:V`);
+    const range=encodeURIComponent(`${S.sheetTab}!A:AE`);
     const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${range}?key=${S.apiKey}`);
     if(!res.ok){const err=await res.json();if(st){st.textContent='Error: '+(err.error?.message||'Could not read sheet');st.style.color='var(--danger)';}return;}
     const data=await res.json();
@@ -1309,7 +1317,12 @@ async function importFromSheets(){
     for(const date of dates){
       if(S.sessions.find(s=>s.date===date)){skipped++;continue;}
       const dateRows=byDate[date];const first=dateRows[0];
-      const sess={date,week:parseInt((first[1]||'').replace('W',''))||1,phase:first[2]||'',dtype:first[3]||'',gymDay:parseInt(first[4])||1,sleep:first[15]||'',energy:first[16]||'',soreness:first[17]||'',perf:first[18]||'',extra:first[20]||'',notes:first[21]||'',supersets:[]};
+      const dtype=first[3]||'';
+      const isBJJ=dtype==='BJJ'||dtype==='BJJ + Gym';
+      const sess={date,week:parseInt((first[1]||'').replace('W',''))||1,phase:first[2]||'',dtype,gymDay:parseInt(first[4])||1,sleep:first[15]||'',energy:first[16]||'',soreness:first[17]||'',perf:first[18]||'',extra:first[20]||'',notes:first[21]||'',supersets:[],
+        // BJJ columns W–AE (indices 22–30)
+        bjj:isBJJ?{gc:first[22]||'',desc:first[23]||'',positions:first[24]?first[24].split(', ').filter(Boolean):[],partner:first[25]||'',drilling:first[26]||'',good:first[27]||'',bad:first[28]||'',subs:first[29]||'',next:first[30]||''}:null
+      };
       const bySS={};
       for(const r of dateRows){
         const ssNum=parseInt(r[5])||0;
