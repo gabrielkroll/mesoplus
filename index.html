@@ -347,16 +347,31 @@ select.bare{cursor:pointer}
 @media(max-width:600px){
   .nav{display:none!important}
   .bottom-nav{display:block}
-  .wrap{padding:14px 12px 80px}
+  .wrap{padding:16px 16px 88px}
+  body{font-size:14px}
   .extras-row{grid-template-columns:1fr}
-  .metrics-grid{grid-template-columns:72px 1fr}
+  .metrics-grid{grid-template-columns:78px 1fr;gap:10px 0}
+  .m-lbl{font-size:10px}
   .phase-bar{flex-wrap:wrap}
-  .pseg{min-width:calc(33% - 2px)}
-  .adv-btns{gap:2px}
-  .btn-t{font-size:10px;padding:4px 8px}
-  .week-nav{flex-wrap:wrap;gap:4px}
+  .pseg{min-width:calc(33% - 2px);padding:9px 4px}
+  .ps-name{font-size:9px}
+  .ps-rir{font-size:11px}
+  .adv-btns{gap:3px}
+  .btn-t{font-size:11px;padding:6px 10px;min-height:44px;display:inline-flex;align-items:center}
+  .btn-o{font-size:12px;padding:10px 16px;min-height:44px}
+  .btn-s{font-size:12px;padding:10px 18px;min-height:44px}
+  .week-nav{flex-wrap:wrap;gap:6px}
   .day-pills{flex:none;width:100%;order:3}
-  .wl-main{font-size:13px}
+  .dpill{font-size:10px;padding:8px 4px;min-height:44px}
+  .wl-main{font-size:14px}
+  .wnav-arr{width:44px;height:44px;font-size:14px}
+  .week-big{font-size:38px}
+  .sess-head{margin-bottom:var(--sp4)}
+  .section-title{font-size:10px}
+  .field-lbl{font-size:10px}
+  .bare{font-size:16px;padding:8px 0}
+  .bjj-textarea{font-size:14px;padding:10px}
+  .pos-chip{font-size:11px;padding:8px 12px;min-height:44px}
   /* Hide data-entry columns — sheet handles entry */
   .c-res-th,.c-res-td,.c-side-th,.c-side-td,.c-kg-th,.c-kg-td,.c-sets-th,.c-sets-td,.c-reps-th,.c-reps-td,.c-rir-th,.c-rir-td{display:none!important}
   /* Show edit hint + mobile val */
@@ -364,10 +379,45 @@ select.bare{cursor:pointer}
   /* Make rows feel tappable */
   .ex-row{-webkit-tap-highlight-color:rgba(122,173,42,.08)}
   .ex-row:active{background:var(--surf)}
+  .ex-table tbody td{padding:10px 6px;font-size:12px}
+  .ex-sel{font-size:12px}
+  .last-val{font-size:11px}
+  .ex-mobile-val{font-size:11px}
+  .ex-num-cell{font-size:11px}
+  .ss-hdr-row td{padding:14px 6px 8px}
+  .ss-num{font-size:18px}
+  .ss-tag{font-size:10px}
+  .add-ex-btn{font-size:11px;min-height:44px;padding:6px 10px}
+  .adopt-bar{font-size:11px;padding:8px 12px}
+  .sug-bar{font-size:12px;padding:10px 14px}
   /* Chips bigger tap targets */
-  .chip{padding:8px 14px;font-size:12px}
+  .chip{padding:10px 14px;font-size:12px;min-height:44px}
+  /* Progress tab mobile */
+  .prog-grid{grid-template-columns:1fr;gap:12px}
+  .prog-quad{padding:16px}
+  .quad-title{font-size:11px}
+  .h-row{font-size:12px;padding:10px 0}
+  .filter-btn{font-size:12px;padding:8px 12px;min-height:44px}
+  .show-more{font-size:12px;padding:10px 0;min-height:44px}
+  .muscle-tbl td{font-size:12px;padding:8px 0}
+  .readiness-legend-item{font-size:11px}
+  /* Analysis tab mobile */
+  .analysis-selects{grid-template-columns:1fr!important}
+  .a-out{font-size:13px;line-height:1.7}
+  #a-scope,#a-focus{font-size:16px}
+  #a-data{font-size:14px;min-height:80px}
+  /* Settings mobile */
+  .s-row{grid-template-columns:1fr;gap:8px;padding:16px 0}
+  .s-lbl{font-size:12px}
+  .s-note{font-size:11px}
+  .settings-card-title{font-size:28px}
+  .settings-nav-label{font-size:14px}
+  .settings-nav-sub{font-size:11px}
+  .settings-nav-row{min-height:56px;padding:16px}
   /* Bottom bar safe area */
-  .bottom{padding-bottom:calc(16px + env(safe-area-inset-bottom,0))}
+  .bottom{padding-bottom:calc(16px + env(safe-area-inset-bottom,0));gap:8px;flex-wrap:wrap}
+  .bottom>div{gap:6px}
+  .save-msg{font-size:12px}
 }
 
 .hidden{display:none!important}
@@ -619,7 +669,7 @@ select.bare{cursor:pointer}
 
   <div id="v-analysis" class="hidden">
     <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:14px">Analysis</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="analysis-selects" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div><div class="field-lbl">Scope</div><select class="bare" id="a-scope"><option value="last">Last session</option><option value="week" selected>This week</option><option value="meso">Full mesocycle</option></select></div>
       <div><div class="field-lbl">Focus</div><select class="bare" id="a-focus"><option value="next">Next session targets</option><option value="volume">Volume per muscle</option><option value="progress">Progress over time</option><option value="bjj">BJJ + training load</option><option value="goals">Goal tracking</option><option value="phase">Ready to advance phase?</option></select></div>
     </div>
@@ -649,6 +699,25 @@ select.bare{cursor:pointer}
         </div>
         <div class="settings-nav-chevron">›</div>
       </button>
+    </div>
+    <div class="settings-nav-table">
+      <button class="settings-nav-row" onclick="toggleChangePw()">
+        <div class="settings-nav-content">
+          <div class="settings-nav-label">Change password</div>
+        </div>
+        <div class="settings-nav-chevron" id="cpw-chevron">›</div>
+      </button>
+    </div>
+    <div id="change-pw-panel" class="hidden" style="border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--ink2);margin-bottom:12px">Enter your current password and choose a new one.</div>
+      <div style="margin-bottom:10px"><div class="field-lbl">Current password</div><input class="bare" type="password" id="cpw-old" placeholder="Current password" autocomplete="current-password"></div>
+      <div style="margin-bottom:10px"><div class="field-lbl">New password</div><input class="bare" type="password" id="cpw-new" placeholder="New password" autocomplete="new-password"></div>
+      <div style="margin-bottom:10px"><div class="field-lbl">Confirm new password</div><input class="bare" type="password" id="cpw-confirm" placeholder="Confirm new password" autocomplete="new-password"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+        <button class="btn-s" onclick="doChangePw()">Update password</button>
+        <button class="btn-t" onclick="toggleChangePw()">Cancel</button>
+      </div>
+      <div id="cpw-msg" style="font-size:11px;margin-top:8px;min-height:16px"></div>
     </div>
     <div class="settings-nav-table hub-only">
       <button class="settings-nav-row danger" onclick="lockApp()">
@@ -1415,7 +1484,7 @@ function exportCSV(){if(!S.sessions.length){alert('No sessions to export yet.');
 async function runAnalysis(){
   const out=document.getElementById('a-out');out.className='a-out loading';out.textContent='Asking Claude…';
   const p=ph(),flagged=[...new Set(S.sessions.flatMap(s=>s.flagged||[]))].filter(Boolean);
-  const prompt=`You are a hypertrophy + BJJ coach.\nGoals: Chest, Biceps, Forearms, Grip (primary) · Delts, Shoulder stability, Back (secondary). BJJ: Gracie Combatives.\nPhase: ${p.name} · RIR ${p.rir} · Week ${wk()}. Flexible mesocycle.\nFlagged exercises (pain/discomfort): ${flagged.length?flagged.join(', '):'none'}.\nScope: ${document.getElementById('a-scope').value}. Focus: ${document.getElementById('a-focus').value}.\nSessions: ${JSON.stringify(S.sessions.slice(-8),null,2)}\n${document.getElementById('a-data').value?'Extra data:\n'+document.getElementById('a-data').value:''}\nDirect. Specific. Exact kg/rep targets where relevant. Max 300 words.`;
+  const prompt=`You are a hypertrophy + BJJ coach.\nGoals: Chest, Biceps, Forearms, Grip (primary) · Delts, Shoulder stability, Back (secondary). BJJ: Gracie Combatives.\nPhase: ${p.name} · RIR ${p.rir} · Week ${mesoWk()}. Flexible mesocycle.\nFlagged exercises (pain/discomfort): ${flagged.length?flagged.join(', '):'none'}.\nScope: ${document.getElementById('a-scope').value}. Focus: ${document.getElementById('a-focus').value}.\nSessions: ${JSON.stringify(S.sessions.slice(-8),null,2)}\n${document.getElementById('a-data').value?'Extra data:\n'+document.getElementById('a-data').value:''}\nDirect. Specific. Exact kg/rep targets where relevant. Max 300 words.`;
   if(!S.claudeKey){out.className='a-out';out.textContent='No Claude API key — add it in Setup tab.';return;}
   try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});const d=await res.json();out.className='a-out';out.textContent=d.content?.[0]?.text||d.error?.message||'No response.';}catch(e){out.className='a-out';out.textContent='Error: '+e.message;}
 }
@@ -1736,6 +1805,32 @@ function adoptSheetSug(){
   });
 })();
 /* ── END EXERCISE SHEET ───────────────────────────────── */
+
+/* ── CHANGE PASSWORD ─────────────────────────────────── */
+function toggleChangePw(){
+  const panel=document.getElementById('change-pw-panel');
+  const chevron=document.getElementById('cpw-chevron');
+  const isHidden=panel.classList.contains('hidden');
+  panel.classList.toggle('hidden');
+  if(chevron)chevron.textContent=isHidden?'⌄':'›';
+  if(isHidden){document.getElementById('cpw-old').value='';document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';document.getElementById('cpw-msg').textContent='';document.getElementById('cpw-msg').style.color='';setTimeout(()=>document.getElementById('cpw-old').focus(),50);}
+}
+function doChangePw(){
+  const msg=document.getElementById('cpw-msg');
+  const oldPw=document.getElementById('cpw-old').value;
+  const newPw=document.getElementById('cpw-new').value;
+  const confirm=document.getElementById('cpw-confirm').value;
+  if(!oldPw){msg.textContent='Enter your current password';msg.style.color='var(--danger)';return;}
+  if(hashPw(oldPw)!==localStorage.getItem('mp7_pin')){msg.textContent='Current password is wrong';msg.style.color='var(--danger)';return;}
+  if(!newPw){msg.textContent='Enter a new password';msg.style.color='var(--danger)';return;}
+  if(newPw.length<3){msg.textContent='Password too short (3+ characters)';msg.style.color='var(--danger)';return;}
+  if(newPw!==confirm){msg.textContent='New passwords don\'t match';msg.style.color='var(--danger)';return;}
+  localStorage.setItem('mp7_pin',hashPw(newPw));
+  msg.textContent='Password updated ✓';msg.style.color='var(--accent)';
+  document.getElementById('cpw-old').value='';document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';
+  setTimeout(()=>toggleChangePw(),1500);
+}
+/* ── END CHANGE PASSWORD ────────────────────────────── */
 
 checkSetupToken();
 initPin();
