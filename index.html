@@ -1253,7 +1253,7 @@ function renderTable(){
         <td class="c-side-td"><select class="ex-mini" onchange="upEx(${si},${ei},'side',this.value)">${sO}</select></td>
         <td><div class="last-val" title="${ex.lastStr||'—'}">${ex.lastStr||'—'}</div><span class="ex-mobile-val${hasData?' has-data':''}">${mobileVal}</span></td>
         <td class="c-kg-td"><input class="ex-in" type="number" value="${ex.kg}" placeholder="${sk}" step="2.5" min="0" onchange="upEx(${si},${ei},'kg',this.value)" title="kg"></td>
-        <td class="c-sets-td"><input class="ex-in" type="number" value="${ex.sets||''}" placeholder="3" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
+        <td class="c-sets-td"><input class="ex-in" type="number" value="${ex.sets||''}" placeholder="${ex.sugSets||'—'}" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value)" title="sets"></td>
         <td class="c-reps-td"><input class="ex-in" type="number" value="${ex.reps}" placeholder="${sr}" min="1" onchange="upEx(${si},${ei},'reps',this.value)" title="reps"></td>
         <td class="c-rir-td"><input class="ex-in" type="number" value="${ex.rir}" placeholder="${srir}" min="0" max="6" onchange="upEx(${si},${ei},'rir',this.value)" title="RIR"></td>
         <td><div class="ex-act">
@@ -1839,7 +1839,7 @@ function fillSheet(){
   document.getElementById('esi-reps').value=ex.reps||'';
   document.getElementById('esi-rir').value=ex.rir||'';
   document.getElementById('esi-kg').placeholder=ex.sugKg!=null?String(ex.sugKg):'—';
-  document.getElementById('esi-sets').placeholder=ex.sugSets!=null?String(ex.sugSets):'3';
+  document.getElementById('esi-sets').placeholder=ex.sugSets!=null?String(ex.sugSets):'—';
   document.getElementById('esi-reps').placeholder=ex.sugReps!=null?String(ex.sugReps):'—';
   document.getElementById('esi-rir').placeholder=ex.sugRIR!=null?String(ex.sugRIR):'—';
   const{prevSI,nextSI,nextEI}=sheetNeighbors(si,ei);
@@ -1973,7 +1973,7 @@ init();
     </div>
     <div class="ex-sheet-field">
       <label class="ex-sheet-label" for="esi-sets">Sets</label>
-      <input class="ex-sheet-input" id="esi-sets" type="number" min="1" max="10" inputmode="numeric" placeholder="3">
+      <input class="ex-sheet-input" id="esi-sets" type="number" min="1" max="10" inputmode="numeric" placeholder="—">
     </div>
     <div class="ex-sheet-field">
       <label class="ex-sheet-label" for="esi-reps">Reps</label>
