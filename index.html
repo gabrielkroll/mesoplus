@@ -111,25 +111,33 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .wl-main{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1;white-space:nowrap;color:var(--ink)}
 .wl-sub{font-size:9px;color:var(--ink3);white-space:nowrap;margin-top:1px}
 .btn-today{background:none;border:none;color:var(--accent);font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;margin-top:2px;outline:none;text-decoration:underline;text-underline-offset:2px}
+.plan-edit-btn{background:none;border:none;color:var(--ink3);font-size:12px;cursor:pointer;padding:3px 4px;border-radius:3px;transition:background .1s,color .1s;line-height:1;outline:none;flex-shrink:0;align-self:center;display:inline-flex;align-items:center;justify-content:center}
+.plan-edit-btn:hover{background:var(--surf);color:var(--ink2)}
+.plan-edit-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.plan-edit-btn{min-height:44px;min-width:44px}}
+#plan-sheet-card-slot .meso-card{margin-bottom:0}
 .btn-today:hover{opacity:.7}
 .day-pills{display:flex;gap:3px;flex:1;min-width:0}
 
 /* SESSION HEAD */
-.sess-head{display:flex;align-items:flex-end;gap:var(--sp3);margin-bottom:var(--sp3)}
+.sess-head{display:flex;align-items:center;gap:var(--sp3);margin-bottom:var(--sp3)}
 .week-big{font-family:var(--serif);font-style:italic;font-size:44px;line-height:1;flex-shrink:0;color:var(--ink)}
 .phase-lbl{font-size:10px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
 .phase-note-text{font-size:11px;color:var(--ink3);line-height:1.5}
 .rule{height:1px;background:var(--line);margin:12px 0}
 
-/* METRICS */
-.metrics-grid{display:grid;grid-template-columns:82px 1fr;gap:9px 0;margin-bottom:14px;align-items:center}
+/* METRICS + EXTRAS — 2-col layout on desktop, stacked on mobile */
+.readiness-row{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-bottom:14px;align-items:start}
+.metrics-grid{display:flex;flex-direction:column;gap:12px}
+.metrics-item{display:flex;flex-direction:column;gap:6px}
 .m-lbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
 .chips-row{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
 .csw{display:none;align-items:center;gap:4px;margin-left:4px}
 .csw.show{display:flex}
 .csi{background:none;border:none;border-bottom:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:11px;width:40px;text-align:center;outline:none;padding:2px 0}
+.extras-col{display:flex;flex-direction:column;gap:16px;padding-top:2px}
 
-/* EXTRAS */
+/* EXTRAS (legacy) */
 .extras-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .field-lbl{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
 .bare{width:100%;background:none;border:none;border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:12px;padding:4px 0;outline:none;transition:border-color .12s}
@@ -350,8 +358,10 @@ select.bare{cursor:pointer}
   .wrap{padding:16px 16px 88px}
   body{font-size:14px}
   .extras-row{grid-template-columns:1fr}
-  .metrics-grid{grid-template-columns:78px 1fr;gap:10px 0}
+  .readiness-row{grid-template-columns:1fr;gap:12px 0}
   .m-lbl{font-size:10px}
+  .metrics-grid{gap:14px}
+  .chip{padding:10px 14px;font-size:13px;min-height:44px}
   .phase-bar{flex-wrap:wrap}
   .pseg{min-width:calc(33% - 2px);padding:9px 4px}
   .ps-name{font-size:9px}
@@ -374,6 +384,30 @@ select.bare{cursor:pointer}
   .pos-chip{font-size:11px;padding:8px 12px;min-height:44px}
   /* Hide data-entry columns — sheet handles entry */
   .c-res-th,.c-res-td,.c-side-th,.c-side-td,.c-kg-th,.c-kg-td,.c-sets-th,.c-sets-td,.c-reps-th,.c-reps-td,.c-rir-th,.c-rir-td{display:none!important}
+  /* Exercise table — flex-row layout on mobile */
+  .ex-table,.ex-table tbody{display:block}
+  .ex-table thead,.ex-table colgroup{display:none}
+  .ss-hdr-row{display:block;border-top:1px solid var(--line)}
+  .ss-hdr-row td{display:block;padding:12px 0 6px;border:none!important}
+  .add-ex-row td{display:block;padding:4px 0 12px;width:100%;border-bottom:1px solid var(--line)}
+  .add-ss-wrap{width:100%;margin-top:0}
+  /* flex row — no display:block on td so display:none!important on hidden cols still wins */
+  .ex-row{display:flex!important;align-items:center;padding:12px 0;gap:6px}
+  .ex-row td{padding:0;vertical-align:middle}
+  .ex-num-cell{flex-shrink:0;width:28px;padding:0!important;font-size:11px}
+  /* Name cell: flex container so select + edit-hint sit side by side */
+  .ex-row td:nth-child(2){flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden}
+  .ex-sel{flex:1;min-width:0;width:auto!important;font-size:13px;overflow:hidden;text-overflow:ellipsis}
+  .ex-edit-hint{display:inline!important;flex-shrink:0;font-size:16px;margin-left:0}
+  /* Last/val cell */
+  .ex-row td:nth-child(5){flex-shrink:0;width:40px;text-align:center}
+  .last-val{display:none!important}
+  .ex-mobile-val{display:block!important;font-size:11px;text-align:center}
+  /* Action cell */
+  .ex-row td:nth-child(10){flex-shrink:0}
+  .ex-act{flex-wrap:nowrap;gap:2px}
+  .ex-row .ex-icon-btn{width:36px;height:36px;min-height:36px;min-width:36px;padding:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .ex-row .adopt-btn{height:36px;min-height:36px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}
   /* Show edit hint + mobile val */
   .ex-edit-hint,.ex-mobile-val{display:inline}
   /* Make rows feel tappable */
@@ -390,8 +424,7 @@ select.bare{cursor:pointer}
   .add-ex-btn{font-size:11px;min-height:44px;padding:6px 10px}
   .adopt-bar{font-size:11px;padding:8px 12px}
   .sug-bar{font-size:12px;padding:10px 14px}
-  /* Chips bigger tap targets */
-  .chip{padding:10px 14px;font-size:12px;min-height:44px}
+  /* Chips bigger tap targets — handled above */
   /* Progress tab mobile */
   .prog-grid{grid-template-columns:1fr;gap:12px}
   .prog-quad{padding:16px}
@@ -481,6 +514,10 @@ select.bare{cursor:pointer}
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
       <span>Analysis</span>
     </button>
+    <button class="bnav-item" id="bn-program" onclick="nav('program')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span>Program</span>
+    </button>
     <button class="bnav-item" id="bn-profile" onclick="nav('profile')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       <span id="bn-profile-name">Profile</span>
@@ -495,11 +532,11 @@ select.bare{cursor:pointer}
       <button class="nl on" id="nl-log" onclick="nav('log')">Log</button>
       <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
+      <button class="nl" id="nl-program" onclick="nav('program')">Program</button>
       <div class="profile-wrap">
         <button class="nl" id="nl-profile" onclick="toggleProfileMenu()" style="display:inline-flex;align-items:center"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
         <div class="profile-menu hidden" id="profile-menu">
           <button class="pmenu-item" onclick="nav('profile');closeProfileMenu()">Profile</button>
-          <button class="pmenu-item" onclick="nav('program');closeProfileMenu()">Program</button>
           <button class="pmenu-item" onclick="nav('setup');closeProfileMenu()">Setup</button>
           <div class="pmenu-divider"></div>
           <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Log out <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="margin-left:6px;vertical-align:middle"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
@@ -509,23 +546,6 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-log">
-    <div class="meso-card">
-      <div class="card-label">Mesocycle plan</div>
-      <div class="phase-bar" id="phase-bar"></div>
-      <div class="adv-row">
-        <div class="adv-info">
-          <div class="adv-phase" id="adv-phase"></div>
-          <div class="adv-sub" id="adv-sub"></div>
-        </div>
-        <div class="adv-btns">
-          <button class="btn-t" onclick="advPhase(-1)">←</button>
-          <button class="btn-t" onclick="addWeek(-1)">− week</button>
-          <button class="btn-t" onclick="addWeek(1)">+ week</button>
-          <button class="btn-t" onclick="advPhase(1)">→</button>
-        </div>
-      </div>
-    </div>
-
     <div class="week-nav">
       <div class="week-label">
         <div class="wl-main" id="wl-main"></div>
@@ -539,32 +559,45 @@ select.bare{cursor:pointer}
 
     <div class="sess-head">
       <div class="week-big" id="week-big">W1</div>
-      <div>
+      <div style="flex:1">
         <div class="phase-lbl" id="phase-lbl"></div>
         <div class="phase-note-text" id="phase-note"></div>
       </div>
+      <button class="plan-edit-btn" onclick="openPlanModal()" aria-label="Edit mesocycle plan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
     </div>
     <div class="rule" style="margin-top:0"></div>
 
-    <div class="metrics-grid">
-      <div class="m-lbl">Sleep</div>
-      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
-        <div class="chips-row" id="chips-sleep"></div>
-        <div class="csw" id="csw"><input class="csi" type="number" id="csi" min="3" max="12" step="0.5" title="Custom hours"><span style="font-size:10px;color:var(--ink3)">h</span></div>
+    <div class="section-title">Check-in</div>
+    <div class="readiness-row">
+      <div class="metrics-grid">
+        <div class="metrics-item">
+          <div class="m-lbl">Sleep</div>
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
+            <div class="chips-row" id="chips-sleep"></div>
+            <div class="csw" id="csw"><input class="csi" type="number" id="csi" min="3" max="12" step="0.5" title="Custom hours"><span style="font-size:10px;color:var(--ink3)">h</span></div>
+          </div>
+        </div>
+        <div class="metrics-item">
+          <div class="m-lbl">Energy</div>
+          <div class="chips-row" id="chips-energy"></div>
+        </div>
+        <div class="metrics-item">
+          <div class="m-lbl">Soreness</div>
+          <div class="chips-row" id="chips-soreness"></div>
+        </div>
+        <div class="metrics-item">
+          <div class="m-lbl">Performance</div>
+          <div class="chips-row" id="chips-perf"></div>
+        </div>
       </div>
-      <div class="m-lbl">Energy</div>
-      <div class="chips-row" id="chips-energy"></div>
-      <div class="m-lbl">Soreness</div>
-      <div class="chips-row" id="chips-soreness"></div>
-      <div class="m-lbl">Performance</div>
-      <div class="chips-row" id="chips-perf"></div>
+      <div class="extras-col">
+        <div><div class="field-lbl">Extra training</div><input class="bare" id="m-extra" placeholder="e.g. BJJ, cycling 20km"></div>
+        <div><div class="field-lbl">Notes</div><input class="bare" id="m-notes" placeholder="joints, energy, anything notable"></div>
+      </div>
     </div>
 
-    <div class="extras-row">
-      <div><div class="field-lbl">Extra training</div><input class="bare" id="m-extra" placeholder="e.g. BJJ, cycling 20km"></div>
-      <div><div class="field-lbl">Notes</div><input class="bare" id="m-notes" placeholder="joints, energy, anything notable"></div>
-    </div>
-
+    <div class="section-sep"></div>
+    <div class="section-title">Session</div>
     <div class="dtype-row" id="dtype-row"></div>
     <div class="dtype-empty hidden" id="dtype-empty"><strong>What kind of session is today?</strong>Select Gym, BJJ, or Rest above to start logging.</div>
 
@@ -595,7 +628,6 @@ select.bare{cursor:pointer}
     </div>
 
     <div id="bjj-content" class="hidden">
-      <div class="section-sep"></div>
       <div class="section-title">BJJ session</div>
       <div class="bjj-section">
         <div class="bjj-field"><div class="field-lbl">Gracie Combatives technique</div><select class="bare" id="bjj-gc"><option value="">— select technique —</option></select></div>
@@ -729,8 +761,23 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-program" class="hidden">
-    <button class="detail-back" onclick="nav('profile')">‹ Profile</button>
-    <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Program</div>
+    <div class="meso-card-anchor" style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Program</div>
+    <div class="meso-card">
+      <div class="card-label">Mesocycle plan</div>
+      <div class="phase-bar" id="phase-bar"></div>
+      <div class="adv-row">
+        <div class="adv-info">
+          <div class="adv-phase" id="adv-phase"></div>
+          <div class="adv-sub" id="adv-sub"></div>
+        </div>
+        <div class="adv-btns">
+          <button class="btn-t" onclick="advPhase(-1)">←</button>
+          <button class="btn-t" onclick="addWeek(-1)">− week</button>
+          <button class="btn-t" onclick="addWeek(1)">+ week</button>
+          <button class="btn-t" onclick="advPhase(1)">→</button>
+        </div>
+      </div>
+    </div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
     <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
   </div>
@@ -971,12 +1018,35 @@ function renderAdvBar(){
 function jumpPhase(i){S.phaseIdx=i;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
 function advPhase(d){const n=S.phaseIdx+d;if(n<0||n>=S.phases.length)return;S.phaseIdx=n;persist();renderPhaseBar();renderAdvBar();computeSug();renderTable();}
 function addWeek(d){const p=S.phases[S.phaseIdx];p.weeks=Math.max(1,p.weeks+d);persist();renderPhaseBar();renderAdvBar();}
+
+function openPlanModal(){
+  const card=document.querySelector('#v-program .meso-card');
+  const slot=document.getElementById('plan-sheet-card-slot');
+  if(card&&slot)slot.appendChild(card);
+  const backdrop=document.getElementById('plan-sheet-backdrop');
+  const sheet=document.getElementById('plan-sheet');
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    backdrop.classList.add('open');sheet.classList.add('open');
+  });});
+}
+function closePlanModal(){
+  const card=document.querySelector('#plan-sheet-card-slot .meso-card');
+  const prog=document.getElementById('v-program');
+  if(card&&prog){
+    const anchor=prog.querySelector('.meso-card-anchor');
+    if(anchor)anchor.after(card);else prog.insertBefore(card,prog.children[1]);
+  }
+  const backdrop=document.getElementById('plan-sheet-backdrop');
+  const sheet=document.getElementById('plan-sheet');
+  backdrop.classList.remove('open');sheet.classList.remove('open');
+}
 function saveMesoStart(v){
   if(!v)return;
-  v=ws(v);document.getElementById('s-meso-start').value=v;
+  v=ws(v);
+  const fi=document.getElementById('s-meso-start');if(fi)fi.value=v;
   const warn=document.getElementById('s-meso-warn');
   const weeksAgo=Math.round((utcDay(ws(td()))-utcDay(ws(v)))/(7*86400000));
-  if(warn){if(weeksAgo>3){warn.style.color='var(--danger)';warn.textContent=weeksAgo+' weeks ago — consider starting from the current week.';}else{warn.textContent='';}}
+  if(warn){warn.style.color='var(--danger)';warn.textContent=weeksAgo>3?weeksAgo+' weeks ago — consider starting from the current week.':'';}
   S.mesoStart=v;persist();renderPhaseBar();renderAdvBar();renderWeekNav();
 }
 function minWeekOffset(){return Math.round((utcDay(ws(S.mesoStart))-utcDay(ws(td())))/(7*86400000));}
@@ -1102,6 +1172,12 @@ function loadTemplate(){
 }
 
 function computeSug(){
+  // Never suggest on past sessions — they're historical record
+  if(S.selectedDate<td()){
+    S.supersets.forEach(ss=>ss.exercises.forEach(ex=>{ex.sugKg=null;ex.sugReps=null;ex.sugRIR=null;ex.lastStr='—';}));
+    document.getElementById('sug-text').textContent=`${ph().name} · RIR target ${ph().rir}. ${ph().load}.`;
+    return;
+  }
   const p=ph(),eI=ENERGY_C.indexOf(S.energy),sI=SORENESS_C.indexOf(S.soreness);
   const mod=(eI>=3?1:eI<=1?-1:0)+(sI>=3?1:sI<=1?-1:0);
   const tRIR=Math.max(0,Math.min(5,p.rirNum-mod*0.5));
@@ -1115,7 +1191,7 @@ function computeSug(){
       else if(lR>p.rirNum+0.5){sr<ex.rc?sr++:(sk=Math.round(lK*1.03*2)/2,sr=ex.rf);}
       else if(lR<p.rirNum-0.5){sr=Math.max(ex.rf,sr-1);}
       if(mod<0)sr=Math.max(ex.rf,sr-1);
-      ex.sugKg=sk;ex.sugReps=sr;ex.sugRIR=Math.round(tRIR*2)/2;ex.lastStr=`${lK}×${lRp}`;
+      ex.sugKg=sk;ex.sugReps=sr;ex.sugRIR=Math.round(tRIR*2)/2;ex.sugSets=le.sets||null;ex.lastStr=`${lK}×${lRp}`;
     } else {ex.sugKg=null;ex.sugReps=null;ex.sugRIR=null;ex.lastStr='—';}
   }));
   const m=mod>0?' · green light — push':mod<0?' · hold back today':'';
@@ -1126,7 +1202,7 @@ function renderTable(){
   const tbody=document.getElementById('ex-tbody');tbody.innerHTML='';
   const RES=['Free Weights','Machine','Cable','Bodyweight'],SIDE=['Both','L','R'];
   S.supersets.forEach((ss,si)=>{
-    const vol=ss.exercises.reduce((a,e)=>a+(parseFloat(e.reps)||0)*(parseFloat(e.sets)||3),0);
+    const vol=ss.exercises.reduce((a,e)=>a+(parseFloat(e.reps)||0)*(parseFloat(e.sets)||0),0);
     const htr=document.createElement('tr');htr.className='ss-hdr-row';
     htr.innerHTML=`<td colspan="10" style="padding:10px 6px 5px;border-top:1px solid var(--line)">
       <div class="ss-hdr-inner">
@@ -1145,7 +1221,7 @@ function renderTable(){
       const sk=ex.sugKg!=null?String(ex.sugKg):'',sr=ex.sugReps!=null?String(ex.sugReps):'',srir=ex.sugRIR!=null?String(ex.sugRIR):'';
       const hasSug=sk!==''&&ex.kg===''&&ex.reps==='';
       const hasData=ex.kg||ex.reps;
-      const mobileVal=hasData?`${ex.kg||'?'}×${ex.reps||'?'}`:hasSug?`${sk}×${sr}`:'tap';
+      const mobileVal=hasData?`${ex.kg||'?'}×${ex.reps||'?'}`:hasSug?`${sk}×${sr}`:'·';
       tr.innerHTML=`
         <td class="ex-num-cell">${si+1}.${ei+1}</td>
         <td><select class="ex-sel" onchange="upEx(${si},${ei},'name',this.value)"><option value="">— select —</option>${exO}</select><span class="ex-edit-hint">›</span></td>
@@ -1185,6 +1261,7 @@ function adoptRow(si,ei){
   ex.kg=ex.sugKg!=null?String(ex.sugKg):'';
   ex.reps=ex.sugReps!=null?String(ex.sugReps):'';
   ex.rir=ex.sugRIR!=null?String(ex.sugRIR):'';
+  if(ex.sugSets&&ex.sets==='')ex.sets=String(ex.sugSets);
   renderTable();showAdoptUndo();
 }
 function adoptAll(){
@@ -1192,6 +1269,7 @@ function adoptAll(){
   S.supersets.forEach(ss=>ss.exercises.forEach(ex=>{
     if(ex.sugKg!=null&&ex.kg===''&&ex.reps===''){
       ex.kg=String(ex.sugKg);ex.reps=String(ex.sugReps);ex.rir=ex.sugRIR!=null?String(ex.sugRIR):'';
+      if(ex.sugSets&&ex.sets==='')ex.sets=String(ex.sugSets);
     }
   }));
   renderTable();showAdoptUndo();
@@ -1506,10 +1584,10 @@ function nav(id){
     document.getElementById('v-'+v).classList.toggle('hidden',v!==id);
     const el=document.getElementById('nl-'+v);if(el)el.classList.toggle('on',v===id);
   });
-  const pp=document.getElementById('nl-profile');if(pp)pp.classList.toggle('on',['profile','program','setup'].includes(id));
+  const pp=document.getElementById('nl-profile');if(pp)pp.classList.toggle('on',['profile','setup'].includes(id));
   // Sync bottom nav
-  ['log','progress','analysis'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
-  const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','program','setup'].includes(id));
+  ['log','progress','analysis','program'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
+  const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','setup'].includes(id));
   if(id==='progress')renderProgress();
   if(id==='profile')updateHubSubtitles();
   closeProfileMenu();
@@ -1737,6 +1815,7 @@ function fillSheet(){
   document.getElementById('esi-reps').value=ex.reps||'';
   document.getElementById('esi-rir').value=ex.rir||'';
   document.getElementById('esi-kg').placeholder=ex.sugKg!=null?String(ex.sugKg):'—';
+  document.getElementById('esi-sets').placeholder=ex.sugSets!=null?String(ex.sugSets):'3';
   document.getElementById('esi-reps').placeholder=ex.sugReps!=null?String(ex.sugReps):'—';
   document.getElementById('esi-rir').placeholder=ex.sugRIR!=null?String(ex.sugRIR):'—';
   const{prevSI,nextSI,nextEI}=sheetNeighbors(si,ei);
@@ -1779,6 +1858,7 @@ function adoptSheetSug(){
   document.getElementById('esi-kg').value=ex.sugKg;
   document.getElementById('esi-reps').value=ex.sugReps;
   document.getElementById('esi-rir').value=ex.sugRIR;
+  if(ex.sugSets)document.getElementById('esi-sets').value=ex.sugSets;
   document.getElementById('esi-sug-btn').classList.remove('show');
 }
 // Swipe-down to dismiss sheet
@@ -1836,6 +1916,20 @@ checkSetupToken();
 initPin();
 init();
 </script>
+
+<!-- PLAN EDIT SHEET -->
+<div id="plan-sheet-backdrop" class="ex-sheet-backdrop" onclick="closePlanModal()"></div>
+<div id="plan-sheet" class="ex-sheet">
+  <div class="ex-sheet-handle"></div>
+  <div class="ex-sheet-header">
+    <div style="font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px">Mesocycle</div>
+    <div class="ex-sheet-name">Edit Plan</div>
+  </div>
+  <div id="plan-sheet-card-slot" style="padding:16px 20px 0;overflow-y:auto;max-height:60vh"></div>
+  <div class="ex-sheet-footer">
+    <button class="ex-sheet-save-btn" onclick="closePlanModal()">Done</button>
+  </div>
+</div>
 
 <!-- EXERCISE ENTRY SHEET -->
 <div id="ex-sheet-backdrop" class="ex-sheet-backdrop" onclick="closeSheet()"></div>
