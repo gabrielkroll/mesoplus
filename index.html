@@ -262,8 +262,8 @@ select.bare{cursor:pointer}
 .metric-unit{color:var(--ink3);font-size:10px;margin-left:2px}
 .prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
 @media(max-width:640px){.prog-grid{grid-template-columns:1fr}}
-.prog-card-tap{cursor:pointer;transition:background .15s}
-.prog-card-tap:hover{background:var(--lift)}
+.prog-card-tap{cursor:pointer;transition:background .15s,border-color .15s}
+.prog-card-tap:hover{background:var(--lift);border-color:var(--line2)}
 .card-verdict{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
 .card-verdict.green{color:var(--accent)}
 .card-verdict.amber{color:#c98a0a}
@@ -291,8 +291,13 @@ select.bare{cursor:pointer}
 .wvl-delta-up{color:var(--accent);font-family:var(--mono);font-size:10px}
 .wvl-delta-down{color:#c98a0a;font-family:var(--mono);font-size:10px}
 @media(max-width:600px){.card-verdict{font-size:32px}.mvo-row{grid-template-columns:90px 1fr 46px}}
-.prog-quad{background:var(--surf);border-radius:8px;padding:14px}
+.prog-quad{background:var(--surf);border-radius:8px;padding:14px;border:1px solid var(--line2)}
 .quad-title{font-size:10px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:baseline;gap:6px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.card-header .quad-title{margin-bottom:0}
+.card-detail-arrow{width:22px;height:22px;border-radius:5px;background:var(--line);border:1px solid var(--line2);color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:background .12s,color .12s;flex-shrink:0;line-height:1}
+.card-detail-arrow:hover{background:var(--line2);color:var(--ink)}
+.detail-filter-row{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
 .quad-unit{color:var(--ink3);opacity:.7;font-size:9px;text-transform:none;letter-spacing:0}
 .readiness-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .readiness-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink3)}
@@ -793,60 +798,57 @@ select.bare{cursor:pointer}
       <button class="btn-o" onclick="exportCSV()" id="prog-export-btn">Export CSV</button>
     </div>
 
-    <!-- OVERVIEW -->
+    <!-- OVERVIEW — no filters, always current state -->
     <div id="prog-overview">
-      <!-- Two filter groups -->
-      <div class="prog-filters">
-        <div class="filter-group">
-          <button class="filter-btn on" id="pfb-week" onclick="setProgFilter('week',this)">Week</button>
-          <button class="filter-btn" id="pfb-month" onclick="setProgFilter('month',this)">Month</button>
-          <button class="filter-btn" id="pfb-year" onclick="setProgFilter('year',this)">Year</button>
-        </div>
-        <div class="filter-group">
-          <button class="filter-btn" id="pfb-micro" onclick="setProgFilter('micro',this)">Micro</button>
-          <button class="filter-btn" id="pfb-meso" onclick="setProgFilter('meso',this)">Meso</button>
-          <button class="filter-btn" id="pfb-macro" onclick="setProgFilter('macro',this)">Macro</button>
-        </div>
-      </div>
-
       <!-- 4 overview cards: 2-col grid -->
       <div class="prog-grid">
-        <!-- Card A: Volume Status -->
-        <div class="prog-quad prog-card-tap" id="card-volume-status" onclick="showDetail('muscle')">
-          <div class="quad-title">Volume status</div>
-          <div class="card-verdict" id="vs-verdict">—</div>
-          <div class="card-verdict-sub" id="vs-sub"></div>
-          <div class="card-tap-hint">See muscle detail →</div>
+        <!-- Card A: This Week -->
+        <div class="prog-quad prog-card-tap" id="card-this-week" onclick="showDetail('muscle')">
+          <div class="card-header">
+            <div class="quad-title">This week</div>
+            <button class="card-detail-arrow" tabindex="-1">→</button>
+          </div>
+          <div class="card-verdict" id="tw-sessions">—</div>
+          <div class="rp-unit" id="tw-unit">sessions</div>
+          <div class="card-verdict-sub" id="tw-sub"></div>
         </div>
-        <!-- Card B: Needs Attention -->
-        <div class="prog-quad prog-card-tap" id="card-attention" onclick="showDetail('attention')">
-          <div class="quad-title">Needs attention</div>
-          <div id="attn-content"></div>
-          <div class="card-tap-hint">See full breakdown →</div>
+        <!-- Card B: Last Session -->
+        <div class="prog-quad prog-card-tap" id="card-last-session" onclick="showDetail('lastsession')">
+          <div class="card-header">
+            <div class="quad-title">Last session</div>
+            <button class="card-detail-arrow" tabindex="-1">→</button>
+          </div>
+          <div class="card-verdict" id="ls-when">—</div>
+          <div class="rp-unit" id="ls-headline"></div>
+          <div class="card-verdict-sub" id="ls-sub"></div>
         </div>
         <!-- Card C: Readiness -->
         <div class="prog-quad prog-card-tap" id="card-readiness" onclick="showDetail('readiness')">
-          <div class="quad-title">Readiness</div>
+          <div class="card-header">
+            <div class="quad-title">Readiness</div>
+            <button class="card-detail-arrow" tabindex="-1">→</button>
+          </div>
           <div class="rp-headline" id="rp-count">—</div>
           <div class="rp-unit" id="rp-unit"></div>
           <div class="rp-sub" id="rp-sub"></div>
           <div class="rp-sparkline" id="rp-sparkline"></div>
-          <div class="card-tap-hint">See trends →</div>
         </div>
         <!-- Card D: This Week vs Last -->
         <div class="prog-quad prog-card-tap" id="card-week-vs-last" onclick="showDetail('weekvslast')">
-          <div class="quad-title" id="wvl-title">This week vs last</div>
+          <div class="card-header">
+            <div class="quad-title">vs last week</div>
+            <button class="card-detail-arrow" tabindex="-1">→</button>
+          </div>
           <div class="card-verdict" id="wvl-delta">—</div>
           <div class="card-verdict-sub" id="wvl-sub"></div>
-          <div class="card-tap-hint">See breakdown →</div>
         </div>
       </div>
 
-      <!-- Card E: Muscle sets overview (full-width) -->
+      <!-- Card E: Muscle sets overview (full-width, always current week) -->
       <div class="prog-quad prog-card-tap prog-muscle-overview" id="card-muscle-overview" onclick="showDetail('muscle')">
-        <div class="prog-muscle-overview-header">
-          <div class="quad-title" id="mvo-title">Sets this week</div>
-          <div class="card-tap-hint" style="margin-bottom:0">See detail →</div>
+        <div class="card-header">
+          <div class="quad-title">Sets this week</div>
+          <button class="card-detail-arrow" tabindex="-1">→</button>
         </div>
         <div id="prog-muscle-overview-chart"></div>
       </div>
@@ -863,8 +865,14 @@ select.bare{cursor:pointer}
     <!-- DETAIL: Muscle load -->
     <div id="prog-detail-muscle" class="hidden">
       <button class="prog-back-btn" onclick="showOverview()">← Back</button>
-      <div class="prog-detail-filter-label" id="prog-detail-muscle-label"></div>
-      <div class="prog-quad prog-muscle-card" style="margin-top:12px">
+      <div class="detail-filter-row">
+        <button class="filter-btn on" onclick="setDetailFilter('week',this)">Week</button>
+        <button class="filter-btn" onclick="setDetailFilter('month',this)">Month</button>
+        <button class="filter-btn" onclick="setDetailFilter('meso',this)">Meso</button>
+        <button class="filter-btn" onclick="setDetailFilter('year',this)">Year</button>
+        <button class="filter-btn" onclick="setDetailFilter('macro',this)">All time</button>
+      </div>
+      <div class="prog-quad prog-muscle-card">
         <div class="prog-muscle-header">
           <div style="display:flex;align-items:center;gap:7px">
             <div class="quad-title" style="margin-bottom:0">Muscle load <span class="quad-unit" id="prog-muscle-unit">sets / week</span></div>
@@ -894,22 +902,29 @@ select.bare{cursor:pointer}
       </div>
     </div>
 
-    <!-- DETAIL: Readiness -->
-    <div id="prog-detail-readiness" class="hidden">
+    <!-- DETAIL: Last Session -->
+    <div id="prog-detail-lastsession" class="hidden">
       <button class="prog-back-btn" onclick="showOverview()">← Back</button>
       <div class="prog-quad" style="margin-top:12px">
-        <div class="quad-title">Readiness trends <span class="quad-unit">Sleep · Energy · Freshness · Performance</span></div>
-        <svg id="prog-readiness-svg" width="100%" height="150" style="display:block;overflow:visible"></svg>
-        <div class="readiness-legend" id="prog-readiness-legend"></div>
+        <div class="quad-title">Recent sessions</div>
+        <div id="ls-detail-content"></div>
       </div>
     </div>
 
-    <!-- DETAIL: Needs Attention -->
-    <div id="prog-detail-attention" class="hidden">
+    <!-- DETAIL: Readiness -->
+    <div id="prog-detail-readiness" class="hidden">
       <button class="prog-back-btn" onclick="showOverview()">← Back</button>
-      <div class="prog-quad" style="margin-top:12px">
-        <div class="quad-title">Needs attention — full breakdown</div>
-        <div id="attn-detail-content"></div>
+      <div class="detail-filter-row">
+        <button class="filter-btn on" onclick="setDetailFilter('week',this)">Week</button>
+        <button class="filter-btn" onclick="setDetailFilter('month',this)">Month</button>
+        <button class="filter-btn" onclick="setDetailFilter('meso',this)">Meso</button>
+        <button class="filter-btn" onclick="setDetailFilter('year',this)">Year</button>
+        <button class="filter-btn" onclick="setDetailFilter('macro',this)">All time</button>
+      </div>
+      <div class="prog-quad">
+        <div class="quad-title">Readiness trends <span class="quad-unit">Sleep · Energy · Freshness · Performance</span></div>
+        <svg id="prog-readiness-svg" width="100%" height="150" style="display:block;overflow:visible"></svg>
+        <div class="readiness-legend" id="prog-readiness-legend"></div>
       </div>
     </div>
 
@@ -1798,54 +1813,47 @@ const SORENESS_VAL={'Wrecked':0,'Heavy':0.25,'Moderate':0.5,'Mild':0.75,'Fresh':
 const PERF_VAL={'Below par':0,'On track':0.5,'Exceeded':1};
 const SLEEP_HOURS={'≤5.5h':5.5,'6h':6,'6.5h':6.5,'7h':7,'7.5h':7.5,'8h':8,'≥8.5h':8.5};
 
-// ── FILTERS ──────────────────────────────────────────────────────────────────
+// ── FILTERS (detail views only) ───────────────────────────────────────────────
 function getFilteredSessions(){
   const today=td();
-  if(_progFilter==='week'){
-    const mon=ws(today);const sun=addD(mon,6);
-    return S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
-  }
-  if(_progFilter==='month'){
-    const m=today.slice(0,7);return S.sessions.filter(s=>s.date.slice(0,7)===m);
-  }
-  if(_progFilter==='year'){
-    const y=today.slice(0,4);return S.sessions.filter(s=>s.date.slice(0,4)===y);
-  }
-  if(_progFilter==='micro'){
-    const wk=mesoWk();const mon=addD(ws(S.mesoStart),(wk-1)*7);const sun=addD(mon,6);
-    return S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
-  }
-  if(_progFilter==='meso'){
-    return S.sessions.filter(s=>s.date>=S.mesoStart);
-  }
+  if(_progFilter==='week'){const mon=ws(today);return S.sessions.filter(s=>s.date>=mon&&s.date<=addD(mon,6));}
+  if(_progFilter==='month'){const m=today.slice(0,7);return S.sessions.filter(s=>s.date.slice(0,7)===m);}
+  if(_progFilter==='year'){const y=today.slice(0,4);return S.sessions.filter(s=>s.date.slice(0,4)===y);}
+  if(_progFilter==='meso'){return S.sessions.filter(s=>s.date>=S.mesoStart);}
   if(_progFilter==='macro'){return S.sessions;}
   return S.sessions;
 }
-function setProgFilter(f,btn){
+// Current calendar week sessions — used by overview cards only
+function getCurrentWeekSessions(){
+  const mon=ws(td());return S.sessions.filter(s=>s.date>=mon&&s.date<=addD(mon,6));
+}
+function setDetailFilter(f,btn){
   _progFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+  // Only update buttons in the active detail view
+  const activeDetail=document.querySelector('[id^="prog-detail-"]:not(.hidden)');
+  if(activeDetail)activeDetail.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  renderProgress();
+  if(_progDetail==='muscle')renderMuscleChart();
+  if(_progDetail==='readiness')renderReadiness();
 }
 
 // ── DETAIL NAVIGATION ────────────────────────────────────────────────────────
+const DETAIL_VIEWS=['muscle','lastsession','readiness','weekvslast'];
 function showDetail(name){
   _progDetail=name;
   document.getElementById('prog-overview').classList.add('hidden');
-  ['muscle','readiness','attention','weekvslast'].forEach(d=>{
+  DETAIL_VIEWS.forEach(d=>{
     document.getElementById('prog-detail-'+d).classList.toggle('hidden',d!==name);
   });
   if(name==='muscle')renderMuscleChart();
+  if(name==='lastsession')renderLastSessionDetail();
   if(name==='readiness')renderReadiness();
-  if(name==='attention')renderAttentionDetail();
   if(name==='weekvslast')renderWeekVsLastDetail();
 }
 function showOverview(){
   _progDetail=null;
   document.getElementById('prog-overview').classList.remove('hidden');
-  ['muscle','readiness','attention','weekvslast'].forEach(d=>{
-    document.getElementById('prog-detail-'+d).classList.add('hidden');
-  });
+  DETAIL_VIEWS.forEach(d=>document.getElementById('prog-detail-'+d).classList.add('hidden'));
 }
 
 // ── SESSION ROW ───────────────────────────────────────────────────────────────
@@ -1862,56 +1870,62 @@ function getMuscleSetTotals(sessions){
   return tot;
 }
 
-// ── CARD A: VOLUME STATUS ─────────────────────────────────────────────────────
-function renderCardVolumeStatus(){
-  const sessions=getFilteredSessions();
+// ── CARD A: THIS WEEK ─────────────────────────────────────────────────────────
+function renderCardThisWeek(){
+  const sessions=getCurrentWeekSessions();
+  const trainingSess=sessions.filter(s=>s.dtype&&s.dtype!=='Rest');
   const tot=getMuscleSetTotals(sessions);
-  let onTarget=0,below=0,over=0,untrained=0;
-  MUSCLES.forEach(m=>{
-    const val=tot[m]||0,t=MUSCLE_TARGETS[m];
-    if(val===0)untrained++;
-    else if(t&&t.mev>0&&val<t.mev)below++;
-    else if(t&&val>t.mrv)over++;
-    else onTarget++;
-  });
-  const verdictEl=document.getElementById('vs-verdict');
-  const subEl=document.getElementById('vs-sub');
-  verdictEl.className='card-verdict';
-  if(sessions.length===0){verdictEl.textContent='—';subEl.textContent='No sessions logged yet';return;}
-  if(over>=3&&below>=4){verdictEl.textContent='Imbalanced';verdictEl.classList.add('amber');subEl.textContent=`${over} muscles overworked, ${below} undertrained`;}
-  else if(over>=3){verdictEl.textContent='Overreaching';verdictEl.classList.add('red');subEl.textContent=`${over} muscles above recovery limit`;}
-  else if(below>=4){verdictEl.textContent='Undertrained';verdictEl.classList.add('amber');subEl.textContent=`${below} muscles below minimum volume`;}
-  else{verdictEl.textContent='On track';verdictEl.classList.add('green');const good=onTarget+over;subEl.textContent=`${good} of ${MUSCLES.length} muscles in target zone`;}
+  const totalSets=Object.values(tot).reduce((a,v)=>a+v,0);
+  const musclesTrained=Object.values(tot).filter(v=>v>0).length;
+  const count=trainingSess.length;
+  document.getElementById('tw-sessions').textContent=count||'0';
+  document.getElementById('tw-unit').textContent=count===1?'session':'sessions';
+  document.getElementById('tw-sub').textContent=totalSets
+    ?`${totalSets} sets · ${musclesTrained} of ${MUSCLES.length} muscles`
+    :'No training logged yet this week';
 }
 
-// ── CARD B: NEEDS ATTENTION ───────────────────────────────────────────────────
-function renderCardAttention(){
-  const sessions=getFilteredSessions();
-  const tot=getMuscleSetTotals(sessions);
-  // Pro-rate targets for week filter based on day of week
-  let ratio=1;
-  if(_progFilter==='week'){
-    const today=td(),mon=ws(today);
-    const dayOfWeek=Math.max(0,(new Date(today+'T12:00:00')-new Date(mon+'T12:00:00'))/86400000);
-    ratio=Math.min(1,(dayOfWeek+1)/7);
+// ── CARD B: LAST SESSION ──────────────────────────────────────────────────────
+function renderCardLastSession(){
+  const sorted=[...S.sessions].filter(s=>s.dtype).sort((a,b)=>b.date.localeCompare(a.date));
+  const last=sorted[0];
+  if(!last){
+    document.getElementById('ls-when').textContent='—';
+    document.getElementById('ls-headline').textContent='no sessions yet';
+    document.getElementById('ls-sub').textContent='Complete a session to see it here';
+    return;
   }
-  const gaps=MUSCLES.map(m=>{
-    const t=MUSCLE_TARGETS[m];if(!t||t.mev===0)return null;
-    const target=Math.ceil(t.mev*ratio);
-    const gap=target-(tot[m]||0);
-    return gap>0?{m,gap,name:MUSCLE_DISPLAY[m]||m}:null;
-  }).filter(Boolean).sort((a,b)=>b.gap-a.gap).slice(0,3);
-  const el=document.getElementById('attn-content');
-  if(gaps.length===0){
-    el.innerHTML=`<div class="attn-all-good">All caught up</div><div class="attn-all-good-sub">No muscles below minimum volume</div>`;
-  }else{
-    el.innerHTML=gaps.map(({name,gap})=>`<div class="attn-muscle"><span class="attn-muscle-name">${name}</span><span class="attn-muscle-gap">${gap} set${gap!==1?'s':''} below target</span></div>`).join('');
-  }
+  const today=td();
+  const dayDiff=Math.round((new Date(today+'T12:00:00')-new Date(last.date+'T12:00:00'))/86400000);
+  const when=dayDiff===0?'Today':dayDiff===1?'Yesterday':`${dayDiff} days ago`;
+  const exs=(last.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);
+  const sets=exs.reduce((a,e)=>a+(parseFloat(e.sets)||0),0);
+  document.getElementById('ls-when').textContent=when;
+  document.getElementById('ls-headline').textContent=last.dtype;
+  document.getElementById('ls-sub').textContent=`${exs.length} exercises · ${sets} sets · ${fmt(last.date)}`;
+}
+
+// ── DETAIL: LAST SESSION ──────────────────────────────────────────────────────
+function renderLastSessionDetail(){
+  const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
+  const recent=sorted.filter(s=>s.date>=cutoff),older=sorted.filter(s=>s.date<cutoff);
+  let html=recent.length?recent.map(sessionRowHtml).join(''):'<div style="color:var(--ink3);font-size:11px;padding:6px 0">No sessions in the last 2 weeks.</div>';
+  if(older.length)html+=`<div style="color:var(--ink3);font-size:11px;padding:8px 0 4px">Older</div>`+older.slice(0,20).map(sessionRowHtml).join('');
+  document.getElementById('ls-detail-content').innerHTML=html;
 }
 
 // ── CARD C: READINESS ─────────────────────────────────────────────────────────
+function readinessScore(s){
+  const sl=SLEEP_SCORE[s.sleep]||0,en=ENERGY_SCORE[s.energy]||0,so=SORENESS_SCORE[s.soreness]||0;
+  const cnt=[sl,en,so].filter(Boolean).length;
+  if(!cnt)return null;
+  if(cnt===3)return Math.round(sl*.4+en*.35+so*.25);
+  return Math.round((sl+en+so)/cnt);
+}
 function renderCardReadiness(){
-  const sessions=getFilteredSessions().filter(s=>s.sleep||s.energy||s.soreness).sort((a,b)=>a.date.localeCompare(b.date));
+  // Always use latest check-in regardless of filter
+  const sessions=[...S.sessions].filter(s=>s.sleep||s.energy||s.soreness).sort((a,b)=>a.date.localeCompare(b.date));
   const last=sessions[sessions.length-1];
   if(!last){
     document.getElementById('rp-count').textContent='—';
@@ -1920,34 +1934,26 @@ function renderCardReadiness(){
     document.getElementById('rp-sparkline').innerHTML='';
     return;
   }
-  const sl=SLEEP_SCORE[last.sleep]||0,en=ENERGY_SCORE[last.energy]||0,so=SORENESS_SCORE[last.soreness]||0;
-  const hasAll=sl&&en&&so,hasSome=sl||en||so;
-  let score=null;
-  if(hasAll)score=Math.round(sl*.4+en*.35+so*.25);
-  else if(hasSome)score=Math.round((sl+en+so)/([sl,en,so].filter(Boolean).length));
+  const score=readinessScore(last);
   const recs=['Low — light session or rest','Moderate — consider reducing volume','Good — train as planned','Peak — push intensity today'];
   const recIdx=score==null?-1:score<40?0:score<60?1:score<80?2:3;
   document.getElementById('rp-count').textContent=score!=null?score:'—';
-  document.getElementById('rp-unit').textContent=score!=null?'readiness':'no data';
+  document.getElementById('rp-unit').textContent='readiness';
   document.getElementById('rp-sub').textContent=recIdx>=0?recs[recIdx]:'';
-  // Sparkline: composite scores for last 8 sessions with any readiness data
-  const sparkSess=sessions.slice(-8);
+  // Sparkline: last 10 sessions with readiness data, fixed 0–100 range, no distorted dots
+  const sparkSess=sessions.slice(-10);
   if(sparkSess.length>=2){
-    const vals=sparkSess.map(s=>{
-      const a=SLEEP_SCORE[s.sleep]||0,b=ENERGY_SCORE[s.energy]||0,c=SORENESS_SCORE[s.soreness]||0;
-      const cnt=[a,b,c].filter(Boolean).length;
-      return cnt?Math.round((a+b+c)/cnt):0;
-    });
-    const minV=Math.max(0,Math.min(...vals)-5),maxV=Math.min(100,Math.max(...vals)+5);
-    const range=Math.max(maxV-minV,15);
-    const W=100,H=36,P=3;
-    const x=i=>P+(i/(vals.length-1))*(W-P*2);
-    const y=v=>H-P-(v-minV)/range*(H-P*2);
+    const vals=sparkSess.map(s=>readinessScore(s)??0);
+    const W=400,H=52,PL=0,PR=0,PT=6,PB=6;
+    const x=i=>(i/(vals.length-1))*W;
+    const y=v=>PT+(1-v/100)*(H-PT-PB);
+    // Faint guide lines at 40 (moderate) and 70 (good)
+    const guides=[40,70].map(g=>`<line x1="0" y1="${y(g).toFixed(1)}" x2="${W}" y2="${y(g).toFixed(1)}" stroke="var(--line2)" stroke-width="0.5" stroke-dasharray="3,3"/>`).join('');
     const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-    const fill=`${x(0).toFixed(1)},${H} ${pts} ${x(vals.length-1).toFixed(1)},${H}`;
-    document.getElementById('rp-sparkline').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:36px;display:block;overflow:visible"><polygon points="${fill}" fill="#4a9fd4" opacity=".12"/><polyline points="${pts}" fill="none" stroke="#4a9fd4" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>${vals.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2" fill="#4a9fd4"/>`).join('')}</svg>`;
+    const fill=`0,${H-PB} ${pts} ${W},${H-PB}`;
+    document.getElementById('rp-sparkline').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="52" style="display:block;overflow:visible" preserveAspectRatio="none">${guides}<polygon points="${fill}" fill="#4a9fd4" opacity=".15"/><polyline points="${pts}" fill="none" stroke="#4a9fd4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
   }else{
-    document.getElementById('rp-sparkline').innerHTML='';
+    document.getElementById('rp-sparkline').innerHTML='<div class="rp-empty">Need 2+ check-ins to show trend</div>';
   }
 }
 
@@ -1981,27 +1987,21 @@ function renderCardWeekVsLast(){
   subEl.textContent=(up?'more':'less')+` volume (${thisSets} vs ${prevSets} sets)`;
 }
 
-// ── CARD E: MUSCLE OVERVIEW ───────────────────────────────────────────────────
+// ── CARD E: MUSCLE OVERVIEW (always current week, two colors) ─────────────────
 function renderCardMuscleOverview(){
-  const sessions=getFilteredSessions();
+  const sessions=getCurrentWeekSessions();
   const tot=getMuscleSetTotals(sessions);
   const sorted=[...MUSCLES].sort((a,b)=>(tot[b]||0)-(tot[a]||0));
   const scale=Math.max(...Object.values(tot),1);
-  // Title updates with filter label
-  const labels={week:'this week',month:'this month',year:'this year',micro:'this microcycle',meso:'this mesocycle',macro:'all time'};
-  document.getElementById('mvo-title').textContent=`Sets ${labels[_progFilter]||''}`;
   const rows=sorted.map(m=>{
     const val=tot[m]||0;
-    const t=MUSCLE_TARGETS[m];
-    const goal=t?.mrv||0;
+    const goal=MUSCLE_TARGETS[m]?.mrv||0;
     const pct=goal>0?Math.min(Math.round(val/goal*100),100):Math.round(val/scale*100);
     const name=MUSCLE_DISPLAY[m]||m;
-    let fillColor='var(--accent)';
-    if(val===0)fillColor='var(--line2)';
-    else if(t&&t.mev>0&&val<t.mev)fillColor='#c98a0a';
-    else if(t&&val>t.mrv)fillColor='var(--danger)';
-    const valLabel=goal>0?`${val}/${goal}`:(val||'');
-    return `<div class="mvo-row"><div class="mvo-name">${name}</div><div class="mvo-track">${pct>0?`<div class="mvo-fill" style="width:${pct}%;background:${fillColor}"></div>`:''}</div><div class="mvo-val">${valLabel}</div></div>`;
+    // Two colors only: trained = accent, untrained = line2. No mid-week verdicts.
+    const fillColor=val>0?'var(--accent)':'var(--line2)';
+    const valLabel=goal>0?`${val}/${goal}`:(val||'—');
+    return `<div class="mvo-row"><div class="mvo-name">${name}</div><div class="mvo-track"><div class="mvo-fill" style="width:${pct}%;background:${fillColor}"></div></div><div class="mvo-val">${valLabel}</div></div>`;
   }).join('');
   document.getElementById('prog-muscle-overview-chart').innerHTML=rows;
 }
@@ -2142,10 +2142,9 @@ function renderWeekVsLastDetail(){
 
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
 function renderProgress(){
-  // If we're in a detail view, re-render it; otherwise render overview
   if(_progDetail){showDetail(_progDetail);return;}
-  renderCardVolumeStatus();
-  renderCardAttention();
+  renderCardThisWeek();
+  renderCardLastSession();
   renderCardReadiness();
   renderCardWeekVsLast();
   renderCardMuscleOverview();
