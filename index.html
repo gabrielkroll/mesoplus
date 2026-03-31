@@ -268,6 +268,34 @@ select.bare{cursor:pointer}
 .readiness-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .readiness-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink3)}
 
+/* MUSCLE LOAD CHART */
+.prog-muscle-card{grid-column:1/-1}
+.prog-muscle-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.prog-metric-tabs{display:flex;gap:2px;background:var(--line);border-radius:6px;padding:2px}
+.prog-tab{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;padding:4px 12px;cursor:pointer;border-radius:4px;transition:all .12s;outline:none;white-space:nowrap}
+.prog-tab.on{background:var(--lift);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.muscle-row{display:grid;grid-template-columns:130px 1fr 80px;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}
+.muscle-row:last-child{border-bottom:none}
+.muscle-row-name{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.muscle-bar-track{position:relative;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.muscle-bar-range{position:absolute;top:0;height:100%;background:var(--accent);opacity:.22;border-radius:3px}
+.muscle-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px;transition:width .25s ease}
+.bar-zero{background:var(--line2)}
+.bar-under{background:#d4920a}
+.bar-on-track{background:var(--accent)}
+.bar-over{background:var(--danger)}
+.muscle-row-val{font-size:10px;text-align:right;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.muscle-row-unit{color:var(--ink3)}
+.mev-mrv-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.mev-mrv-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink3)}
+@media(max-width:600px){
+  .muscle-row{grid-template-columns:104px 1fr 52px;gap:8px}
+  .muscle-row-name{font-size:10px}
+  .muscle-bar-track{height:6px}
+  .muscle-row-val{font-size:10px}
+  .prog-tab{font-size:11px;padding:6px 14px;min-height:44px}
+}
+
 /* PROFILE MENU */
 .profile-wrap{position:relative}
 .profile-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--lift);border:1px solid var(--line);border-radius:6px;padding:4px;min-width:130px;z-index:201;box-shadow:0 4px 16px rgba(0,0,0,.12)}
@@ -699,13 +727,16 @@ select.bare{cursor:pointer}
     </div>
     <!-- Quadrant grid -->
     <div class="prog-grid">
-      <div class="prog-quad">
-        <div class="quad-title">Volume <span class="quad-unit">sets × reps</span></div>
-        <div id="prog-vol-chart"></div>
-      </div>
-      <div class="prog-quad">
-        <div class="quad-title">Tonnage <span class="quad-unit">sets × reps × kg</span></div>
-        <div id="prog-ton-chart"></div>
+      <div class="prog-quad prog-muscle-card">
+        <div class="prog-muscle-header">
+          <div class="quad-title" style="margin-bottom:0">Muscle load <span class="quad-unit" id="prog-muscle-unit">sets / week</span></div>
+          <div class="prog-metric-tabs">
+            <button class="prog-tab on" onclick="setProgMetric('sets',this)">Sets</button>
+            <button class="prog-tab" onclick="setProgMetric('volume',this)">Volume</button>
+            <button class="prog-tab" onclick="setProgMetric('tonnage',this)">Tonnage</button>
+          </div>
+        </div>
+        <div id="prog-muscle-chart"></div>
       </div>
       <div class="prog-quad">
         <div class="quad-title">Recent sessions</div>
@@ -940,7 +971,25 @@ const EX_MUSCLE2={'Romanian Deadlift':'Glutes','Squat':'Glutes','Front Squat':'G
 const EX_RES={'Seated Calf Raises':'Machine','Romanian Deadlift':'Free Weights','Face Pulls':'Cable','Incline DB Curl':'Free Weights','Bayesian Cable Curl':'Cable','EZ Bar Curl':'Free Weights','Hammer Curl':'Free Weights','Barbell Bench Press':'Free Weights','DB Bench Press':'Free Weights','Pec Deck Fly':'Machine','Chest Supported Row':'Machine','Lat Pulldown':'Machine','Towel Grip Farmer Carry':'Free Weights','Plate Pinch Hold':'Free Weights','Squat':'Free Weights','Front Squat':'Free Weights','Wrist Curl':'Free Weights','Reverse Wrist Curl':'Free Weights','Reverse Pec Deck':'Machine','Overhead Press':'Free Weights','Lateral Raises':'Free Weights','Overhead Cable Triceps Ext':'Cable','Skull Crushers':'Free Weights','Cable Fly':'Cable','Pull-ups':'Bodyweight','Dips':'Bodyweight','Leg Curl':'Machine','Leg Press':'Machine'};
 const EX_GROUPS={'Chest':['Barbell Bench Press','DB Bench Press','Incline DB Bench Press','Pec Deck Fly','Cable Fly'],'Back':['Chest Supported Row','Lat Pulldown','Pull-ups'],'Biceps':['Incline DB Curl','Bayesian Cable Curl','EZ Bar Curl','Hammer Curl'],'Triceps':['Overhead Cable Triceps Ext','Skull Crushers','Dips'],'Delts':['Face Pulls','Reverse Pec Deck','Overhead Press','Lateral Raises'],'Forearms':['Wrist Curl','Reverse Wrist Curl','Towel Grip Farmer Carry','Plate Pinch Hold'],'Quads':['Squat','Front Squat','Leg Press'],'Hamstrings':['Romanian Deadlift','Leg Curl'],'Calves':['Seated Calf Raises','Standing Calf Raises']};
 const EX_LIST=Object.values(EX_GROUPS).flat();
-const MUSCLES=['Chest','Biceps','Forearms','Grip','Delts','Stability','Back','Hamstrings','Glutes','Quads','Calves','Triceps','Traps','Abs'];
+const MUSCLES=['Traps','Delts','Stability','Chest','Biceps','Triceps','Forearms','Grip','Abs','Back','Glutes','Quads','Hamstrings','Calves'];
+const MUSCLE_DISPLAY={'Stability':'Shoulder stability'};
+// MEV/MRV targets per muscle (weekly sets) — RP Strength defaults, adjustable in V2
+const MUSCLE_TARGETS={
+  'Traps':     {mev:0, mrv:26},
+  'Delts':     {mev:8, mrv:20},
+  'Stability': {mev:0, mrv:15},
+  'Chest':     {mev:8, mrv:22},
+  'Biceps':    {mev:8, mrv:20},
+  'Triceps':   {mev:6, mrv:18},
+  'Forearms':  {mev:4, mrv:20},
+  'Grip':      {mev:0, mrv:15},
+  'Abs':       {mev:0, mrv:25},
+  'Back':      {mev:10,mrv:25},
+  'Glutes':    {mev:0, mrv:20},
+  'Quads':     {mev:8, mrv:20},
+  'Hamstrings':{mev:6, mrv:20},
+  'Calves':    {mev:8, mrv:22},
+};
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const SLEEP_C=['≤5.5h','6h','6.5h','7h','7.5h','8h','≥8.5h'];
 const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
@@ -1568,7 +1617,7 @@ async function importFromSheets(){
 }
 async function appendRows(rows){try{if(S.scriptUrl){const date=rows[0]?.[0]||'';const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,rows})});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
-let _progFilter='week',_progShowAll=false;
+let _progFilter='week',_progShowAll=false,_progMetric='sets';
 const SLEEP_VAL={'≤5.5h':1/7,'6h':2/7,'6.5h':3/7,'7h':4/7,'7.5h':5/7,'8h':6/7,'≥8.5h':1};
 const ENERGY_VAL={'Drained':0,'Low':0.25,'Moderate':0.5,'Good':0.75,'Charged':1};
 const SORENESS_VAL={'Wrecked':0,'Heavy':0.25,'Moderate':0.5,'Mild':0.75,'Fresh':1};
@@ -1583,11 +1632,52 @@ function getFilteredSessions(){
 }
 function setProgFilter(f,btn){_progFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-custom-range').classList.toggle('hidden',f!=='custom');renderProgress();}
 function sessionRowHtml(s){const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol||''}</span></div>`;}
-function renderMuscleBar(containerId,metric){
-  const sessions=getFilteredSessions(),totals={};
-  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{if(!e.muscle)return;const v=metric==='tonnage'?Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)*(parseFloat(e.kg)||0)):Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3));totals[e.muscle]=(totals[e.muscle]||0)+v;}));
-  const max=Math.max(...Object.values(totals),1),unit=metric==='tonnage'?'kg':'reps';
-  document.getElementById(containerId).innerHTML=`<table class="muscle-tbl">${MUSCLES.map(m=>`<tr><td style="color:var(--ink2);width:100px;font-size:10px">${m}</td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round((totals[m]||0)/max*100)}%"></div></div></td><td style="font-size:10px;text-align:right">${totals[m]?totals[m].toLocaleString()+'<span class=\'metric-unit\'> '+unit+'</span>':''}</td></tr>`).join('')}</table>`;
+function setProgMetric(m,btn){
+  _progMetric=m;
+  document.querySelectorAll('.prog-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderMuscleChart();
+}
+function renderMuscleChart(){
+  const sessions=getFilteredSessions();
+  const totSets={},totVol={},totTon={};
+  MUSCLES.forEach(m=>{totSets[m]=0;totVol[m]=0;totTon[m]=0;});
+  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{
+    if(!e.name)return;
+    const sets=parseFloat(e.sets)||0,reps=parseFloat(e.reps)||0,kg=parseFloat(e.kg)||0;
+    [e.muscle,e.muscle2].filter(Boolean).forEach(m=>{
+      if(!(m in totSets))return;
+      totSets[m]+=sets;totVol[m]+=sets*reps;totTon[m]+=sets*reps*kg;
+    });
+  }));
+  const totals=_progMetric==='sets'?totSets:_progMetric==='volume'?totVol:totTon;
+  MUSCLES.forEach(m=>{if(_progMetric!=='sets'){totals[m]=Math.round(totals[m]);}});
+  const maxActual=Math.max(...Object.values(totals),1);
+  const maxMRV=_progMetric==='sets'?Math.max(...MUSCLES.map(m=>MUSCLE_TARGETS[m]?.mrv||0)):0;
+  const scale=Math.max(maxActual,maxMRV,1);
+  const unit=_progMetric==='sets'?'sets':_progMetric==='volume'?'reps':'kg';
+  const unitLabel=_progMetric==='sets'?'sets / week':_progMetric==='volume'?'sets × reps':'sets × reps × kg';
+  document.getElementById('prog-muscle-unit').textContent=unitLabel;
+  const rows=MUSCLES.map(m=>{
+    const val=_progMetric==='sets'?totals[m]:Math.round(totals[m]||0);
+    const pct=Math.round(val/scale*100);
+    const name=MUSCLE_DISPLAY[m]||m;
+    let barClass='muscle-bar-fill',rangeHtml='';
+    if(_progMetric==='sets'){
+      const t=MUSCLE_TARGETS[m];
+      if(t&&t.mrv>0){
+        const mevPct=Math.round(t.mev/scale*100);
+        const mrvPct=Math.min(Math.round(t.mrv/scale*100),100);
+        rangeHtml=`<div class="muscle-bar-range" style="left:${mevPct}%;width:${mrvPct-mevPct}%"></div>`;
+      }
+      if(val===0)barClass+=' bar-zero';
+      else{const t=MUSCLE_TARGETS[m];if(t&&t.mev>0&&val<t.mev)barClass+=' bar-under';else if(t&&val>t.mrv)barClass+=' bar-over';else barClass+=' bar-on-track';}
+    }else{barClass+=' bar-on-track';}
+    const valFmt=val?(_progMetric==='tonnage'?val.toLocaleString():val):'';
+    return `<div class="muscle-row"><div class="muscle-row-name">${name}</div><div class="muscle-bar-track">${rangeHtml}${pct>0?`<div class="${barClass}" style="width:${pct}%"></div>`:''}</div><div class="muscle-row-val">${valFmt?`${valFmt}<span class="muscle-row-unit"> ${unit}</span>`:''}</div></div>`;
+  }).join('');
+  const legendHtml=_progMetric==='sets'?`<div class="mev-mrv-legend"><div class="mev-mrv-legend-item"><div style="width:16px;height:6px;background:var(--accent);opacity:.35;border-radius:2px;flex-shrink:0"></div>MEV–MRV zone</div><div class="mev-mrv-legend-item"><div style="width:16px;height:4px;background:#d4920a;border-radius:2px;flex-shrink:0"></div>Under MEV</div><div class="mev-mrv-legend-item"><div style="width:16px;height:4px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>In range</div><div class="mev-mrv-legend-item"><div style="width:16px;height:4px;background:var(--danger);border-radius:2px;flex-shrink:0"></div>Over MRV</div></div>`:'';
+  document.getElementById('prog-muscle-chart').innerHTML=rows+legendHtml;
 }
 function renderReadiness(){
   const svg=document.getElementById('prog-readiness-svg');
@@ -1608,8 +1698,7 @@ function renderReadiness(){
   document.getElementById('prog-readiness-legend').innerHTML=metrics.map(m=>`<div class="readiness-legend-item"><div style="width:14px;height:2px;background:${m.color};border-radius:1px"></div>${m.label}</div>`).join('');
 }
 function renderProgress(){
-  renderMuscleBar('prog-vol-chart','volume');
-  renderMuscleBar('prog-ton-chart','tonnage');
+  renderMuscleChart();
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
   const recent=sorted.filter(s=>s.date>=cutoff),older=sorted.filter(s=>s.date<cutoff);
