@@ -322,6 +322,10 @@ select.bare{cursor:pointer}
 .bar-on-track{background:var(--accent)}
 .bar-over{background:var(--danger)}
 .muscle-row-val{font-size:10px;text-align:right;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.muscle-sort-row{display:flex;align-items:center;gap:4px;margin-bottom:12px}
+.muscle-sort-lbl{font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.muscle-sort-btn{font-size:10px;font-family:'DM Mono',monospace;color:var(--ink3);background:none;border:1px solid transparent;cursor:pointer;padding:2px 8px;border-radius:4px;transition:background .15s,color .15s,border-color .15s}
+.muscle-sort-btn.on{background:var(--line);border-color:var(--line2);color:var(--ink1)}
 .muscle-row-unit{color:var(--ink3)}
 /* Info button + tooltip */
 .muscle-info-wrap{position:relative;display:inline-flex;align-items:center}
@@ -805,6 +809,11 @@ select.bare{cursor:pointer}
             <button class="prog-tab" onclick="setProgMetric('volume',this)">Volume</button>
             <button class="prog-tab" onclick="setProgMetric('tonnage',this)">Tonnage</button>
           </div>
+        </div>
+        <div class="muscle-sort-row">
+          <span class="muscle-sort-lbl">Sort</span>
+          <button class="muscle-sort-btn on" onclick="setMuscleSort('headtoe',this)">Head to toe</button>
+          <button class="muscle-sort-btn" onclick="setMuscleSort('highlow',this)">Highest first</button>
         </div>
         <div id="prog-muscle-chart"></div>
       </div>
@@ -1724,6 +1733,13 @@ function setProgMetric(m,btn){
   btn.classList.add('on');
   renderMuscleChart();
 }
+let _muscleSort='headtoe';
+function setMuscleSort(s,btn){
+  _muscleSort=s;
+  document.querySelectorAll('.muscle-sort-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderMuscleChart();
+}
 function renderMuscleChart(){
   const sessions=getFilteredSessions();
   const totSets={},totVol={},totTon={};
@@ -1744,7 +1760,10 @@ function renderMuscleChart(){
   const unit=_progMetric==='sets'?'sets':_progMetric==='volume'?'reps':'kg';
   const unitLabel=_progMetric==='sets'?'sets / week':_progMetric==='volume'?'sets × reps':'sets × reps × kg';
   document.getElementById('prog-muscle-unit').textContent=unitLabel;
-  const rows=MUSCLES.map(m=>{
+  const sortedMuscles=_muscleSort==='highlow'
+    ?[...MUSCLES].sort((a,b)=>(totals[b]||0)-(totals[a]||0))
+    :[...MUSCLES];
+  const rows=sortedMuscles.map(m=>{
     const val=_progMetric==='sets'?totals[m]:Math.round(totals[m]||0);
     const pct=Math.round(val/scale*100);
     const name=MUSCLE_DISPLAY[m]||m;
