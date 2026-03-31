@@ -286,6 +286,14 @@ select.bare{cursor:pointer}
   .freq-day-label{font-size:9px}
 }
 
+/* READINESS PULSE CARD */
+.rp-headline{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
+.rp-unit{font-size:12px;font-family:var(--mono);color:var(--ink2)}
+.rp-sub{font-size:10px;color:var(--ink3);margin:4px 0 10px;min-height:14px}
+.rp-sparkline{margin-top:8px}
+.rp-empty{font-size:10px;color:var(--ink3);margin-top:12px;line-height:1.5}
+@media(max-width:600px){.rp-headline{font-size:34px}}
+
 /* MUSCLE COVERAGE CARD */
 .coverage-headline{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
 .coverage-unit{font-size:12px;font-family:var(--mono);color:var(--ink2)}
@@ -799,6 +807,13 @@ select.bare{cursor:pointer}
           </div>
         </div>
         <div id="prog-muscle-chart"></div>
+      </div>
+      <div class="prog-quad" id="prog-rp-card">
+        <div class="quad-title">Readiness</div>
+        <div class="rp-headline" id="rp-count">—</div>
+        <div class="rp-unit" id="rp-unit">avg sleep</div>
+        <div class="rp-sub" id="rp-sub"></div>
+        <div class="rp-sparkline" id="rp-sparkline"></div>
       </div>
       <div class="prog-quad">
         <div class="quad-title">Recent sessions</div>
@@ -1867,9 +1882,49 @@ function scrollToMuscleChart(){
   const el=document.querySelector('.prog-muscle-card');
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
+const SLEEP_HOURS={'≤5.5h':5.5,'6h':6,'6.5h':6.5,'7h':7,'7.5h':7.5,'8h':8,'≥8.5h':8.5};
+function renderReadinessPulseCard(){
+  const sessions=getFilteredSessions().filter(s=>s.sleep||s.energy).sort((a,b)=>a.date.localeCompare(b.date));
+  if(sessions.length===0){
+    document.getElementById('rp-count').textContent='—';
+    document.getElementById('rp-unit').textContent='no data yet';
+    document.getElementById('rp-sub').textContent='Fill in Check-in to track trends';
+    document.getElementById('rp-sparkline').innerHTML='';
+    return;
+  }
+  const sleepSess=sessions.filter(s=>s.sleep&&SLEEP_HOURS[s.sleep]);
+  const avgSleep=sleepSess.length?sleepSess.reduce((a,s)=>a+SLEEP_HOURS[s.sleep],0)/sleepSess.length:null;
+  const energyCounts={};
+  sessions.filter(s=>s.energy).forEach(s=>{energyCounts[s.energy]=(energyCounts[s.energy]||0)+1;});
+  const topEnergy=Object.entries(energyCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  if(avgSleep!=null){
+    const h=Math.round(avgSleep*10)/10;
+    document.getElementById('rp-count').textContent=h%1===0?h+'h':h+'h';
+    document.getElementById('rp-unit').textContent='avg sleep';
+  }else{
+    document.getElementById('rp-count').textContent='—';
+    document.getElementById('rp-unit').textContent='no sleep data';
+  }
+  document.getElementById('rp-sub').textContent=topEnergy?`Energy mostly ${topEnergy}`:'';
+  const sparkSess=sleepSess.slice(-8);
+  if(sparkSess.length>=2){
+    const vals=sparkSess.map(s=>SLEEP_VAL[s.sleep]||0);
+    const minV=Math.max(0,Math.min(...vals)-.05),maxV=Math.min(1,Math.max(...vals)+.05);
+    const range=Math.max(maxV-minV,.15);
+    const W=100,H=36,P=3;
+    const x=i=>P+(i/(vals.length-1))*(W-P*2);
+    const y=v=>H-P-(v-minV)/range*(H-P*2);
+    const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const fill=`${x(0).toFixed(1)},${H} ${pts} ${x(vals.length-1).toFixed(1)},${H}`;
+    document.getElementById('rp-sparkline').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:36px;display:block;overflow:visible"><polygon points="${fill}" fill="#4a9fd4" opacity=".12"/><polyline points="${pts}" fill="none" stroke="#4a9fd4" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>${vals.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2" fill="#4a9fd4"/>`).join('')}</svg>`;
+  }else{
+    document.getElementById('rp-sparkline').innerHTML=`<div class="rp-empty">Need 2+ sessions with sleep data to show trend.</div>`;
+  }
+}
 function renderProgress(){
   renderFreqCard();
   renderCoverageCard();
+  renderReadinessPulseCard();
   renderMuscleChart();
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
