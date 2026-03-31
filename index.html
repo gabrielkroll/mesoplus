@@ -262,6 +262,35 @@ select.bare{cursor:pointer}
 .metric-unit{color:var(--ink3);font-size:10px;margin-left:2px}
 .prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
 @media(max-width:640px){.prog-grid{grid-template-columns:1fr}}
+.prog-card-tap{cursor:pointer;transition:background .15s}
+.prog-card-tap:hover{background:var(--lift)}
+.card-verdict{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
+.card-verdict.green{color:var(--accent)}
+.card-verdict.amber{color:#c98a0a}
+.card-verdict.red{color:var(--danger)}
+.card-verdict-sub{font-size:11px;color:var(--ink3);margin:4px 0 10px;min-height:14px;line-height:1.4}
+.card-tap-hint{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-top:10px}
+.attn-muscle{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+.attn-muscle:last-child{border-bottom:none}
+.attn-muscle-name{color:var(--ink)}
+.attn-muscle-gap{color:#c98a0a;font-family:var(--mono);font-size:10px}
+.attn-all-good{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--accent);margin:8px 0 4px}
+.attn-all-good-sub{font-size:11px;color:var(--ink3)}
+.prog-muscle-overview{margin-top:0;cursor:pointer}
+.prog-muscle-overview-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.mvo-row{display:grid;grid-template-columns:110px 1fr 54px;align-items:center;gap:8px;padding:4px 0}
+.mvo-name{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvo-track{position:relative;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+.mvo-fill{position:absolute;top:0;left:0;height:100%;border-radius:4px;transition:width .3s ease}
+.mvo-val{font-size:10px;color:var(--ink3);font-family:var(--mono);text-align:right;white-space:nowrap}
+.prog-back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono);color:var(--ink3);background:none;border:none;cursor:pointer;padding:0;margin-bottom:4px;transition:color .15s}
+.prog-back-btn:hover{color:var(--ink)}
+.prog-detail-filter-label{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-top:4px}
+.wvl-detail-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+.wvl-detail-row:last-child{border-bottom:none}
+.wvl-delta-up{color:var(--accent);font-family:var(--mono);font-size:10px}
+.wvl-delta-down{color:#c98a0a;font-family:var(--mono);font-size:10px}
+@media(max-width:600px){.card-verdict{font-size:32px}.mvo-row{grid-template-columns:90px 1fr 46px}}
 .prog-quad{background:var(--surf);border-radius:8px;padding:14px}
 .quad-title{font-size:10px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:baseline;gap:6px}
 .quad-unit{color:var(--ink3);opacity:.7;font-size:9px;text-transform:none;letter-spacing:0}
@@ -760,40 +789,82 @@ select.bare{cursor:pointer}
 
   <div id="v-progress" class="hidden">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
-      <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)">Progress</div>
-      <button class="btn-o" onclick="exportCSV()">Export CSV</button>
+      <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)" id="prog-view-title">Progress</div>
+      <button class="btn-o" onclick="exportCSV()" id="prog-export-btn">Export CSV</button>
     </div>
-    <!-- Shared filters -->
-    <div class="prog-filters">
-      <div class="filter-group">
-        <button class="filter-btn on" onclick="setProgFilter('week',this)">Week</button>
-        <button class="filter-btn" onclick="setProgFilter('month',this)">Month</button>
-        <button class="filter-btn" onclick="setProgFilter('meso',this)">Meso</button>
-        <button class="filter-btn" onclick="setProgFilter('custom',this)">Custom</button>
+
+    <!-- OVERVIEW -->
+    <div id="prog-overview">
+      <!-- Two filter groups -->
+      <div class="prog-filters">
+        <div class="filter-group">
+          <button class="filter-btn on" id="pfb-week" onclick="setProgFilter('week',this)">Week</button>
+          <button class="filter-btn" id="pfb-month" onclick="setProgFilter('month',this)">Month</button>
+          <button class="filter-btn" id="pfb-year" onclick="setProgFilter('year',this)">Year</button>
+        </div>
+        <div class="filter-group">
+          <button class="filter-btn" id="pfb-micro" onclick="setProgFilter('micro',this)">Micro</button>
+          <button class="filter-btn" id="pfb-meso" onclick="setProgFilter('meso',this)">Meso</button>
+          <button class="filter-btn" id="pfb-macro" onclick="setProgFilter('macro',this)">Macro</button>
+        </div>
+      </div>
+
+      <!-- 4 overview cards: 2-col grid -->
+      <div class="prog-grid">
+        <!-- Card A: Volume Status -->
+        <div class="prog-quad prog-card-tap" id="card-volume-status" onclick="showDetail('muscle')">
+          <div class="quad-title">Volume status</div>
+          <div class="card-verdict" id="vs-verdict">—</div>
+          <div class="card-verdict-sub" id="vs-sub"></div>
+          <div class="card-tap-hint">See muscle detail →</div>
+        </div>
+        <!-- Card B: Needs Attention -->
+        <div class="prog-quad prog-card-tap" id="card-attention" onclick="showDetail('attention')">
+          <div class="quad-title">Needs attention</div>
+          <div id="attn-content"></div>
+          <div class="card-tap-hint">See full breakdown →</div>
+        </div>
+        <!-- Card C: Readiness -->
+        <div class="prog-quad prog-card-tap" id="card-readiness" onclick="showDetail('readiness')">
+          <div class="quad-title">Readiness</div>
+          <div class="rp-headline" id="rp-count">—</div>
+          <div class="rp-unit" id="rp-unit"></div>
+          <div class="rp-sub" id="rp-sub"></div>
+          <div class="rp-sparkline" id="rp-sparkline"></div>
+          <div class="card-tap-hint">See trends →</div>
+        </div>
+        <!-- Card D: This Week vs Last -->
+        <div class="prog-quad prog-card-tap" id="card-week-vs-last" onclick="showDetail('weekvslast')">
+          <div class="quad-title" id="wvl-title">This week vs last</div>
+          <div class="card-verdict" id="wvl-delta">—</div>
+          <div class="card-verdict-sub" id="wvl-sub"></div>
+          <div class="card-tap-hint">See breakdown →</div>
+        </div>
+      </div>
+
+      <!-- Card E: Muscle sets overview (full-width) -->
+      <div class="prog-quad prog-card-tap prog-muscle-overview" id="card-muscle-overview" onclick="showDetail('muscle')">
+        <div class="prog-muscle-overview-header">
+          <div class="quad-title" id="mvo-title">Sets this week</div>
+          <div class="card-tap-hint" style="margin-bottom:0">See detail →</div>
+        </div>
+        <div id="prog-muscle-overview-chart"></div>
+      </div>
+
+      <!-- Recent sessions -->
+      <div class="prog-quad" style="margin-top:0">
+        <div class="quad-title">Recent sessions</div>
+        <div id="prog-recent"></div>
+        <div id="prog-more-wrap"></div>
+        <div id="prog-all-panel" class="hidden"></div>
       </div>
     </div>
-    <div id="prog-custom-range" class="custom-range hidden">
-      From <input type="date" id="prog-from" onchange="renderProgress()">
-      to <input type="date" id="prog-to" onchange="renderProgress()">
-    </div>
-    <!-- Quadrant grid -->
-    <div class="prog-grid">
-      <div class="prog-quad" id="prog-freq-card">
-        <div class="quad-title" id="freq-title">Training this week</div>
-        <div class="freq-headline" id="freq-count">0</div>
-        <div class="freq-headline-unit" id="freq-unit">sessions</div>
-        <div class="freq-sub" id="freq-sub"></div>
-        <div class="freq-days" id="freq-days"></div>
-      </div>
-      <div class="prog-quad" id="prog-coverage-card">
-        <div class="quad-title" id="cov-title">Muscle coverage</div>
-        <div class="coverage-headline" id="cov-count">—</div>
-        <div class="coverage-unit" id="cov-unit">of 14 on target</div>
-        <div class="coverage-bar" id="cov-bar"></div>
-        <div class="coverage-stats" id="cov-stats"></div>
-        <button class="coverage-link" onclick="scrollToMuscleChart()">See muscle detail ↓</button>
-      </div>
-      <div class="prog-quad prog-muscle-card">
+
+    <!-- DETAIL: Muscle load -->
+    <div id="prog-detail-muscle" class="hidden">
+      <button class="prog-back-btn" onclick="showOverview()">← Back</button>
+      <div class="prog-detail-filter-label" id="prog-detail-muscle-label"></div>
+      <div class="prog-quad prog-muscle-card" style="margin-top:12px">
         <div class="prog-muscle-header">
           <div style="display:flex;align-items:center;gap:7px">
             <div class="quad-title" style="margin-bottom:0">Muscle load <span class="quad-unit" id="prog-muscle-unit">sets / week</span></div>
@@ -816,29 +887,38 @@ select.bare{cursor:pointer}
         </div>
         <div class="muscle-sort-row">
           <span class="muscle-sort-lbl">Sort</span>
-          <button class="muscle-sort-btn on" onclick="setMuscleSort('headtoe',this)">Head to toe</button>
-          <button class="muscle-sort-btn" onclick="setMuscleSort('highlow',this)">Highest first</button>
+          <button class="muscle-sort-btn on" onclick="setMuscleSort('highlow',this)">Highest first</button>
+          <button class="muscle-sort-btn" onclick="setMuscleSort('headtoe',this)">Head to toe</button>
         </div>
         <div id="prog-muscle-chart"></div>
       </div>
-      <div class="prog-quad" id="prog-rp-card">
-        <div class="quad-title">Readiness</div>
-        <div class="rp-headline" id="rp-count">—</div>
-        <div class="rp-unit" id="rp-unit">avg sleep</div>
-        <div class="rp-sub" id="rp-sub"></div>
-        <div class="rp-sparkline" id="rp-sparkline"></div>
-        <button class="rp-detail-toggle" id="rp-detail-btn" onclick="toggleRpDetail()">View trends ↓</button>
-        <div class="rp-detail-panel hidden" id="rp-detail-panel">
-          <div class="rp-detail-title">Sleep · Energy · Soreness · Performance</div>
-          <svg id="prog-readiness-svg" width="100%" height="120" style="display:block;overflow:visible"></svg>
-          <div class="readiness-legend" id="prog-readiness-legend"></div>
-        </div>
+    </div>
+
+    <!-- DETAIL: Readiness -->
+    <div id="prog-detail-readiness" class="hidden">
+      <button class="prog-back-btn" onclick="showOverview()">← Back</button>
+      <div class="prog-quad" style="margin-top:12px">
+        <div class="quad-title">Readiness trends <span class="quad-unit">Sleep · Energy · Freshness · Performance</span></div>
+        <svg id="prog-readiness-svg" width="100%" height="150" style="display:block;overflow:visible"></svg>
+        <div class="readiness-legend" id="prog-readiness-legend"></div>
       </div>
-      <div class="prog-quad">
-        <div class="quad-title">Recent sessions</div>
-        <div id="prog-recent"></div>
-        <div id="prog-more-wrap"></div>
-        <div id="prog-all-panel" class="hidden"></div>
+    </div>
+
+    <!-- DETAIL: Needs Attention -->
+    <div id="prog-detail-attention" class="hidden">
+      <button class="prog-back-btn" onclick="showOverview()">← Back</button>
+      <div class="prog-quad" style="margin-top:12px">
+        <div class="quad-title">Needs attention — full breakdown</div>
+        <div id="attn-detail-content"></div>
+      </div>
+    </div>
+
+    <!-- DETAIL: Week vs Last -->
+    <div id="prog-detail-weekvslast" class="hidden">
+      <button class="prog-back-btn" onclick="showOverview()">← Back</button>
+      <div class="prog-quad" style="margin-top:12px">
+        <div class="quad-title" id="wvl-detail-title">This week vs last week</div>
+        <div id="wvl-detail-content"></div>
       </div>
     </div>
   </div>
@@ -1708,21 +1788,225 @@ async function importFromSheets(){
 }
 async function appendRows(rows){try{if(S.scriptUrl){const date=rows[0]?.[0]||'';const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,rows})});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
-let _progFilter='week',_progShowAll=false,_progMetric='sets';
+let _progFilter='week',_progShowAll=false,_progMetric='sets',_progDetail=null;
 const SLEEP_VAL={'≤5.5h':1/7,'6h':2/7,'6.5h':3/7,'7h':4/7,'7.5h':5/7,'8h':6/7,'≥8.5h':1};
+const SLEEP_SCORE={'≤5.5h':20,'6h':33,'6.5h':47,'7h':60,'7.5h':73,'8h':87,'≥8.5h':100};
+const ENERGY_SCORE={'Drained':20,'Low':40,'Moderate':60,'Good':80,'Charged':100};
+const SORENESS_SCORE={'Wrecked':20,'Heavy':40,'Moderate':60,'Mild':80,'Fresh':100};
 const ENERGY_VAL={'Drained':0,'Low':0.25,'Moderate':0.5,'Good':0.75,'Charged':1};
 const SORENESS_VAL={'Wrecked':0,'Heavy':0.25,'Moderate':0.5,'Mild':0.75,'Fresh':1};
 const PERF_VAL={'Below par':0,'On track':0.5,'Exceeded':1};
+const SLEEP_HOURS={'≤5.5h':5.5,'6h':6,'6.5h':6.5,'7h':7,'7.5h':7.5,'8h':8,'≥8.5h':8.5};
+
+// ── FILTERS ──────────────────────────────────────────────────────────────────
 function getFilteredSessions(){
-  const now=Date.now(),d=(n)=>new Date(now-n*86400000).toISOString().slice(0,10);
-  if(_progFilter==='week')return S.sessions.filter(s=>s.date>=d(7));
-  if(_progFilter==='month')return S.sessions.filter(s=>s.date>=d(30));
-  if(_progFilter==='meso'){const start=[...S.sessions].sort((a,b)=>a.date.localeCompare(b.date))[0]?.date||d(0);return S.sessions.filter(s=>s.date>=start);}
-  if(_progFilter==='custom'){const f=document.getElementById('prog-from').value,t=document.getElementById('prog-to').value;return S.sessions.filter(s=>(!f||s.date>=f)&&(!t||s.date<=t));}
+  const today=td();
+  if(_progFilter==='week'){
+    const mon=ws(today);const sun=addD(mon,6);
+    return S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
+  }
+  if(_progFilter==='month'){
+    const m=today.slice(0,7);return S.sessions.filter(s=>s.date.slice(0,7)===m);
+  }
+  if(_progFilter==='year'){
+    const y=today.slice(0,4);return S.sessions.filter(s=>s.date.slice(0,4)===y);
+  }
+  if(_progFilter==='micro'){
+    const wk=mesoWk();const mon=addD(ws(S.mesoStart),(wk-1)*7);const sun=addD(mon,6);
+    return S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
+  }
+  if(_progFilter==='meso'){
+    return S.sessions.filter(s=>s.date>=S.mesoStart);
+  }
+  if(_progFilter==='macro'){return S.sessions;}
   return S.sessions;
 }
-function setProgFilter(f,btn){_progFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-custom-range').classList.toggle('hidden',f!=='custom');renderProgress();}
+function setProgFilter(f,btn){
+  _progFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderProgress();
+}
+
+// ── DETAIL NAVIGATION ────────────────────────────────────────────────────────
+function showDetail(name){
+  _progDetail=name;
+  document.getElementById('prog-overview').classList.add('hidden');
+  ['muscle','readiness','attention','weekvslast'].forEach(d=>{
+    document.getElementById('prog-detail-'+d).classList.toggle('hidden',d!==name);
+  });
+  if(name==='muscle')renderMuscleChart();
+  if(name==='readiness')renderReadiness();
+  if(name==='attention')renderAttentionDetail();
+  if(name==='weekvslast')renderWeekVsLastDetail();
+}
+function showOverview(){
+  _progDetail=null;
+  document.getElementById('prog-overview').classList.remove('hidden');
+  ['muscle','readiness','attention','weekvslast'].forEach(d=>{
+    document.getElementById('prog-detail-'+d).classList.add('hidden');
+  });
+}
+
+// ── SESSION ROW ───────────────────────────────────────────────────────────────
 function sessionRowHtml(s){const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol||''}</span></div>`;}
+
+// ── MUSCLE DATA HELPER ────────────────────────────────────────────────────────
+function getMuscleSetTotals(sessions){
+  const tot={};MUSCLES.forEach(m=>{tot[m]=0;});
+  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{
+    if(!e.name)return;
+    const sets=parseFloat(e.sets)||0;
+    [e.muscle,e.muscle2].filter(Boolean).forEach(m=>{if(m in tot)tot[m]+=sets;});
+  }));
+  return tot;
+}
+
+// ── CARD A: VOLUME STATUS ─────────────────────────────────────────────────────
+function renderCardVolumeStatus(){
+  const sessions=getFilteredSessions();
+  const tot=getMuscleSetTotals(sessions);
+  let onTarget=0,below=0,over=0,untrained=0;
+  MUSCLES.forEach(m=>{
+    const val=tot[m]||0,t=MUSCLE_TARGETS[m];
+    if(val===0)untrained++;
+    else if(t&&t.mev>0&&val<t.mev)below++;
+    else if(t&&val>t.mrv)over++;
+    else onTarget++;
+  });
+  const verdictEl=document.getElementById('vs-verdict');
+  const subEl=document.getElementById('vs-sub');
+  verdictEl.className='card-verdict';
+  if(sessions.length===0){verdictEl.textContent='—';subEl.textContent='No sessions logged yet';return;}
+  if(over>=3&&below>=4){verdictEl.textContent='Imbalanced';verdictEl.classList.add('amber');subEl.textContent=`${over} muscles overworked, ${below} undertrained`;}
+  else if(over>=3){verdictEl.textContent='Overreaching';verdictEl.classList.add('red');subEl.textContent=`${over} muscles above recovery limit`;}
+  else if(below>=4){verdictEl.textContent='Undertrained';verdictEl.classList.add('amber');subEl.textContent=`${below} muscles below minimum volume`;}
+  else{verdictEl.textContent='On track';verdictEl.classList.add('green');const good=onTarget+over;subEl.textContent=`${good} of ${MUSCLES.length} muscles in target zone`;}
+}
+
+// ── CARD B: NEEDS ATTENTION ───────────────────────────────────────────────────
+function renderCardAttention(){
+  const sessions=getFilteredSessions();
+  const tot=getMuscleSetTotals(sessions);
+  // Pro-rate targets for week filter based on day of week
+  let ratio=1;
+  if(_progFilter==='week'){
+    const today=td(),mon=ws(today);
+    const dayOfWeek=Math.max(0,(new Date(today+'T12:00:00')-new Date(mon+'T12:00:00'))/86400000);
+    ratio=Math.min(1,(dayOfWeek+1)/7);
+  }
+  const gaps=MUSCLES.map(m=>{
+    const t=MUSCLE_TARGETS[m];if(!t||t.mev===0)return null;
+    const target=Math.ceil(t.mev*ratio);
+    const gap=target-(tot[m]||0);
+    return gap>0?{m,gap,name:MUSCLE_DISPLAY[m]||m}:null;
+  }).filter(Boolean).sort((a,b)=>b.gap-a.gap).slice(0,3);
+  const el=document.getElementById('attn-content');
+  if(gaps.length===0){
+    el.innerHTML=`<div class="attn-all-good">All caught up</div><div class="attn-all-good-sub">No muscles below minimum volume</div>`;
+  }else{
+    el.innerHTML=gaps.map(({name,gap})=>`<div class="attn-muscle"><span class="attn-muscle-name">${name}</span><span class="attn-muscle-gap">${gap} set${gap!==1?'s':''} below target</span></div>`).join('');
+  }
+}
+
+// ── CARD C: READINESS ─────────────────────────────────────────────────────────
+function renderCardReadiness(){
+  const sessions=getFilteredSessions().filter(s=>s.sleep||s.energy||s.soreness).sort((a,b)=>a.date.localeCompare(b.date));
+  const last=sessions[sessions.length-1];
+  if(!last){
+    document.getElementById('rp-count').textContent='—';
+    document.getElementById('rp-unit').textContent='no check-in data';
+    document.getElementById('rp-sub').textContent='Fill in Sleep, Energy and Soreness';
+    document.getElementById('rp-sparkline').innerHTML='';
+    return;
+  }
+  const sl=SLEEP_SCORE[last.sleep]||0,en=ENERGY_SCORE[last.energy]||0,so=SORENESS_SCORE[last.soreness]||0;
+  const hasAll=sl&&en&&so,hasSome=sl||en||so;
+  let score=null;
+  if(hasAll)score=Math.round(sl*.4+en*.35+so*.25);
+  else if(hasSome)score=Math.round((sl+en+so)/([sl,en,so].filter(Boolean).length));
+  const recs=['Low — light session or rest','Moderate — consider reducing volume','Good — train as planned','Peak — push intensity today'];
+  const recIdx=score==null?-1:score<40?0:score<60?1:score<80?2:3;
+  document.getElementById('rp-count').textContent=score!=null?score:'—';
+  document.getElementById('rp-unit').textContent=score!=null?'readiness':'no data';
+  document.getElementById('rp-sub').textContent=recIdx>=0?recs[recIdx]:'';
+  // Sparkline: composite scores for last 8 sessions with any readiness data
+  const sparkSess=sessions.slice(-8);
+  if(sparkSess.length>=2){
+    const vals=sparkSess.map(s=>{
+      const a=SLEEP_SCORE[s.sleep]||0,b=ENERGY_SCORE[s.energy]||0,c=SORENESS_SCORE[s.soreness]||0;
+      const cnt=[a,b,c].filter(Boolean).length;
+      return cnt?Math.round((a+b+c)/cnt):0;
+    });
+    const minV=Math.max(0,Math.min(...vals)-5),maxV=Math.min(100,Math.max(...vals)+5);
+    const range=Math.max(maxV-minV,15);
+    const W=100,H=36,P=3;
+    const x=i=>P+(i/(vals.length-1))*(W-P*2);
+    const y=v=>H-P-(v-minV)/range*(H-P*2);
+    const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const fill=`${x(0).toFixed(1)},${H} ${pts} ${x(vals.length-1).toFixed(1)},${H}`;
+    document.getElementById('rp-sparkline').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:36px;display:block;overflow:visible"><polygon points="${fill}" fill="#4a9fd4" opacity=".12"/><polyline points="${pts}" fill="none" stroke="#4a9fd4" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>${vals.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2" fill="#4a9fd4"/>`).join('')}</svg>`;
+  }else{
+    document.getElementById('rp-sparkline').innerHTML='';
+  }
+}
+
+// ── CARD D: THIS WEEK VS LAST ─────────────────────────────────────────────────
+function getWeekSets(mondayStr){
+  const sun=addD(mondayStr,6);
+  const sess=S.sessions.filter(s=>s.date>=mondayStr&&s.date<=sun);
+  return Object.values(getMuscleSetTotals(sess)).reduce((a,v)=>a+v,0);
+}
+function renderCardWeekVsLast(){
+  const today=td(),mon=ws(today);
+  const prevMon=addD(mon,-7);
+  // Day-of-week index (0=Mon)
+  const dayIdx=Math.max(0,Math.round((new Date(today+'T12:00:00')-new Date(mon+'T12:00:00'))/86400000));
+  // Sets so far this week vs same point last week
+  const thisSun=addD(mon,dayIdx);
+  const prevSun=addD(prevMon,dayIdx);
+  const thisSess=S.sessions.filter(s=>s.date>=mon&&s.date<=thisSun);
+  const prevSess=S.sessions.filter(s=>s.date>=prevMon&&s.date<=prevSun);
+  const thisSets=Object.values(getMuscleSetTotals(thisSess)).reduce((a,v)=>a+v,0);
+  const prevSets=Object.values(getMuscleSetTotals(prevSess)).reduce((a,v)=>a+v,0);
+  const deltaEl=document.getElementById('wvl-delta');
+  const subEl=document.getElementById('wvl-sub');
+  deltaEl.className='card-verdict';
+  if(prevSets===0&&thisSets===0){deltaEl.textContent='—';subEl.textContent='No data yet';return;}
+  if(prevSets===0){deltaEl.textContent=thisSets+' sets';deltaEl.classList.add('green');subEl.textContent='so far this week — no last week data';return;}
+  const pct=Math.round(((thisSets-prevSets)/prevSets)*100);
+  const up=pct>=0;
+  deltaEl.textContent=(up?'↑':'↓')+Math.abs(pct)+'%';
+  deltaEl.classList.add(up?'green':'amber');
+  subEl.textContent=(up?'more':'less')+` volume (${thisSets} vs ${prevSets} sets)`;
+}
+
+// ── CARD E: MUSCLE OVERVIEW ───────────────────────────────────────────────────
+function renderCardMuscleOverview(){
+  const sessions=getFilteredSessions();
+  const tot=getMuscleSetTotals(sessions);
+  const sorted=[...MUSCLES].sort((a,b)=>(tot[b]||0)-(tot[a]||0));
+  const scale=Math.max(...Object.values(tot),1);
+  // Title updates with filter label
+  const labels={week:'this week',month:'this month',year:'this year',micro:'this microcycle',meso:'this mesocycle',macro:'all time'};
+  document.getElementById('mvo-title').textContent=`Sets ${labels[_progFilter]||''}`;
+  const rows=sorted.map(m=>{
+    const val=tot[m]||0;
+    const t=MUSCLE_TARGETS[m];
+    const goal=t?.mrv||0;
+    const pct=goal>0?Math.min(Math.round(val/goal*100),100):Math.round(val/scale*100);
+    const name=MUSCLE_DISPLAY[m]||m;
+    let fillColor='var(--accent)';
+    if(val===0)fillColor='var(--line2)';
+    else if(t&&t.mev>0&&val<t.mev)fillColor='#c98a0a';
+    else if(t&&val>t.mrv)fillColor='var(--danger)';
+    const valLabel=goal>0?`${val}/${goal}`:(val||'');
+    return `<div class="mvo-row"><div class="mvo-name">${name}</div><div class="mvo-track">${pct>0?`<div class="mvo-fill" style="width:${pct}%;background:${fillColor}"></div>`:''}</div><div class="mvo-val">${valLabel}</div></div>`;
+  }).join('');
+  document.getElementById('prog-muscle-overview-chart').innerHTML=rows;
+}
+
+// ── DETAIL: MUSCLE CHART ──────────────────────────────────────────────────────
 function toggleMuscleInfo(e){
   e.stopPropagation();
   const panel=document.getElementById('muscle-info-panel');
@@ -1738,7 +2022,7 @@ function setProgMetric(m,btn){
   btn.classList.add('on');
   renderMuscleChart();
 }
-let _muscleSort='headtoe';
+let _muscleSort='highlow';
 function setMuscleSort(s,btn){
   _muscleSort=s;
   document.querySelectorAll('.muscle-sort-btn').forEach(b=>b.classList.remove('on'));
@@ -1788,18 +2072,13 @@ function renderMuscleChart(){
   }).join('');
   document.getElementById('prog-muscle-chart').innerHTML=rows;
 }
-function toggleRpDetail(){
-  const panel=document.getElementById('rp-detail-panel');
-  const btn=document.getElementById('rp-detail-btn');
-  const open=panel.classList.toggle('hidden');
-  btn.textContent=open?'View trends ↓':'Hide trends ↑';
-  if(!open)renderReadiness();
-}
+
+// ── DETAIL: READINESS TRENDS ──────────────────────────────────────────────────
 function renderReadiness(){
   const svg=document.getElementById('prog-readiness-svg');
   const sessions=getFilteredSessions().filter(s=>s.sleep||s.energy||s.soreness||s.perf).sort((a,b)=>a.date.localeCompare(b.date));
   if(sessions.length<2){svg.innerHTML=`<text x="50%" y="55%" text-anchor="middle" fill="var(--ink3)" font-size="11" font-family="DM Mono,monospace">Need 2+ sessions with readiness data</text>`;document.getElementById('prog-readiness-legend').innerHTML='';return;}
-  const W=400,H=110,PL=4,PR=4,PT=8,PB=18;
+  const W=400,H=130,PL=4,PR=4,PT=8,PB=18;
   const n=sessions.length,xs=sessions.map((_,i)=>PL+(i/(n-1))*(W-PL-PR)),y=v=>PT+(1-v)*(H-PT-PB);
   const metrics=[
     {label:'Sleep',color:'#4a9fd4',vals:sessions.map(s=>SLEEP_VAL[s.sleep]||0)},
@@ -1813,150 +2092,63 @@ function renderReadiness(){
   svg.innerHTML=lines+labels;
   document.getElementById('prog-readiness-legend').innerHTML=metrics.map(m=>`<div class="readiness-legend-item"><div style="width:14px;height:2px;background:${m.color};border-radius:1px"></div>${m.label}</div>`).join('');
 }
-function renderFreqCard(){
-  const today=td();
+
+// ── DETAIL: NEEDS ATTENTION ───────────────────────────────────────────────────
+function renderAttentionDetail(){
   const sessions=getFilteredSessions();
-  const trainingSess=sessions.filter(s=>s.dtype&&s.dtype!=='Rest');
-  const trainingDays=new Set(trainingSess.map(s=>s.date));
-  if(_progFilter==='week'){
-    const mon=ws(today);
-    const days=Array.from({length:7},(_,i)=>addD(mon,i));
-    const LABELS=['M','T','W','T','F','S','S'];
-    const sessMap={};sessions.forEach(s=>{if(s.date&&s.dtype)sessMap[s.date]=s.dtype;});
-    const count=days.filter(d=>trainingDays.has(d)).length;
-    document.getElementById('freq-title').textContent='Training this week';
-    document.getElementById('freq-count').textContent=count;
-    document.getElementById('freq-unit').textContent=count===1?'session':'sessions';
-    document.getElementById('freq-sub').textContent='';
-    document.getElementById('freq-days').style.display='flex';
-    document.getElementById('freq-days').innerHTML=days.map((d,i)=>{
-      const dtype=sessMap[d];
-      const isActive=dtype&&dtype!=='Rest';
-      const isRest=dtype==='Rest';
-      const isToday=d===today;
-      const isFuture=d>today;
-      return `<div class="freq-day${isToday?' is-today':''}${isFuture?' future':''}">
-        <div class="freq-day-dot${isActive?' active':isRest?' rest':''}"></div>
-        <div class="freq-day-label">${LABELS[i]}</div>
-      </div>`;
-    }).join('');
-  }else{
-    const count=trainingDays.size;
-    const allDates=[...sessions.map(s=>s.date)].sort();
-    const spanDays=allDates.length>=2?Math.max(7,(new Date(allDates[allDates.length-1])-new Date(allDates[0]))/86400000):7;
-    const avgPerWeek=(count/(spanDays/7)).toFixed(1);
-    const label=_progFilter==='month'?'this month':_progFilter==='meso'?'this mesocycle':'in range';
-    document.getElementById('freq-title').textContent='Training sessions';
-    document.getElementById('freq-count').textContent=count;
-    document.getElementById('freq-unit').textContent='sessions';
-    document.getElementById('freq-sub').textContent=`${label} · avg ${avgPerWeek}/week`;
-    document.getElementById('freq-days').style.display='none';
-  }
-}
-function renderCoverageCard(){
-  const sessions=getFilteredSessions();
-  const totSets={};
-  MUSCLES.forEach(m=>{totSets[m]=0;});
-  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{
-    if(!e.name)return;
-    const sets=parseFloat(e.sets)||0;
-    [e.muscle,e.muscle2].filter(Boolean).forEach(m=>{if(m in totSets)totSets[m]+=sets;});
-  }));
-  const total=MUSCLES.length;
-  if(_progFilter==='week'){
-    // Full target comparison — meaningful on a weekly basis
-    let onTarget=0,below=0,over=0,untrained=0;
-    MUSCLES.forEach(m=>{
-      const val=totSets[m]||0;const t=MUSCLE_TARGETS[m];
-      if(val===0)untrained++;
-      else if(t&&t.mev>0&&val<t.mev)below++;
-      else if(t&&val>t.mrv)over++;
-      else onTarget++;
-    });
-    const good=onTarget+over;
-    document.getElementById('cov-title').textContent='Muscle coverage';
-    document.getElementById('cov-count').textContent=good;
-    document.getElementById('cov-unit').textContent=`of ${total} on target`;
-    const stats=[];
-    if(good>0)stats.push(['var(--accent)',`${good} on target`]);
-    if(below>0)stats.push(['#c98a0a',`${below} below target`]);
-    if(untrained>0)stats.push(['var(--line2)',`${untrained} untrained`]);
-    const barSegs=[[good,'var(--accent)'],[below,'#c98a0a'],[untrained,'var(--line)']];
-    renderCoverageBar(barSegs,total);
-    document.getElementById('cov-stats').innerHTML=stats.map(([c,l])=>`<div class="coverage-stat"><div class="coverage-stat-dot" style="background:${c}"></div>${l}</div>`).join('');
-  }else{
-    // Non-week: trained vs untrained only
-    let trained=0,untrained=0;
-    MUSCLES.forEach(m=>{totSets[m]>0?trained++:untrained++;});
-    const label=_progFilter==='month'?'this month':_progFilter==='meso'?'this mesocycle':'in range';
-    document.getElementById('cov-title').textContent='Muscle coverage';
-    document.getElementById('cov-count').textContent=trained;
-    document.getElementById('cov-unit').textContent=`of ${total} muscles trained`;
-    const stats=[];
-    if(trained>0)stats.push(['var(--accent)',`${trained} trained`]);
-    if(untrained>0)stats.push(['var(--line2)',`${untrained} untrained`]);
-    renderCoverageBar([[trained,'var(--accent)'],[untrained,'var(--line)']],total);
-    document.getElementById('cov-stats').innerHTML=stats.map(([c,l])=>`<div class="coverage-stat"><div class="coverage-stat-dot" style="background:${c}"></div>${l}</div>`).join('');
-  }
-}
-function renderCoverageBar(segs,total){
-  const bar=document.getElementById('cov-bar');
-  bar.innerHTML=segs.filter(([n])=>n>0).map(([n,color])=>{
-    const seg=document.createElement('div');
-    seg.className='coverage-seg';
-    seg.style.background=color;
-    seg.style.flex=String(n);
-    return seg.outerHTML;
+  const tot=getMuscleSetTotals(sessions);
+  const rows=MUSCLES.map(m=>{
+    const t=MUSCLE_TARGETS[m];
+    const val=tot[m]||0;
+    const name=MUSCLE_DISPLAY[m]||m;
+    let status='',statusColor='var(--ink3)';
+    if(val===0){status='untrained';statusColor='var(--line2)';}
+    else if(t&&t.mev>0&&val<t.mev){const gap=t.mev-val;status=`${gap} below target`;statusColor='#c98a0a';}
+    else if(t&&val>t.mrv){const over=val-t.mrv;status=`${over} over limit`;statusColor='var(--danger)';}
+    else{status='on target';statusColor='var(--accent)';}
+    return `<div class="attn-muscle"><span class="attn-muscle-name">${name}</span><span style="color:${statusColor};font-family:var(--mono);font-size:10px">${val} sets · ${status}</span></div>`;
+  }).sort((a,b)=>{
+    // Sort: gaps first, then on target, then over
+    const ga=a.includes('below')?0:a.includes('untrained')?1:a.includes('on target')?2:3;
+    const gb=b.includes('below')?0:b.includes('untrained')?1:b.includes('on target')?2:3;
+    return ga-gb;
   }).join('');
+  document.getElementById('attn-detail-content').innerHTML=rows||'<div style="color:var(--ink3);font-size:11px;padding:8px 0">No sessions logged yet.</div>';
 }
-function scrollToMuscleChart(){
-  const el=document.querySelector('.prog-muscle-card');
-  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+
+// ── DETAIL: WEEK VS LAST ──────────────────────────────────────────────────────
+function renderWeekVsLastDetail(){
+  const today=td(),mon=ws(today),prevMon=addD(mon,-7);
+  const dayIdx=Math.max(0,Math.round((new Date(today+'T12:00:00')-new Date(mon+'T12:00:00'))/86400000));
+  const thisSun=addD(mon,dayIdx),prevSun=addD(prevMon,dayIdx);
+  const thisSess=S.sessions.filter(s=>s.date>=mon&&s.date<=thisSun);
+  const prevSess=S.sessions.filter(s=>s.date>=prevMon&&s.date<=prevSun);
+  const thisTot=getMuscleSetTotals(thisSess);
+  const prevTot=getMuscleSetTotals(prevSess);
+  const totalThis=Object.values(thisTot).reduce((a,v)=>a+v,0);
+  const totalPrev=Object.values(prevTot).reduce((a,v)=>a+v,0);
+  document.getElementById('wvl-detail-title').textContent=`This week vs last (through ${today.slice(5)})`;
+  const rows=MUSCLES.map(m=>{
+    const thisV=thisTot[m]||0,prevV=prevTot[m]||0;
+    if(thisV===0&&prevV===0)return null;
+    const diff=thisV-prevV;
+    const name=MUSCLE_DISPLAY[m]||m;
+    const diffHtml=diff===0?'':`<span class="${diff>0?'wvl-delta-up':'wvl-delta-down'}">${diff>0?'+':''}${diff}</span>`;
+    return `<div class="wvl-detail-row"><span style="color:var(--ink)">${name}</span><span style="color:var(--ink2);font-family:var(--mono);font-size:10px">${thisV} vs ${prevV} sets ${diffHtml}</span></div>`;
+  }).filter(Boolean).join('');
+  const summary=totalPrev>0?`Total: ${totalThis} vs ${totalPrev} sets last week`:`Total: ${totalThis} sets this week`;
+  document.getElementById('wvl-detail-content').innerHTML=`<div style="font-size:11px;color:var(--ink3);margin-bottom:12px">${summary}</div>`+(rows||'<div style="color:var(--ink3);font-size:11px;padding:8px 0">No sessions yet.</div>');
 }
-const SLEEP_HOURS={'≤5.5h':5.5,'6h':6,'6.5h':6.5,'7h':7,'7.5h':7.5,'8h':8,'≥8.5h':8.5};
-function renderReadinessPulseCard(){
-  const sessions=getFilteredSessions().filter(s=>s.sleep||s.energy).sort((a,b)=>a.date.localeCompare(b.date));
-  if(sessions.length===0){
-    document.getElementById('rp-count').textContent='—';
-    document.getElementById('rp-unit').textContent='no data yet';
-    document.getElementById('rp-sub').textContent='Fill in Check-in to track trends';
-    document.getElementById('rp-sparkline').innerHTML='';
-    return;
-  }
-  const sleepSess=sessions.filter(s=>s.sleep&&SLEEP_HOURS[s.sleep]);
-  const avgSleep=sleepSess.length?sleepSess.reduce((a,s)=>a+SLEEP_HOURS[s.sleep],0)/sleepSess.length:null;
-  const energyCounts={};
-  sessions.filter(s=>s.energy).forEach(s=>{energyCounts[s.energy]=(energyCounts[s.energy]||0)+1;});
-  const topEnergy=Object.entries(energyCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
-  if(avgSleep!=null){
-    const h=Math.round(avgSleep*10)/10;
-    document.getElementById('rp-count').textContent=h%1===0?h+'h':h+'h';
-    document.getElementById('rp-unit').textContent='avg sleep';
-  }else{
-    document.getElementById('rp-count').textContent='—';
-    document.getElementById('rp-unit').textContent='no sleep data';
-  }
-  document.getElementById('rp-sub').textContent=topEnergy?`Energy mostly ${topEnergy}`:'';
-  const sparkSess=sleepSess.slice(-8);
-  if(sparkSess.length>=2){
-    const vals=sparkSess.map(s=>SLEEP_VAL[s.sleep]||0);
-    const minV=Math.max(0,Math.min(...vals)-.05),maxV=Math.min(1,Math.max(...vals)+.05);
-    const range=Math.max(maxV-minV,.15);
-    const W=100,H=36,P=3;
-    const x=i=>P+(i/(vals.length-1))*(W-P*2);
-    const y=v=>H-P-(v-minV)/range*(H-P*2);
-    const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-    const fill=`${x(0).toFixed(1)},${H} ${pts} ${x(vals.length-1).toFixed(1)},${H}`;
-    document.getElementById('rp-sparkline').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:36px;display:block;overflow:visible"><polygon points="${fill}" fill="#4a9fd4" opacity=".12"/><polyline points="${pts}" fill="none" stroke="#4a9fd4" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>${vals.map((v,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2" fill="#4a9fd4"/>`).join('')}</svg>`;
-  }else{
-    document.getElementById('rp-sparkline').innerHTML=`<div class="rp-empty">Need 2+ sessions with sleep data to show trend.</div>`;
-  }
-}
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────────────
 function renderProgress(){
-  renderFreqCard();
-  renderCoverageCard();
-  renderReadinessPulseCard();
-  renderMuscleChart();
+  // If we're in a detail view, re-render it; otherwise render overview
+  if(_progDetail){showDetail(_progDetail);return;}
+  renderCardVolumeStatus();
+  renderCardAttention();
+  renderCardReadiness();
+  renderCardWeekVsLast();
+  renderCardMuscleOverview();
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
   const recent=sorted.filter(s=>s.date>=cutoff),older=sorted.filter(s=>s.date<cutoff);
@@ -1964,7 +2156,6 @@ function renderProgress(){
   document.getElementById('prog-more-wrap').innerHTML=older.length?`<div class="show-more" onclick="toggleProgAll()">${_progShowAll?'Show less ↑':`+${older.length} older`}</div>`:'';
   const ap=document.getElementById('prog-all-panel');
   if(_progShowAll&&older.length){ap.classList.remove('hidden');ap.innerHTML=older.map(sessionRowHtml).join('');}else{ap.classList.add('hidden');}
-  renderReadiness();
 }
 function toggleProgAll(){_progShowAll=!_progShowAll;renderProgress();}
 function exportCSV(){if(!S.sessions.length){alert('No sessions to export yet.');return;}const h='Date,Week,Phase,Type,GymDay,Superset,Exercise,Muscle,Resistance,Side,KG,Reps,RIR,Sets,Volume,Sleep,Energy,Soreness,Performance,Flagged,Extra,Notes';const rows=[h];S.sessions.forEach(s=>toRows(s).forEach(r=>rows.push(r.map(v=>String(v).includes(',')?`"${v}"`:v).join(','))));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));a.download='mesoplus_export.csv';a.click();}
