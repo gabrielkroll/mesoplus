@@ -286,6 +286,18 @@ select.bare{cursor:pointer}
   .freq-day-label{font-size:9px}
 }
 
+/* MUSCLE COVERAGE CARD */
+.coverage-headline{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
+.coverage-unit{font-size:12px;font-family:var(--mono);color:var(--ink2)}
+.coverage-bar{height:6px;border-radius:3px;display:flex;margin:14px 0 10px;overflow:hidden}
+.coverage-seg{height:100%;min-width:2px;transition:flex .3s ease}
+.coverage-stats{display:flex;gap:14px;flex-wrap:wrap}
+.coverage-stat{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink3)}
+.coverage-stat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.coverage-link{display:inline-block;margin-top:14px;font-size:10px;color:var(--ink3);background:none;border:none;font-family:var(--mono);cursor:pointer;padding:0;outline:none;transition:color .12s;text-align:left}
+.coverage-link:hover{color:var(--ink2)}
+@media(max-width:600px){.coverage-headline{font-size:34px}}
+
 /* MUSCLE LOAD CHART */
 .prog-muscle-card{grid-column:1/-1}
 .prog-muscle-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
@@ -756,6 +768,14 @@ select.bare{cursor:pointer}
         <div class="freq-headline-unit" id="freq-unit">sessions</div>
         <div class="freq-sub" id="freq-sub"></div>
         <div class="freq-days" id="freq-days"></div>
+      </div>
+      <div class="prog-quad" id="prog-coverage-card">
+        <div class="quad-title" id="cov-title">Muscle coverage</div>
+        <div class="coverage-headline" id="cov-count">—</div>
+        <div class="coverage-unit" id="cov-unit">of 14 on target</div>
+        <div class="coverage-bar" id="cov-bar"></div>
+        <div class="coverage-stats" id="cov-stats"></div>
+        <button class="coverage-link" onclick="scrollToMuscleChart()">See muscle detail ↓</button>
       </div>
       <div class="prog-quad prog-muscle-card">
         <div class="prog-muscle-header">
@@ -1787,8 +1807,69 @@ function renderFreqCard(){
     document.getElementById('freq-days').style.display='none';
   }
 }
+function renderCoverageCard(){
+  const sessions=getFilteredSessions();
+  const totSets={};
+  MUSCLES.forEach(m=>{totSets[m]=0;});
+  sessions.forEach(s=>(s.supersets||[]).flatMap(ss=>ss.exercises).forEach(e=>{
+    if(!e.name)return;
+    const sets=parseFloat(e.sets)||0;
+    [e.muscle,e.muscle2].filter(Boolean).forEach(m=>{if(m in totSets)totSets[m]+=sets;});
+  }));
+  const total=MUSCLES.length;
+  if(_progFilter==='week'){
+    // Full target comparison — meaningful on a weekly basis
+    let onTarget=0,below=0,over=0,untrained=0;
+    MUSCLES.forEach(m=>{
+      const val=totSets[m]||0;const t=MUSCLE_TARGETS[m];
+      if(val===0)untrained++;
+      else if(t&&t.mev>0&&val<t.mev)below++;
+      else if(t&&val>t.mrv)over++;
+      else onTarget++;
+    });
+    const good=onTarget+over;
+    document.getElementById('cov-title').textContent='Muscle coverage';
+    document.getElementById('cov-count').textContent=good;
+    document.getElementById('cov-unit').textContent=`of ${total} on target`;
+    const stats=[];
+    if(good>0)stats.push(['var(--accent)',`${good} on target`]);
+    if(below>0)stats.push(['#c98a0a',`${below} below target`]);
+    if(untrained>0)stats.push(['var(--line2)',`${untrained} untrained`]);
+    const barSegs=[[good,'var(--accent)'],[below,'#c98a0a'],[untrained,'var(--line)']];
+    renderCoverageBar(barSegs,total);
+    document.getElementById('cov-stats').innerHTML=stats.map(([c,l])=>`<div class="coverage-stat"><div class="coverage-stat-dot" style="background:${c}"></div>${l}</div>`).join('');
+  }else{
+    // Non-week: trained vs untrained only
+    let trained=0,untrained=0;
+    MUSCLES.forEach(m=>{totSets[m]>0?trained++:untrained++;});
+    const label=_progFilter==='month'?'this month':_progFilter==='meso'?'this mesocycle':'in range';
+    document.getElementById('cov-title').textContent='Muscle coverage';
+    document.getElementById('cov-count').textContent=trained;
+    document.getElementById('cov-unit').textContent=`of ${total} muscles trained`;
+    const stats=[];
+    if(trained>0)stats.push(['var(--accent)',`${trained} trained`]);
+    if(untrained>0)stats.push(['var(--line2)',`${untrained} untrained`]);
+    renderCoverageBar([[trained,'var(--accent)'],[untrained,'var(--line)']],total);
+    document.getElementById('cov-stats').innerHTML=stats.map(([c,l])=>`<div class="coverage-stat"><div class="coverage-stat-dot" style="background:${c}"></div>${l}</div>`).join('');
+  }
+}
+function renderCoverageBar(segs,total){
+  const bar=document.getElementById('cov-bar');
+  bar.innerHTML=segs.filter(([n])=>n>0).map(([n,color])=>{
+    const seg=document.createElement('div');
+    seg.className='coverage-seg';
+    seg.style.background=color;
+    seg.style.flex=String(n);
+    return seg.outerHTML;
+  }).join('');
+}
+function scrollToMuscleChart(){
+  const el=document.querySelector('.prog-muscle-card');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderProgress(){
   renderFreqCard();
+  renderCoverageCard();
   renderMuscleChart();
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
