@@ -136,6 +136,12 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .csw.show{display:flex}
 .csi{background:none;border:none;border-bottom:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:11px;width:40px;text-align:center;outline:none;padding:2px 0}
 .extras-col{display:flex;flex-direction:column;gap:16px;padding-top:2px}
+.checkin-summary{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin-bottom:14px;background:var(--surf);border-radius:6px;border:1px solid var(--line)}
+.checkin-summary-text{font-size:12px;color:var(--ink2);font-family:var(--mono);letter-spacing:.01em}
+.checkin-expand-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;cursor:pointer;padding:4px 8px;border-radius:3px;transition:color .12s;outline:none;flex-shrink:0}
+.checkin-expand-btn:hover{color:var(--ink2)}
+.checkout-section{margin-top:4px}
+@media(max-width:600px){.checkin-expand-btn{min-height:44px;min-width:44px}}
 
 /* EXTRAS (legacy) */
 .extras-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
@@ -573,31 +579,32 @@ select.bare{cursor:pointer}
     <div class="rule" style="margin-top:0"></div>
 
     <div class="section-title">Check-in</div>
-    <div class="readiness-row">
-      <div class="metrics-grid">
-        <div class="metrics-item">
-          <div class="m-lbl">Sleep</div>
-          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
-            <div class="chips-row" id="chips-sleep"></div>
-            <div class="csw" id="csw"><input class="csi" type="number" id="csi" min="3" max="12" step="0.5" title="Custom hours"><span style="font-size:10px;color:var(--ink3)">h</span></div>
+    <div id="checkin-summary" class="checkin-summary hidden">
+      <span class="checkin-summary-text" id="checkin-summary-text"></span>
+      <button class="checkin-expand-btn" onclick="expandCheckin()">edit</button>
+    </div>
+    <div id="checkin-form">
+      <div class="readiness-row">
+        <div class="metrics-grid">
+          <div class="metrics-item">
+            <div class="m-lbl">Sleep</div>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
+              <div class="chips-row" id="chips-sleep"></div>
+              <div class="csw" id="csw"><input class="csi" type="number" id="csi" min="3" max="12" step="0.5" title="Custom hours"><span style="font-size:10px;color:var(--ink3)">h</span></div>
+            </div>
+          </div>
+          <div class="metrics-item">
+            <div class="m-lbl">Energy</div>
+            <div class="chips-row" id="chips-energy"></div>
+          </div>
+          <div class="metrics-item">
+            <div class="m-lbl">Soreness</div>
+            <div class="chips-row" id="chips-soreness"></div>
           </div>
         </div>
-        <div class="metrics-item">
-          <div class="m-lbl">Energy</div>
-          <div class="chips-row" id="chips-energy"></div>
+        <div class="extras-col">
+          <div><div class="field-lbl">Extra training</div><input class="bare" id="m-extra" placeholder="e.g. 10k walk, cycling"></div>
         </div>
-        <div class="metrics-item">
-          <div class="m-lbl">Soreness</div>
-          <div class="chips-row" id="chips-soreness"></div>
-        </div>
-        <div class="metrics-item">
-          <div class="m-lbl">Performance</div>
-          <div class="chips-row" id="chips-perf"></div>
-        </div>
-      </div>
-      <div class="extras-col">
-        <div><div class="field-lbl">Extra training</div><input class="bare" id="m-extra" placeholder="e.g. BJJ, cycling 20km"></div>
-        <div><div class="field-lbl">Notes</div><input class="bare" id="m-notes" placeholder="joints, energy, anything notable"></div>
       </div>
     </div>
 
@@ -648,6 +655,16 @@ select.bare{cursor:pointer}
     </div>
 
     <div id="rest-content" class="hidden"><div class="rest-card" id="rest-card"></div></div>
+
+    <div id="checkout-section" class="checkout-section hidden">
+      <div class="section-sep"></div>
+      <div class="section-title">Check-out</div>
+      <div id="checkout-perf" class="metrics-item" style="margin-bottom:16px">
+        <div class="m-lbl">Performance</div>
+        <div class="chips-row" id="chips-perf"></div>
+      </div>
+      <div><div class="field-lbl">Notes</div><input class="bare" id="m-notes" placeholder="joints, energy, anything notable"></div>
+    </div>
 
     <div class="bottom">
       <div style="display:flex;align-items:center;gap:8px">
@@ -963,9 +980,9 @@ function init(){
   const _name=localStorage.getItem('mp7_name')||'';if(_name){document.getElementById('s-name').value=_name;}updateProfileNav();
   document.getElementById('s-meso-start').value=S.mesoStart;
   S.selectedDate=td();
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
   buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
   document.getElementById('pos-chips').innerHTML=BJJ_POS.map(p=>`<button class="pos-chip" onclick="this.classList.toggle('on');markDirty()">${p}</button>`).join('');
   GC.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;document.getElementById('bjj-gc').appendChild(o);});
@@ -987,6 +1004,25 @@ function buildChips(id,opts,sel,cb){
     el.appendChild(b);});
 }
 function handleSleep(v){S.sleep=v;}
+function updateCheckinCollapse(){
+  const filled=S.sleep&&S.energy&&S.soreness;
+  document.getElementById('checkin-summary').classList.toggle('hidden',!filled);
+  document.getElementById('checkin-form').classList.toggle('hidden',!!filled);
+  if(filled){
+    const sleepLabel=S.sleep==='Custom'?(document.getElementById('csi')?.value||'?')+'h':S.sleep;
+    document.getElementById('checkin-summary-text').textContent=`Sleep ${sleepLabel} · Energy ${S.energy} · Soreness ${S.soreness}`;
+  }
+}
+function expandCheckin(){
+  document.getElementById('checkin-summary').classList.add('hidden');
+  document.getElementById('checkin-form').classList.remove('hidden');
+}
+function updateCheckoutReveal(dtype){
+  const show=!!dtype;
+  const isRest=dtype==='Rest';
+  document.getElementById('checkout-section').classList.toggle('hidden',!show);
+  document.getElementById('checkout-perf').classList.toggle('hidden',isRest);
+}
 
 function phaseWeekRange(idx){let cum=0;for(let i=0;i<idx;i++)cum+=S.phases[i].weeks;const p=S.phases[idx],wS=cum+1,wE=cum+p.weeks;return p.weeks===1?`W${wS}`:p.weeks<=3?Array.from({length:p.weeks},(_,k)=>`W${wS+k}`).join(', '):`W${wS}–W${wE}`;}
 function renderPhaseBar(){
@@ -1098,28 +1134,31 @@ function loadSess(sess){
   const _isGym=S.dtype==='Gym'||S.dtype==='BJJ + Gym';
   if(_isGym&&S.supersets.length===0){
     if(sess.bjj){const b=sess.bjj;['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value=b[k]||'':el.value=b[k]||'';}});if(b.positions)document.querySelectorAll('.pos-chip').forEach(c=>c.classList.toggle('on',b.positions.includes(c.textContent)));}
-    buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
-    buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();markDirty();});
-    buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+    buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
+    buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
+    buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
     buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
-    renderDtype();loadTemplate();return;
+    renderDtype();updateCheckoutReveal(S.dtype);updateCheckinCollapse();loadTemplate();return;
   }
   if(sess.bjj){const b=sess.bjj;['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value=b[k]||'':el.value=b[k]||'';}});if(b.positions)document.querySelectorAll('.pos-chip').forEach(c=>c.classList.toggle('on',b.positions.includes(c.textContent)));}
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);markDirty();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
   buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
-  renderDtype();computeSug();renderTable();
+  renderDtype();updateCheckoutReveal(S.dtype);updateCheckinCollapse();computeSug();renderTable();
 }
 function resetForm(){
   S.dtype='';S.sleep='';S.energy='';S.soreness='';S.perf='';
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
   ['gc','desc','partner','drilling','good','bad','subs','next'].forEach(k=>{const el=document.getElementById('bjj-'+k);if(el){el.tagName==='SELECT'?el.value='':el.value='';}});
   document.querySelectorAll('.pos-chip').forEach(c=>c.classList.remove('on'));
-  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);markDirty();});
-  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;computeSug();renderTable();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;computeSug();renderTable();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
+  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;computeSug();renderTable();updateCheckinCollapse();markDirty();});
   buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
+  document.getElementById('checkout-section').classList.add('hidden');
+  document.getElementById('checkin-summary').classList.add('hidden');
+  document.getElementById('checkin-form').classList.remove('hidden');
 }
 function shiftWeek(d){
   if(d<0&&S.viewWeekOffset<=minWeekOffset())return;
@@ -1167,7 +1206,7 @@ function renderDtype(){
   document.getElementById('rest-content').classList.toggle('hidden',S.dtype!=='Rest');
   if(S.dtype==='Rest'){const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;}
 }
-function setDtype(t){S.dtype=S.dtype===t?'':t;renderDtype();if(S.dtype)markDirty();}
+function setDtype(t){S.dtype=S.dtype===t?'':t;renderDtype();updateCheckoutReveal(S.dtype);if(S.dtype)markDirty();}
 
 function derivedGymDay(date){
   const mon=ws(date);
