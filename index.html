@@ -273,27 +273,32 @@ select.bare{cursor:pointer}
 .prog-muscle-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .prog-metric-tabs{display:flex;gap:2px;background:var(--line);border-radius:6px;padding:2px}
 .prog-tab{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;padding:4px 12px;cursor:pointer;border-radius:4px;transition:all .12s;outline:none;white-space:nowrap}
-.prog-tab.on{background:var(--lift);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.muscle-row{display:grid;grid-template-columns:130px 1fr 80px;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}
-.muscle-row:last-child{border-bottom:none}
+.prog-tab.on{background:var(--lift);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.muscle-row{display:grid;grid-template-columns:130px 1fr 72px;align-items:center;gap:12px;padding:6px 0}
 .muscle-row-name{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.muscle-bar-track{position:relative;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
-.muscle-bar-range{position:absolute;top:0;height:100%;background:var(--accent);opacity:.22;border-radius:3px}
-.muscle-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px;transition:width .25s ease}
+.muscle-bar-track{position:relative;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.muscle-bar-range{position:absolute;top:0;height:100%;background:var(--accent);opacity:.28;border-radius:4px}
+.muscle-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:4px;transition:width .3s ease}
 .bar-zero{background:var(--line2)}
-.bar-under{background:#d4920a}
+.bar-under{background:#c98a0a}
 .bar-on-track{background:var(--accent)}
 .bar-over{background:var(--danger)}
-.muscle-row-val{font-size:10px;text-align:right;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.muscle-row-val{font-size:10px;text-align:right;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:.01em}
 .muscle-row-unit{color:var(--ink3)}
-.mev-mrv-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-.mev-mrv-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink3)}
+/* Info button + tooltip */
+.muscle-info-wrap{position:relative;display:inline-flex;align-items:center}
+.muscle-info-btn{background:none;border:1px solid var(--line);color:var(--ink3);font-family:var(--mono);font-size:9px;cursor:pointer;padding:1px 5px;border-radius:3px;outline:none;line-height:1.6;transition:all .12s;flex-shrink:0}
+.muscle-info-btn:hover{border-color:var(--line2);color:var(--ink2)}
+.muscle-info-panel{position:absolute;top:calc(100% + 8px);right:0;background:var(--lift);border:1px solid var(--line);border-radius:6px;padding:14px 16px;width:260px;z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.14)}
+.muscle-info-panel.hidden{display:none}
+.muscle-info-text{font-size:11px;color:var(--ink2);line-height:1.5;margin-bottom:10px}
+.muscle-info-key{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--ink3);padding:3px 0}
 @media(max-width:600px){
-  .muscle-row{grid-template-columns:104px 1fr 52px;gap:8px}
+  .muscle-row{grid-template-columns:104px 1fr 50px;gap:8px}
   .muscle-row-name{font-size:10px}
-  .muscle-bar-track{height:6px}
   .muscle-row-val{font-size:10px}
   .prog-tab{font-size:11px;padding:6px 14px;min-height:44px}
+  .muscle-info-panel{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0) + 8px);right:12px;left:12px;top:auto;width:auto}
 }
 
 /* PROFILE MENU */
@@ -729,7 +734,19 @@ select.bare{cursor:pointer}
     <div class="prog-grid">
       <div class="prog-quad prog-muscle-card">
         <div class="prog-muscle-header">
-          <div class="quad-title" style="margin-bottom:0">Muscle load <span class="quad-unit" id="prog-muscle-unit">sets / week</span></div>
+          <div style="display:flex;align-items:center;gap:7px">
+            <div class="quad-title" style="margin-bottom:0">Muscle load <span class="quad-unit" id="prog-muscle-unit">sets / week</span></div>
+            <div class="muscle-info-wrap">
+              <button class="muscle-info-btn" onclick="toggleMuscleInfo(event)" aria-label="About training zones">?</button>
+              <div class="muscle-info-panel hidden" id="muscle-info-panel">
+                <div class="muscle-info-text">The shaded band is the <strong>training zone</strong> — the recommended weekly set range for effective stimulus without excessive fatigue.</div>
+                <div class="muscle-info-key"><div style="width:16px;height:8px;background:var(--accent);opacity:.4;border-radius:2px;flex-shrink:0"></div>Training zone</div>
+                <div class="muscle-info-key"><div style="width:16px;height:4px;background:#c98a0a;border-radius:2px;flex-shrink:0"></div>Below target — add sets</div>
+                <div class="muscle-info-key"><div style="width:16px;height:4px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>On target — good volume</div>
+                <div class="muscle-info-key"><div style="width:16px;height:4px;background:var(--danger);border-radius:2px;flex-shrink:0"></div>Over target — watch recovery</div>
+              </div>
+            </div>
+          </div>
           <div class="prog-metric-tabs">
             <button class="prog-tab on" onclick="setProgMetric('sets',this)">Sets</button>
             <button class="prog-tab" onclick="setProgMetric('volume',this)">Volume</button>
@@ -1632,6 +1649,15 @@ function getFilteredSessions(){
 }
 function setProgFilter(f,btn){_progFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('prog-custom-range').classList.toggle('hidden',f!=='custom');renderProgress();}
 function sessionRowHtml(s){const exs=(s.supersets||[]).flatMap(ss=>ss.exercises).filter(e=>e.name);const vol=exs.reduce((a,e)=>a+Math.round((parseFloat(e.reps)||0)*(parseFloat(e.sets)||3)),0);return `<div class="h-row"><span style="color:var(--ink3)">${fmt(s.date)}</span><span style="color:var(--ink2)">W${s.week} ${s.phase} · ${s.dtype} · ${exs.length} ex</span><span style="font-family:var(--serif);font-style:italic;text-align:right;color:var(--ink)">${vol||''}</span></div>`;}
+function toggleMuscleInfo(e){
+  e.stopPropagation();
+  const panel=document.getElementById('muscle-info-panel');
+  if(panel)panel.classList.toggle('hidden');
+}
+document.addEventListener('click',()=>{
+  const panel=document.getElementById('muscle-info-panel');
+  if(panel&&!panel.classList.contains('hidden'))panel.classList.add('hidden');
+});
 function setProgMetric(m,btn){
   _progMetric=m;
   document.querySelectorAll('.prog-tab').forEach(b=>b.classList.remove('on'));
@@ -1676,8 +1702,7 @@ function renderMuscleChart(){
     const valFmt=val?(_progMetric==='tonnage'?val.toLocaleString():val):'';
     return `<div class="muscle-row"><div class="muscle-row-name">${name}</div><div class="muscle-bar-track">${rangeHtml}${pct>0?`<div class="${barClass}" style="width:${pct}%"></div>`:''}</div><div class="muscle-row-val">${valFmt?`${valFmt}<span class="muscle-row-unit"> ${unit}</span>`:''}</div></div>`;
   }).join('');
-  const legendHtml=_progMetric==='sets'?`<div class="mev-mrv-legend"><div class="mev-mrv-legend-item"><div style="width:16px;height:6px;background:var(--accent);opacity:.35;border-radius:2px;flex-shrink:0"></div>MEV–MRV zone</div><div class="mev-mrv-legend-item"><div style="width:16px;height:4px;background:#d4920a;border-radius:2px;flex-shrink:0"></div>Under MEV</div><div class="mev-mrv-legend-item"><div style="width:16px;height:4px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>In range</div><div class="mev-mrv-legend-item"><div style="width:16px;height:4px;background:var(--danger);border-radius:2px;flex-shrink:0"></div>Over MRV</div></div>`:'';
-  document.getElementById('prog-muscle-chart').innerHTML=rows+legendHtml;
+  document.getElementById('prog-muscle-chart').innerHTML=rows;
 }
 function renderReadiness(){
   const svg=document.getElementById('prog-readiness-svg');
