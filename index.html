@@ -268,6 +268,24 @@ select.bare{cursor:pointer}
 .readiness-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .readiness-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink3)}
 
+/* TRAINING FREQUENCY CARD */
+.freq-headline{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
+.freq-headline-unit{font-size:12px;font-style:normal;font-family:var(--mono);color:var(--ink2)}
+.freq-sub{font-size:10px;color:var(--ink3);margin:4px 0 14px;min-height:14px}
+.freq-days{display:flex;justify-content:space-between;margin-top:4px}
+.freq-day{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.freq-day-dot{width:9px;height:9px;border-radius:50%;background:var(--line);transition:background .2s;flex-shrink:0}
+.freq-day-dot.active{background:var(--accent)}
+.freq-day-dot.rest{background:var(--line2)}
+.freq-day.is-today .freq-day-dot:not(.active):not(.rest){border:1.5px solid var(--ink3);background:transparent}
+.freq-day.future{opacity:.35}
+.freq-day-label{font-size:9px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+@media(max-width:600px){
+  .freq-headline{font-size:34px}
+  .freq-day-dot{width:11px;height:11px}
+  .freq-day-label{font-size:9px}
+}
+
 /* MUSCLE LOAD CHART */
 .prog-muscle-card{grid-column:1/-1}
 .prog-muscle-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
@@ -732,6 +750,13 @@ select.bare{cursor:pointer}
     </div>
     <!-- Quadrant grid -->
     <div class="prog-grid">
+      <div class="prog-quad" id="prog-freq-card">
+        <div class="quad-title" id="freq-title">Training this week</div>
+        <div class="freq-headline" id="freq-count">0</div>
+        <div class="freq-headline-unit" id="freq-unit">sessions</div>
+        <div class="freq-sub" id="freq-sub"></div>
+        <div class="freq-days" id="freq-days"></div>
+      </div>
       <div class="prog-quad prog-muscle-card">
         <div class="prog-muscle-header">
           <div style="display:flex;align-items:center;gap:7px">
@@ -1722,7 +1747,48 @@ function renderReadiness(){
   svg.innerHTML=lines+labels;
   document.getElementById('prog-readiness-legend').innerHTML=metrics.map(m=>`<div class="readiness-legend-item"><div style="width:14px;height:2px;background:${m.color};border-radius:1px"></div>${m.label}</div>`).join('');
 }
+function renderFreqCard(){
+  const today=td();
+  const sessions=getFilteredSessions();
+  const trainingSess=sessions.filter(s=>s.dtype&&s.dtype!=='Rest');
+  const trainingDays=new Set(trainingSess.map(s=>s.date));
+  if(_progFilter==='week'){
+    const mon=ws(today);
+    const days=Array.from({length:7},(_,i)=>addD(mon,i));
+    const LABELS=['M','T','W','T','F','S','S'];
+    const sessMap={};sessions.forEach(s=>{if(s.date&&s.dtype)sessMap[s.date]=s.dtype;});
+    const count=days.filter(d=>trainingDays.has(d)).length;
+    document.getElementById('freq-title').textContent='Training this week';
+    document.getElementById('freq-count').textContent=count;
+    document.getElementById('freq-unit').textContent=count===1?'session':'sessions';
+    document.getElementById('freq-sub').textContent='';
+    document.getElementById('freq-days').style.display='flex';
+    document.getElementById('freq-days').innerHTML=days.map((d,i)=>{
+      const dtype=sessMap[d];
+      const isActive=dtype&&dtype!=='Rest';
+      const isRest=dtype==='Rest';
+      const isToday=d===today;
+      const isFuture=d>today;
+      return `<div class="freq-day${isToday?' is-today':''}${isFuture?' future':''}">
+        <div class="freq-day-dot${isActive?' active':isRest?' rest':''}"></div>
+        <div class="freq-day-label">${LABELS[i]}</div>
+      </div>`;
+    }).join('');
+  }else{
+    const count=trainingDays.size;
+    const allDates=[...sessions.map(s=>s.date)].sort();
+    const spanDays=allDates.length>=2?Math.max(7,(new Date(allDates[allDates.length-1])-new Date(allDates[0]))/86400000):7;
+    const avgPerWeek=(count/(spanDays/7)).toFixed(1);
+    const label=_progFilter==='month'?'this month':_progFilter==='meso'?'this mesocycle':'in range';
+    document.getElementById('freq-title').textContent='Training sessions';
+    document.getElementById('freq-count').textContent=count;
+    document.getElementById('freq-unit').textContent='sessions';
+    document.getElementById('freq-sub').textContent=`${label} · avg ${avgPerWeek}/week`;
+    document.getElementById('freq-days').style.display='none';
+  }
+}
 function renderProgress(){
+  renderFreqCard();
   renderMuscleChart();
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
