@@ -290,6 +290,22 @@ select.bare{cursor:pointer}
 .wvl-detail-row:last-child{border-bottom:none}
 .wvl-delta-up{color:var(--accent);font-family:var(--mono);font-size:10px}
 .wvl-delta-down{color:#c98a0a;font-family:var(--mono);font-size:10px}
+/* Plan tab goals */
+.plan-day-card{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.plan-day-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+.plan-ex-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.plan-ex-row:last-child{border-bottom:none}
+.plan-ex-name{font-size:12px;color:var(--ink)}
+.plan-ex-muscle{font-size:10px;color:var(--ink3)}
+.plan-stepper{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.plan-stepper-btn{width:22px;height:22px;border-radius:4px;border:1px solid var(--line2);background:none;color:var(--ink2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s,color .12s;font-family:var(--mono)}
+.plan-stepper-btn:hover{background:var(--surf);color:var(--ink)}
+.plan-stepper-val{width:24px;text-align:center;font-size:12px;font-family:var(--mono);color:var(--ink)}
+.plan-muscle-row{display:grid;grid-template-columns:110px 1fr 40px;align-items:center;gap:8px;padding:4px 0}
+.plan-muscle-name{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-muscle-track{position:relative;height:6px;background:var(--line);border-radius:4px;overflow:hidden}
+.plan-muscle-fill{position:absolute;top:0;left:0;height:100%;background:var(--accent);border-radius:4px;transition:width .2s}
+.plan-muscle-val{font-size:10px;color:var(--ink3);text-align:right;white-space:nowrap}
 @media(max-width:600px){.card-verdict{font-size:32px}.mvo-row{grid-template-columns:90px 1fr 46px}}
 .prog-quad{background:var(--surf);border-radius:8px;padding:14px;border:1px solid var(--line2)}
 .quad-title{font-size:10px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:baseline;gap:6px}
@@ -632,7 +648,7 @@ select.bare{cursor:pointer}
     </button>
     <button class="bnav-item" id="bn-progress" onclick="nav('progress')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
-      <span>Progress</span>
+      <span>Stats</span>
     </button>
     <button class="bnav-item" id="bn-analysis" onclick="nav('analysis')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
@@ -640,7 +656,7 @@ select.bare{cursor:pointer}
     </button>
     <button class="bnav-item" id="bn-program" onclick="nav('program')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-      <span>Program</span>
+      <span>Plan</span>
     </button>
     <button class="bnav-item" id="bn-profile" onclick="nav('profile')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -654,9 +670,9 @@ select.bare{cursor:pointer}
     <div class="wordmark">Meso<sup>+</sup></div>
     <div class="nav-links">
       <button class="nl on" id="nl-log" onclick="nav('log')">Log</button>
-      <button class="nl" id="nl-progress" onclick="nav('progress')">Progress</button>
+      <button class="nl" id="nl-progress" onclick="nav('progress')">Stats</button>
       <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
-      <button class="nl" id="nl-program" onclick="nav('program')">Program</button>
+      <button class="nl" id="nl-program" onclick="nav('program')">Plan</button>
       <div class="profile-wrap">
         <button class="nl" id="nl-profile" onclick="toggleProfileMenu()" style="display:inline-flex;align-items:center"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
         <div class="profile-menu hidden" id="profile-menu">
@@ -794,7 +810,7 @@ select.bare{cursor:pointer}
 
   <div id="v-progress" class="hidden">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
-      <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)" id="prog-view-title">Progress</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)" id="prog-view-title">Stats</div>
       <button class="btn-o" onclick="exportCSV()" id="prog-export-btn">Export CSV</button>
     </div>
 
@@ -957,7 +973,7 @@ select.bare{cursor:pointer}
     <div class="settings-nav-table hub-only">
       <button class="settings-nav-row" onclick="nav('program')">
         <div class="settings-nav-content">
-          <div class="settings-nav-label">Program</div>
+          <div class="settings-nav-label">Plan</div>
           <div class="settings-nav-sub" id="hub-program-sub"></div>
         </div>
         <div class="settings-nav-chevron">›</div>
@@ -1000,7 +1016,7 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-program" class="hidden">
-    <div class="meso-card-anchor" style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Program</div>
+    <div class="meso-card-anchor" style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Plan</div>
     <div class="meso-card">
       <div class="card-label">Mesocycle plan</div>
       <div class="phase-bar" id="phase-bar"></div>
@@ -1019,6 +1035,15 @@ select.bare{cursor:pointer}
     </div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
     <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
+
+    <!-- Training Goals -->
+    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin:24px 0 4px">Training Goals</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">Set weekly set targets per exercise. These drive the goal bars in Stats.</div>
+    <div id="plan-days-wrap"></div>
+    <div style="margin-top:20px">
+      <div style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Weekly sets per muscle (from goals)</div>
+      <div id="plan-muscle-totals"></div>
+    </div>
   </div>
 
   <div id="v-setup" class="hidden">
@@ -1182,7 +1207,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],setGoals:{1:{},2:{},3:{},4:{}},apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 
 const td=()=>new Date().toISOString().split('T')[0];
@@ -1190,7 +1215,7 @@ function ws(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r
 function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
-function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions}));}
+function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals}));}
 function utcDay(s){const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);}
 function mesoWkFor(dateStr){return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(S.mesoStart)))/(7*86400000))+1);}
 function mesoWk(){return mesoWkFor(td());}
@@ -1199,7 +1224,7 @@ function ph(){return S.phases[derivedPhase().phaseIdx];}
 
 function init(){
   const saved=localStorage.getItem('mp7');
-  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());S.sessions=p.sessions||[];
+  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());S.sessions=p.sessions||[];if(p.setGoals){[1,2,3,4].forEach(d=>{S.setGoals[d]={...S.setGoals[d],...(p.setGoals[d]||{})}});}
     S.sessions.forEach(s=>{
       if(s.perf)s.perf=s.perf.replace(/^[↓↑→]\s*/,'');
       if(s.sleep==='5h')s.sleep='≤5.5h';
@@ -1991,11 +2016,12 @@ function renderCardWeekVsLast(){
 function renderCardMuscleOverview(){
   const sessions=getCurrentWeekSessions();
   const tot=getMuscleSetTotals(sessions);
+  const weeklyGoals=getWeeklyMuscleGoals();
   const sorted=[...MUSCLES].sort((a,b)=>(tot[b]||0)-(tot[a]||0));
   const scale=Math.max(...Object.values(tot),1);
   const rows=sorted.map(m=>{
     const val=tot[m]||0;
-    const goal=MUSCLE_TARGETS[m]?.mrv||0;
+    const goal=weeklyGoals[m]||0;
     const pct=goal>0?Math.min(Math.round(val/goal*100),100):Math.round(val/scale*100);
     const name=MUSCLE_DISPLAY[m]||m;
     // Two colors only: trained = accent, untrained = line2. No mid-week verdicts.
@@ -2140,6 +2166,73 @@ function renderWeekVsLastDetail(){
   document.getElementById('wvl-detail-content').innerHTML=`<div style="font-size:11px;color:var(--ink3);margin-bottom:12px">${summary}</div>`+(rows||'<div style="color:var(--ink3);font-size:11px;padding:8px 0">No sessions yet.</div>');
 }
 
+// ── PLAN TAB ──────────────────────────────────────────────────────────────────
+function getWeeklyMuscleGoals(){
+  const totals={};
+  MUSCLES.forEach(m=>totals[m]=0);
+  [1,2,3,4].forEach(day=>{
+    const dayGoals=S.setGoals[day]||{};
+    (TEMPLATES[day]||[]).forEach(ss=>{
+      ss.exercises.forEach(ex=>{
+        const g=parseInt(dayGoals[ex.name])||0;
+        if(g<=0)return;
+        if(ex.muscle&&ex.muscle in totals)totals[ex.muscle]+=g;
+        if(ex.muscle2&&ex.muscle2 in totals)totals[ex.muscle2]+=g;
+      });
+    });
+  });
+  return totals;
+}
+
+function setPlanGoal(day,exName,delta){
+  const cur=parseInt(S.setGoals[day][exName])||0;
+  const next=Math.max(0,cur+delta);
+  if(next===0)delete S.setGoals[day][exName];
+  else S.setGoals[day][exName]=next;
+  persist();
+  renderPlanTab();
+}
+
+function renderPlanTab(){
+  const dayLabels={1:'Day A',2:'Day B',3:'Day C',4:'Day D'};
+  const wrap=document.getElementById('plan-days-wrap');
+  if(!wrap)return;
+  wrap.innerHTML=[1,2,3,4].map(day=>{
+    const goals=S.setGoals[day]||{};
+    const rows=(TEMPLATES[day]||[]).flatMap(ss=>ss.exercises).map(ex=>{
+      const val=parseInt(goals[ex.name])||0;
+      const muscle2html=ex.muscle2?` <span style="color:var(--ink3)">+ ${ex.muscle2}</span>`:'';
+      return `<div class="plan-ex-row">
+        <div>
+          <div class="plan-ex-name">${ex.name}</div>
+          <div class="plan-ex-muscle">${ex.muscle}${muscle2html}</div>
+        </div>
+        <div class="plan-stepper">
+          <button class="plan-stepper-btn" onclick="setPlanGoal(${day},'${ex.name.replace(/'/g,"\\'")}', -1)">−</button>
+          <div class="plan-stepper-val">${val||'—'}</div>
+          <button class="plan-stepper-btn" onclick="setPlanGoal(${day},'${ex.name.replace(/'/g,"\\'")}',1)">+</button>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="plan-day-card"><div class="plan-day-title">${dayLabels[day]}</div>${rows}</div>`;
+  }).join('');
+
+  // Weekly muscle totals
+  const totals=getWeeklyMuscleGoals();
+  const maxVal=Math.max(...Object.values(totals),1);
+  const muscleTotalsEl=document.getElementById('plan-muscle-totals');
+  if(!muscleTotalsEl)return;
+  const active=MUSCLES.filter(m=>totals[m]>0);
+  if(!active.length){muscleTotalsEl.innerHTML='<div style="font-size:11px;color:var(--ink3);padding:4px 0">Set goals above to see weekly muscle totals.</div>';return;}
+  const sorted=[...MUSCLES].filter(m=>totals[m]>0).sort((a,b)=>totals[b]-totals[a]);
+  muscleTotalsEl.innerHTML=sorted.map(m=>{
+    const v=totals[m];
+    const pct=Math.round(v/maxVal*100);
+    const name=MUSCLE_DISPLAY[m]||m;
+    return `<div class="plan-muscle-row"><div class="plan-muscle-name">${name}</div><div class="plan-muscle-track"><div class="plan-muscle-fill" style="width:${pct}%"></div></div><div class="plan-muscle-val">${v} sets</div></div>`;
+  }).join('');
+}
+
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
 function renderProgress(){
   if(_progDetail){showDetail(_progDetail);return;}
@@ -2189,6 +2282,7 @@ function nav(id){
   ['log','progress','analysis','program'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
   const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','setup'].includes(id));
   if(id==='progress')renderProgress();
+  if(id==='program')renderPlanTab();
   if(id==='profile')updateHubSubtitles();
   closeProfileMenu();
 }
