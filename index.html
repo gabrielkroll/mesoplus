@@ -293,6 +293,10 @@ select.bare{cursor:pointer}
 .rp-sparkline{margin-top:8px}
 .rp-empty{font-size:10px;color:var(--ink3);margin-top:12px;line-height:1.5}
 @media(max-width:600px){.rp-headline{font-size:34px}}
+.rp-detail-toggle{display:inline-block;font-size:10px;font-family:var(--mono);color:var(--ink3);background:none;border:none;cursor:pointer;padding:0;margin-top:10px;letter-spacing:.02em;transition:color .15s}
+.rp-detail-toggle:hover{color:var(--ink2)}
+.rp-detail-panel{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.rp-detail-title{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:8px}
 
 /* MUSCLE COVERAGE CARD */
 .coverage-headline{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--ink);line-height:1;margin:6px 0 2px;letter-spacing:-.02em}
@@ -823,17 +827,18 @@ select.bare{cursor:pointer}
         <div class="rp-unit" id="rp-unit">avg sleep</div>
         <div class="rp-sub" id="rp-sub"></div>
         <div class="rp-sparkline" id="rp-sparkline"></div>
+        <button class="rp-detail-toggle" id="rp-detail-btn" onclick="toggleRpDetail()">View trends ↓</button>
+        <div class="rp-detail-panel hidden" id="rp-detail-panel">
+          <div class="rp-detail-title">Sleep · Energy · Soreness · Performance</div>
+          <svg id="prog-readiness-svg" width="100%" height="120" style="display:block;overflow:visible"></svg>
+          <div class="readiness-legend" id="prog-readiness-legend"></div>
+        </div>
       </div>
       <div class="prog-quad">
         <div class="quad-title">Recent sessions</div>
         <div id="prog-recent"></div>
         <div id="prog-more-wrap"></div>
         <div id="prog-all-panel" class="hidden"></div>
-      </div>
-      <div class="prog-quad">
-        <div class="quad-title">Readiness trends</div>
-        <svg id="prog-readiness-svg" width="100%" height="120" style="display:block;overflow:visible"></svg>
-        <div class="readiness-legend" id="prog-readiness-legend"></div>
       </div>
     </div>
   </div>
@@ -1782,6 +1787,13 @@ function renderMuscleChart(){
     return `<div class="muscle-row"><div class="muscle-row-name">${name}</div><div class="muscle-bar-track">${rangeHtml}${pct>0?`<div class="${barClass}" style="width:${pct}%"></div>`:''}</div><div class="muscle-row-val">${valFmt?`${valFmt}<span class="muscle-row-unit"> ${unit}</span>`:''}</div></div>`;
   }).join('');
   document.getElementById('prog-muscle-chart').innerHTML=rows;
+}
+function toggleRpDetail(){
+  const panel=document.getElementById('rp-detail-panel');
+  const btn=document.getElementById('rp-detail-btn');
+  const open=panel.classList.toggle('hidden');
+  btn.textContent=open?'View trends ↓':'Hide trends ↑';
+  if(!open)renderReadiness();
 }
 function renderReadiness(){
   const svg=document.getElementById('prog-readiness-svg');
