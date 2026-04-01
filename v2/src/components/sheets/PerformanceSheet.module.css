@@ -1,0 +1,65 @@
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.option:hover {
+  border-color: var(--color-line2);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.optionOn {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+.optionLabel {
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.optionSub {
+  font-size: 11px;
+  color: var(--color-ink3);
+}
+
+.closeBtn {
+  width: 100%;
+  padding: 13px;
+  background: none;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-ink2);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.closeBtn:hover {
+  border-color: var(--color-line2);
+  color: var(--color-ink);
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

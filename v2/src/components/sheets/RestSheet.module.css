@@ -1,0 +1,75 @@
+.quoteWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0 32px;
+  border-bottom: 1px solid var(--color-line);
+  margin-bottom: 24px;
+}
+
+.quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--color-ink);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.attr {
+  font-size: 11px;
+  color: var(--color-ink3);
+  font-style: normal;
+}
+
+.sub {
+  font-size: 11px;
+  color: var(--color-ink3);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+.notesBtn {
+  width: 100%;
+  padding: 13px;
+  background: none;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-ink2);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  text-align: left;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.notesBtn:hover {
+  border-color: var(--color-line2);
+  color: var(--color-ink);
+}
+
+.notesBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.closeBtn {
+  width: 100%;
+  padding: 13px;
+  background: none;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-ink2);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.closeBtn:hover {
+  border-color: var(--color-line2);
+  color: var(--color-ink);
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

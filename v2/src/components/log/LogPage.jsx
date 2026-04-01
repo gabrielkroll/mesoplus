@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
 import useStore from '../../store/useStore'
 import ReadinessSheet from '../sheets/ReadinessSheet'
+import RestSheet from '../sheets/RestSheet'
+import NotesSheet from '../sheets/NotesSheet'
+import PerformanceSheet from '../sheets/PerformanceSheet'
 import styles from './LogPage.module.css'
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -106,31 +109,35 @@ export default function LogPage() {
           <section className={styles.section} aria-labelledby="reflect-heading">
             <h2 className={styles.sectionTitle} id="reflect-heading">Reflect</h2>
             <div className={styles.reflectRow}>
-              <button
-                className={`${styles.card} ${styles.cardHalf} ${!hasTraining ? styles.cardInactive : ''}`}
-                onClick={() => hasTraining && openSheet('performance')}
-                disabled={!hasTraining}
-                aria-label={hasTraining ? 'Log performance' : 'Complete training to log performance'}
-                aria-disabled={!hasTraining}
-              >
-                <span className={styles.cardLabel}>Performance</span>
-                {todaySession?.perf && (
-                  <span className={styles.cardValue}>{todaySession.perf}</span>
-                )}
-              </button>
-              <button
-                className={`${styles.card} ${styles.cardHalf}`}
-                onClick={() => openSheet('notes')}
-                aria-label="Add notes"
-              >
-                <span className={styles.cardLabel}>Notes</span>
-                {todaySession?.notes && (
-                  <span className={styles.cardValue}>
-                    {todaySession.notes.slice(0, 40)}
-                    {todaySession.notes.length > 40 ? '…' : ''}
-                  </span>
-                )}
-              </button>
+              <motion.div layoutId="card-performance" className={styles.cardHalf}>
+                <button
+                  className={`${styles.card} ${styles.cardFull} ${!hasTraining ? styles.cardInactive : ''}`}
+                  onClick={() => hasTraining && openSheet('performance')}
+                  disabled={!hasTraining}
+                  aria-label={hasTraining ? 'Log performance' : 'Complete training to log performance'}
+                  aria-disabled={!hasTraining}
+                >
+                  <span className={styles.cardLabel}>Performance</span>
+                  {todaySession?.perf && (
+                    <span className={styles.cardValue}>{todaySession.perf}</span>
+                  )}
+                </button>
+              </motion.div>
+              <motion.div layoutId="card-notes" className={styles.cardHalf}>
+                <button
+                  className={`${styles.card} ${styles.cardFull}`}
+                  onClick={() => openSheet('notes')}
+                  aria-label="Add notes"
+                >
+                  <span className={styles.cardLabel}>Notes</span>
+                  {todaySession?.notes && (
+                    <span className={styles.cardValue}>
+                      {todaySession.notes.slice(0, 40)}
+                      {todaySession.notes.length > 40 ? '…' : ''}
+                    </span>
+                  )}
+                </button>
+              </motion.div>
             </div>
           </section>
         </div>
@@ -150,6 +157,18 @@ export default function LogPage() {
       {/* ── Sheets ──────────────────────────────────────────── */}
       <ReadinessSheet
         isOpen={activeSheet === 'readiness'}
+        onClose={closeSheet}
+      />
+      <RestSheet
+        isOpen={activeSheet === 'rest'}
+        onClose={closeSheet}
+      />
+      <NotesSheet
+        isOpen={activeSheet === 'notes'}
+        onClose={closeSheet}
+      />
+      <PerformanceSheet
+        isOpen={activeSheet === 'performance'}
         onClose={closeSheet}
       />
     </>
