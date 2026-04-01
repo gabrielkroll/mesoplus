@@ -101,7 +101,7 @@ export default function TransferImport() {
       setDone(true)
       setToken(null)
     } catch (ex) {
-      setError(`Import error (p type=${typeof parsed?.p}): ${ex.message}`)
+      setError(`p="${String(parsed?.p).slice(0, 100)}"`)
     }
   }
 
