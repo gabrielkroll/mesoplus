@@ -4,9 +4,7 @@ import Button from '../atoms/Button'
 import { syncToSheets } from '../../lib/sync'
 import styles from './ProfilePage.module.css'
 
-const SYNC_KEY      = 'mp7_synced_dates'
-const SCRIPT_KEY    = 'mp7_script_url'
-const SHEET_TAB_KEY = 'mp7_sheet_tab'
+const SYNC_KEY = 'mp7_synced_dates'
 
 function getSyncedDates() {
   try { return new Set(JSON.parse(localStorage.getItem(SYNC_KEY) || '[]')) } catch { return new Set() }
@@ -17,12 +15,14 @@ function saveSyncedDates(set) {
 }
 
 export default function ProfilePage() {
-  const sessions = useStore(s => s.sessions)
+  const sessions      = useStore(s => s.sessions)
+  const scriptUrl     = useStore(s => s.scriptUrl)
+  const sheetTab      = useStore(s => s.sheetTab)
+  const setScriptUrl  = useStore(s => s.setScriptUrl)
+  const setSheetTab   = useStore(s => s.setSheetTab)
 
   const [copied,     setCopied]     = useState(false)
   const [exportMsg,  setExportMsg]  = useState('')
-  const [scriptUrl,  setScriptUrl]  = useState(() => localStorage.getItem(SCRIPT_KEY) || '')
-  const [sheetTab,   setSheetTab]   = useState(() => localStorage.getItem(SHEET_TAB_KEY) || 'Sessions')
   const [syncStatus, setSyncStatus] = useState('')   // '', 'syncing', 'ok', 'error'
   const [syncMsg,    setSyncMsg]    = useState('')
   const [showScript, setShowScript] = useState(false)
@@ -71,14 +71,8 @@ export default function ProfilePage() {
   }
 
   // ── Google Sheets sync ────────────────────────────────────────────────────
-  const saveScriptUrl = (val) => {
-    setScriptUrl(val)
-    localStorage.setItem(SCRIPT_KEY, val)
-  }
-  const saveSheetTab = (val) => {
-    setSheetTab(val)
-    localStorage.setItem(SHEET_TAB_KEY, val)
-  }
+  // scriptUrl and sheetTab live in the mp7 store — same key as V1,
+  // so whatever was configured in V1 is already available here.
 
   const runSync = async () => {
     if (!scriptUrl.trim()) { setSyncMsg('Paste your Apps Script URL first.'); setSyncStatus('error'); return }
@@ -185,7 +179,7 @@ export default function ProfilePage() {
                 type="url"
                 placeholder="https://script.google.com/macros/s/…/exec"
                 value={scriptUrl}
-                onChange={e => saveScriptUrl(e.target.value)}
+                onChange={e => setScriptUrl(e.target.value)}
                 autoComplete="off"
                 spellCheck={false}
               />
@@ -197,7 +191,7 @@ export default function ProfilePage() {
                 type="text"
                 placeholder="Sessions"
                 value={sheetTab}
-                onChange={e => saveSheetTab(e.target.value)}
+                onChange={e => setSheetTab(e.target.value)}
               />
 
               <Button variant="danger" onClick={clearSyncHistory}>

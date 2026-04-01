@@ -37,6 +37,10 @@ const useStore = create(
       setGoals: { 1: {}, 2: {}, 3: {}, 4: {} },
       globalSetGoal: 3,
 
+      // ── Sync / integration (same keys as V1) ─────────────────────────────
+      scriptUrl: '',   // Google Apps Script Web App URL
+      sheetTab:  'Sessions',
+
       // ── UI state (not persisted) ─────────────────────────────────────────
       activeSheet: null,       // 'readiness' | 'rest' | 'resistance' | 'bjj' | 'resistance+bjj' | 'performance' | 'notes'
       activeTab: 'log',        // 'log' | 'stats' | 'analysis' | 'plan' | 'profile'
@@ -85,18 +89,24 @@ const useStore = create(
       setPhases: (phases) => set({ phases }),
 
       setPhaseIdx: (idx) => set({ phaseIdx: idx }),
+
+      setScriptUrl: (url) => set({ scriptUrl: url }),
+
+      setSheetTab: (tab) => set({ sheetTab: tab }),
     }),
     {
       name: STORAGE_KEY,
       storage: mp7Storage,
       // Only persist data fields, not UI state
       partialize: (state) => ({
-        sessions: state.sessions,
-        phases: state.phases,
-        phaseIdx: state.phaseIdx,
-        mesoStart: state.mesoStart,
-        setGoals: state.setGoals,
+        sessions:      state.sessions,
+        phases:        state.phases,
+        phaseIdx:      state.phaseIdx,
+        mesoStart:     state.mesoStart,
+        setGoals:      state.setGoals,
         globalSetGoal: state.globalSetGoal,
+        scriptUrl:     state.scriptUrl,
+        sheetTab:      state.sheetTab,
       }),
     }
   )
