@@ -48,8 +48,16 @@ export default function TransferImport() {
     setError('')
     if (!password) { setError('Enter your password'); return }
 
+    let parsed
     try {
-      const { p: payloadStr, sig } = JSON.parse(atob(token))
+      parsed = JSON.parse(atob(token))
+    } catch (ex) {
+      setError(`Token decode failed: ${ex.message} (len ${token.length})`)
+      return
+    }
+
+    try {
+      const { p: payloadStr, sig } = parsed
       const payload = JSON.parse(payloadStr)
 
       if (Date.now() > payload.exp) {
@@ -85,8 +93,8 @@ export default function TransferImport() {
 
       setDone(true)
       setToken(null)
-    } catch {
-      setError('Invalid link — please generate a new one')
+    } catch (ex) {
+      setError(`Import error: ${ex.message}`)
     }
   }
 
