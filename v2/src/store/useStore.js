@@ -13,14 +13,15 @@ const mp7Storage = {
     const str = localStorage.getItem(name)
     if (!str) return null
     const data = JSON.parse(str)
-    // Already Zustand format
-    if (data.state) return str
-    // V1 raw format — wrap it for Zustand
-    return JSON.stringify({ state: data, version: 0 })
+    // Return as StorageValue object (Zustand v5 expects objects, not strings)
+    if (data.state) return { state: data.state, version: data.version ?? 0 }
+    // V1 raw format — wrap it
+    return { state: data, version: 0 }
   },
-  setItem: (name, str) => {
-    // Unwrap Zustand format back to V1 raw format so V1 can still read it
-    const { state } = JSON.parse(str)
+  setItem: (name, value) => {
+    // Zustand v5 passes an object {state, version}; v4 passed a JSON string.
+    // Handle both and write V1-compatible raw JSON so V1 can still read it.
+    const state = typeof value === 'string' ? JSON.parse(value).state : value.state
     localStorage.setItem(name, JSON.stringify(state))
   },
   removeItem: (name) => localStorage.removeItem(name),

@@ -49,59 +49,46 @@ export default function TransferImport() {
     setError('')
     if (!password) { setError('Enter your password'); return }
 
-    let decoded, parsed
+    let parsed
     try {
-      decoded = atob(token)
-    } catch (ex) {
-      setError(`atob failed (len=${token.length}): ${token.slice(0,40)}`)
+      parsed = JSON.parse(atob(token))
+    } catch {
+      setError('Invalid link — please generate a new one')
       return
     }
+
     try {
-      parsed = JSON.parse(decoded)
-    } catch (ex) {
-      setError(`JSON.parse failed: ${decoded.slice(0,80)}`)
-      return
-    }
+      const { p: payloadStr, sig } = parsed
+      const payload = JSON.parse(payloadStr)
 
-    const { p: payloadStr, sig } = parsed
+      if (Date.now() > payload.exp) {
+        setError('Link expired — ask for a new one')
+        return
+      }
 
-    let payload
-    try {
-      payload = JSON.parse(payloadStr)
-    } catch (ex) {
-      setError(`PARSE FAIL: ${ex.message}`)
-      return
-    }
+      const used = getUsedTokens()
+      const tokenHash = hashPw(token.slice(0, 80))
+      if (used.includes(tokenHash)) {
+        setError('Link already used — generate a new one')
+        return
+      }
 
-    if (Date.now() > payload.exp) {
-      setError('Link expired — ask for a new one')
-      return
-    }
+      const expectedSig = hashPw(payloadStr + hashPw(password))
+      if (sig !== expectedSig) {
+        setError('Wrong password')
+        return
+      }
 
-    const used = getUsedTokens()
-    const tokenHash = hashPw(token.slice(0, 80))
-    if (used.includes(tokenHash)) {
-      setError('Link already used — generate a new one')
-      return
-    }
+      if (payload.su) setScriptUrl(payload.su)
+      if (payload.s)  setSheetId(payload.s)
+      if (payload.t)  setSheetTab(payload.t)
+      if (payload.ms) setMesoStart(payload.ms)
+      if (payload.ck) localStorage.setItem(CLAUDE_KEY, payload.ck)
 
-    const expectedSig = hashPw(payloadStr + hashPw(password))
-    if (sig !== expectedSig) {
-      setError('Wrong password')
-      return
-    }
-
-    let step = 0
-    try {
-      step = 1; if (payload.su) setScriptUrl(payload.su)
-      step = 2; if (payload.s)  setSheetId(payload.s)
-      step = 3; if (payload.t)  setSheetTab(payload.t)
-      step = 4; if (payload.ms) setMesoStart(payload.ms)
-      step = 5; if (payload.ck) localStorage.setItem(CLAUDE_KEY, payload.ck)
-      step = 6; const updated = [...used, tokenHash].slice(-20)
-      step = 7; localStorage.setItem(USED_KEY, JSON.stringify(updated))
-    } catch (ex) {
-      setError(`WRITE FAIL step=${step}: ${ex.message}`)
+      const updated = [...used, tokenHash].slice(-20)
+      localStorage.setItem(USED_KEY, JSON.stringify(updated))
+    } catch {
+      setError('Import failed — please generate a new link')
       return
     }
 
