@@ -265,7 +265,7 @@ function WeekStrip({ days, sessions, todayStr }) {
             role="listitem"
             aria-label={`${fmtWeekday(d)}${isToday ? ', today' : ''}${s?.dtype ? `, ${s.dtype}${s.completed ? ', completed' : ', in progress'}` : ''}`}
           >
-            <span className={styles.stripWd}>{fmtWeekday(d).slice(0,1)}</span>
+            <span className={styles.stripWd}>{fmtWeekday(d).slice(0,3).toUpperCase()}</span>
             <span className={styles.stripDt}>{new Date(d + 'T12:00').getDate()}</span>
             {dot && (
               <span
