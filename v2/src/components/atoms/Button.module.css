@@ -10,6 +10,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  /* WCAG 2.5.5: minimum touch target 44×44px */
+  min-height: 44px;
 }
 
 .btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

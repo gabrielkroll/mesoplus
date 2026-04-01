@@ -125,7 +125,7 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} role="main">
       <header className={styles.header}>
         <h1 className={styles.title}>Analysis</h1>
       </header>

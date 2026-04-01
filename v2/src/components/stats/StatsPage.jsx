@@ -102,7 +102,7 @@ export default function StatsPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} role="main">
       <header className={styles.header}>
         <h1 className={styles.title}>Stats</h1>
       </header>

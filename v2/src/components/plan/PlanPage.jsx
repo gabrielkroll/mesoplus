@@ -40,7 +40,7 @@ export default function PlanPage() {
   const savePhases = (newPhases) => setPhases(newPhases)
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} role="main">
       <header className={styles.header}>
         <h1 className={styles.title}>Plan</h1>
       </header>

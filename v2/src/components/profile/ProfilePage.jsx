@@ -68,7 +68,7 @@ export default function ProfilePage() {
   const bjjCount = (sessions || []).filter(s => s.dtype && s.dtype.includes('BJJ')).length
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} role="main">
       <header className={styles.header}>
         <h1 className={styles.title}>Profile</h1>
       </header>

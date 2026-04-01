@@ -77,8 +77,9 @@ function BJJJournal({ data, onChange, onComplete }) {
 
 // ── Main sheet ────────────────────────────────────────────────────────────────
 export default function BJJSheet({ isOpen, onClose, layoutId = 'card-bjj' }) {
-  const sessions   = useStore(s => s.sessions)
-  const addSession = useStore(s => s.addSession)
+  const sessions       = useStore(s => s.sessions)
+  const addSession     = useStore(s => s.addSession)
+  const removeTraining = useStore(s => s.removeTraining)
 
   const date    = today()
   const session = sessions.find(s => s.date === date) || {}
@@ -120,6 +121,9 @@ export default function BJJSheet({ isOpen, onClose, layoutId = 'card-bjj' }) {
         {step === -1 ? (
           <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <BJJOverview onStart={() => setStep(0)} />
+            <Button fullWidth variant="danger" onClick={() => { removeTraining(date); onClose() }}>
+              Change training type
+            </Button>
           </motion.div>
         ) : (
           <BJJJournal key="journal" data={data} onChange={setData} onComplete={complete} />

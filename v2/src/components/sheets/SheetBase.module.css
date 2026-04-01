@@ -39,8 +39,11 @@
 }
 
 .closeBtn {
-  width: 32px;
-  height: 32px;
+  /* Visual size 36px, touch target padded to 44px minimum */
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   background: var(--color-surf);
   border: 1px solid var(--color-line);

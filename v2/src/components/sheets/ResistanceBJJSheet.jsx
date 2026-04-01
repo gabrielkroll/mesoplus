@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
 import { getExercises, deriveGymDay, TEMPLATES } from '../../lib/templates'
-import { today } from '../../lib/dates'
+import { today, fmtShort } from '../../lib/dates'
+import { getLastSet } from '../../lib/suggestions'
 import ProgressBar from '../atoms/ProgressBar'
 import Stepper from '../atoms/Stepper'
 import NumInput from '../atoms/NumInput'
@@ -19,13 +20,15 @@ const PERF_OPTIONS = ['Below par', 'On track', 'Exceeded']
 
 // Phases: 'gym-overview' → 'gym-ex' → 'bjj-overview' → 'bjj-journal'
 export default function ResistanceBJJSheet({ isOpen, onClose }) {
-  const sessions   = useStore(s => s.sessions)
-  const addSession = useStore(s => s.addSession)
+  const sessions       = useStore(s => s.sessions)
+  const addSession     = useStore(s => s.addSession)
+  const removeTraining = useStore(s => s.removeTraining)
 
-  const date      = today()
-  const session   = sessions.find(s => s.date === date) || {}
-  const gymDay    = session.gymDay || deriveGymDay(sessions, date) || 1
-  const exercises = getExercises(gymDay)
+  const date         = today()
+  const session      = sessions.find(s => s.date === date) || {}
+  const gymDay       = session.gymDay || deriveGymDay(sessions, date) || 1
+  const exercises    = getExercises(gymDay)
+  const pastSessions = (sessions || []).filter(s => s.date < date)
 
   const [phase, setPhase]     = useState('gym-overview')
   const [exStep, setExStep]   = useState(0)
@@ -97,6 +100,9 @@ export default function ResistanceBJJSheet({ isOpen, onClose }) {
               ))}
             </div>
             <Button fullWidth onClick={() => setPhase('gym-ex')}>Start first exercise</Button>
+            <Button fullWidth variant="danger" onClick={() => { removeTraining(date); onClose() }}>
+              Change training type
+            </Button>
           </motion.div>
         )}
 
@@ -110,6 +116,7 @@ export default function ResistanceBJJSheet({ isOpen, onClose }) {
             onChange={(data) => updateEx(exStep, data)}
             onNext={() => saveGymAndAdvance(exStep)}
             isLast={exStep === exercises.length - 1}
+            lastSet={getLastSet(pastSessions, exercises[exStep]?.name)}
           />
         )}
 
@@ -130,7 +137,7 @@ export default function ResistanceBJJSheet({ isOpen, onClose }) {
 }
 
 // ── Gym exercise entry ────────────────────────────────────────────────────────
-function GymExercise({ exercise, index, total, data, onChange, onNext, isLast }) {
+function GymExercise({ exercise, index, total, data, onChange, onNext, isLast, lastSet }) {
   const set  = (field) => (val) => onChange({ ...data, [field]: val })
   const sets = parseInt(data.sets) || exercise.sets
 
@@ -148,6 +155,22 @@ function GymExercise({ exercise, index, total, data, onChange, onNext, isLast })
         {exercise.muscle}{exercise.muscle2 ? ` + ${exercise.muscle2}` : ''}
         <span className={styles.exReps}> · {exercise.rf}–{exercise.rc} reps</span>
       </div>
+
+      {lastSet && (
+        <div className={styles.lastSet} aria-label={`Last session: ${lastSet.kg ? lastSet.kg + 'kg' : ''}${lastSet.kg && lastSet.reps ? ' × ' : ''}${lastSet.reps ? lastSet.reps + ' reps' : ''} on ${fmtShort(lastSet.date)}`}>
+          <span className={styles.lastSetLabel}>Last</span>
+          <span className={styles.lastSetVal}>
+            {lastSet.kg ? `${lastSet.kg}kg` : ''}{lastSet.kg && lastSet.reps ? ' × ' : ''}{lastSet.reps || ''}
+            {lastSet.rir ? ` · RIR ${lastSet.rir}` : ''}
+          </span>
+          <span className={styles.lastSetDate}>{fmtShort(lastSet.date)}</span>
+          <button
+            className={styles.fillBtn}
+            onClick={() => onChange({ ...data, kg: lastSet.kg || data.kg, reps: lastSet.reps || data.reps, rir: lastSet.rir || data.rir })}
+            aria-label="Fill from last session"
+          >Use</button>
+        </div>
+      )}
 
       <div className={styles.fieldGroup}>
         <div className={styles.fieldLabel} id={`rbj-sets-${index}`}>Sets</div>

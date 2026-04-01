@@ -59,6 +59,18 @@ const useStore = create(
         sessions: state.sessions.filter(s => s.date !== date)
       })),
 
+      // Remove training type from a session (keeps readiness, notes, etc.)
+      removeTraining: (date) => set((state) => ({
+        sessions: state.sessions.map(s => {
+          if (s.date !== date) return s
+          // eslint-disable-next-line no-unused-vars
+          const { dtype, gymDay, supersets, completed,
+                  bjjDuration, bjjGc, bjjGood, bjjNext, perf,
+                  ...rest } = s
+          return rest
+        })
+      })),
+
       updateSetGoal: (day, exName, val) => set((state) => {
         const dayGoals = { ...state.setGoals[day] }
         if (val <= 0) delete dayGoals[exName]

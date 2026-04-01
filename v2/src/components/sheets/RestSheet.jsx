@@ -4,6 +4,8 @@ import Button from '../atoms/Button'
 import { today } from '../../lib/dates'
 import styles from './RestSheet.module.css'
 
+
+
 const REST_QUOTES = [
   { q: 'It is during our darkest moments that we must focus to see the light.', attr: 'Aristotle' },
   { q: "Rest when you're weary. Refresh and renew yourself, your body, your mind, your spirit.", attr: 'Ralph Marston' },
@@ -21,9 +23,10 @@ function quoteForDate(date) {
 }
 
 export default function RestSheet({ isOpen, onClose }) {
-  const addSession = useStore(s => s.addSession)
-  const sessions   = useStore(s => s.sessions)
-  const openSheet  = useStore(s => s.openSheet)
+  const addSession     = useStore(s => s.addSession)
+  const sessions       = useStore(s => s.sessions)
+  const openSheet      = useStore(s => s.openSheet)
+  const removeTraining = useStore(s => s.removeTraining)
 
   const date    = today()
   const session = sessions.find(s => s.date === date) || {}
@@ -67,6 +70,13 @@ export default function RestSheet({ isOpen, onClose }) {
         onClick={() => { onClose(); setTimeout(() => openSheet('notes'), 250) }}
       >
         Take reflection notes
+      </Button>
+      <Button
+        fullWidth
+        variant="danger"
+        onClick={() => { removeTraining(date); onClose() }}
+      >
+        Change training type
       </Button>
     </SheetBase>
   )

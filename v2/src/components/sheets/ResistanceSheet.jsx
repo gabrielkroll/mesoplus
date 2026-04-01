@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
 import { getExercises, deriveGymDay, TEMPLATES } from '../../lib/templates'
-import { today } from '../../lib/dates'
+import { today, fmtShort } from '../../lib/dates'
+import { getLastSet } from '../../lib/suggestions'
 import ProgressBar from '../atoms/ProgressBar'
 import Stepper from '../atoms/Stepper'
 import NumInput from '../atoms/NumInput'
@@ -38,7 +39,7 @@ function ExerciseList({ gymDay, onStart }) {
 }
 
 // ── Single exercise entry ─────────────────────────────────────────────────────
-function ExerciseEntry({ exercise, index, total, data, onChange, onNext, onComplete }) {
+function ExerciseEntry({ exercise, index, total, data, onChange, onNext, onComplete, lastSet }) {
   const isLast = index === total - 1
   const set    = (field) => (val) => onChange({ ...data, [field]: val })
   const sets   = parseInt(data.sets) || exercise.sets
@@ -59,16 +60,37 @@ function ExerciseEntry({ exercise, index, total, data, onChange, onNext, onCompl
         <span className={styles.exReps}> · {exercise.rf}–{exercise.rc} reps</span>
       </div>
 
+      {/* Last session hint */}
+      {lastSet && (
+        <div className={styles.lastSet} aria-label={`Last session: ${lastSet.kg ? lastSet.kg + 'kg' : ''}${lastSet.kg && lastSet.reps ? ' × ' : ''}${lastSet.reps ? lastSet.reps + ' reps' : ''}${lastSet.rir ? ', RIR ' + lastSet.rir : ''} on ${fmtShort(lastSet.date)}`}>
+          <span className={styles.lastSetLabel}>Last</span>
+          <span className={styles.lastSetVal}>
+            {lastSet.kg ? `${lastSet.kg}kg` : ''}
+            {lastSet.kg && lastSet.reps ? ' × ' : ''}
+            {lastSet.reps ? `${lastSet.reps}` : ''}
+            {lastSet.rir ? ` · RIR ${lastSet.rir}` : ''}
+          </span>
+          <span className={styles.lastSetDate}>{fmtShort(lastSet.date)}</span>
+          {/* Fill from last session */}
+          <button
+            className={styles.fillBtn}
+            onClick={() => onChange({
+              ...data,
+              kg:   lastSet.kg   || data.kg,
+              reps: lastSet.reps || data.reps,
+              rir:  lastSet.rir  || data.rir,
+            })}
+            aria-label={`Fill from last session: ${lastSet.kg || ''}kg, ${lastSet.reps || ''} reps`}
+          >
+            Use
+          </button>
+        </div>
+      )}
+
       {/* Sets */}
       <div className={styles.fieldGroup}>
         <div className={styles.fieldLabel} id={`sets-lbl-${index}`}>Sets</div>
-        <Stepper
-          value={sets}
-          onChange={(v) => set('sets')(v)}
-          min={0}
-          max={20}
-          labelId={`sets-lbl-${index}`}
-        />
+        <Stepper value={sets} onChange={(v) => set('sets')(v)} min={0} max={20} labelId={`sets-lbl-${index}`} />
       </div>
 
       {/* Weight + Reps */}
@@ -96,13 +118,17 @@ function ExerciseEntry({ exercise, index, total, data, onChange, onNext, onCompl
 
 // ── Main sheet ────────────────────────────────────────────────────────────────
 export default function ResistanceSheet({ isOpen, onClose }) {
-  const sessions   = useStore(s => s.sessions)
-  const addSession = useStore(s => s.addSession)
+  const sessions      = useStore(s => s.sessions)
+  const addSession    = useStore(s => s.addSession)
+  const removeTraining = useStore(s => s.removeTraining)
 
   const date      = today()
   const session   = sessions.find(s => s.date === date) || {}
   const gymDay    = session.gymDay || deriveGymDay(sessions, date) || 1
   const exercises = getExercises(gymDay)
+
+  // Sessions excluding today (for suggestions)
+  const pastSessions = (sessions || []).filter(s => s.date < date)
 
   const [step, setStep]     = useState(-1)
   const [exData, setExData] = useState({})
@@ -116,7 +142,7 @@ export default function ResistanceSheet({ isOpen, onClose }) {
     }
   }, [isOpen])
 
-  const updateEx     = (index, data) => setExData(prev => ({ ...prev, [index]: data }))
+  const updateEx = (index, data) => setExData(prev => ({ ...prev, [index]: data }))
 
   const saveAndAdvance = (index) => {
     const updated = buildSession(session, exercises, exData, gymDay)
@@ -127,6 +153,11 @@ export default function ResistanceSheet({ isOpen, onClose }) {
   const complete = () => {
     const updated = buildSession(session, exercises, exData, gymDay)
     addSession({ ...updated, date, dtype: 'Resistance training', gymDay, completed: true })
+    onClose()
+  }
+
+  const handleRemove = () => {
+    removeTraining(date)
     onClose()
   }
 
@@ -142,6 +173,9 @@ export default function ResistanceSheet({ isOpen, onClose }) {
         {step === -1 ? (
           <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <ExerciseList gymDay={gymDay} onStart={() => setStep(0)} />
+            <Button fullWidth variant="danger" onClick={handleRemove}>
+              Change training type
+            </Button>
           </motion.div>
         ) : (
           <ExerciseEntry
@@ -153,6 +187,7 @@ export default function ResistanceSheet({ isOpen, onClose }) {
             onChange={(data) => updateEx(step, data)}
             onNext={() => saveAndAdvance(step)}
             onComplete={complete}
+            lastSet={getLastSet(pastSessions, exercises[step]?.name)}
           />
         )}
       </AnimatePresence>

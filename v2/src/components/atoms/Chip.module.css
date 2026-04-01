@@ -9,6 +9,11 @@
   white-space: nowrap;
   transition: border-color 0.12s, color 0.12s, background 0.12s;
   cursor: pointer;
+  /* WCAG 2.5.5 touch target */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chip:hover            { border-color: var(--color-line2); color: var(--color-ink); }
