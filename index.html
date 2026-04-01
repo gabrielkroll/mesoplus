@@ -100,7 +100,7 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .adv-info{}
 .adv-phase{font-size:12px;font-family:var(--serif);font-style:italic}
 .adv-sub{font-size:10px;color:var(--ink3);margin-top:var(--sp1);line-height:1.5}
-.adv-btns{display:flex;flex-direction:row;flex-wrap:wrap;gap:var(--sp1)}
+.adv-btns{display:flex;flex-direction:row;justify-content:space-between;width:100%;gap:var(--sp1)}
 
 /* WEEK NAV */
 .week-nav{display:flex;align-items:center;gap:6px;margin-bottom:16px}
@@ -290,6 +290,12 @@ select.bare{cursor:pointer}
 .wvl-detail-row:last-child{border-bottom:none}
 .wvl-delta-up{color:var(--accent);font-family:var(--mono);font-size:10px}
 .wvl-delta-down{color:#c98a0a;font-family:var(--mono);font-size:10px}
+/* Plan tab section titles */
+.plan-section-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin:28px 0 4px}
+.plan-section-sub{font-size:11px;color:var(--ink3);margin-bottom:14px}
+.plan-adjust-all{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:14px}
+.plan-adjust-title{font-size:12px;color:var(--ink)}
+.plan-adjust-sub{font-size:10px;color:var(--ink3);margin-top:2px}
 /* Plan tab goals */
 .plan-day-card{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px}
 .plan-day-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
@@ -1033,17 +1039,33 @@ select.bare{cursor:pointer}
         </div>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
-    <div class="s-row"><div class="s-lbl">Meso start date<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><div class="field-lbl">Start date (Monday)</div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
+    <div class="plan-section-title">Meso start date</div>
+    <div class="plan-section-sub">Set the Monday your current mesocycle started — all week numbers derive from this.</div>
+    <div class="s-row"><div class="s-lbl">Start date (Monday)<div class="s-note">Week 1 = the week containing this Monday. Changing it recalculates all W-numbers.</div></div><div><input class="bare" type="date" id="s-meso-start" onchange="saveMesoStart(this.value)"><div id="s-meso-warn" style="font-size:10px;min-height:14px;margin-top:6px;line-height:1.5"></div></div></div>
 
     <!-- Training Goals -->
-    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin:24px 0 4px">Training Goals</div>
-    <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">Set weekly set targets per exercise. These drive the goal bars in Stats.</div>
-    <div id="plan-days-wrap"></div>
-    <div style="margin-top:20px">
-      <div style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Weekly sets per muscle (from goals)</div>
-      <div id="plan-muscle-totals"></div>
+    <div class="plan-section-title">Training Goals</div>
+    <div class="plan-section-sub">Set weekly set targets per exercise. These drive the goal bars in Stats.</div>
+
+    <!-- Weekly sets per muscle — above exercises -->
+    <div style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Weekly sets per muscle</div>
+    <div id="plan-muscle-totals" style="margin-bottom:20px"></div>
+
+    <!-- Adjust all sets -->
+    <div class="plan-adjust-all">
+      <div>
+        <div class="plan-adjust-title">Adjust all sets</div>
+        <div class="plan-adjust-sub">On all exercises</div>
+      </div>
+      <div class="plan-stepper">
+        <button class="plan-stepper-btn" onclick="adjustAllSets(-1)">−</button>
+        <div class="plan-stepper-val" id="plan-global-val">—</div>
+        <button class="plan-stepper-btn" onclick="adjustAllSets(1)">+</button>
+      </div>
     </div>
+
+    <!-- Day cards -->
+    <div id="plan-days-wrap"></div>
   </div>
 
   <div id="v-setup" class="hidden">
@@ -1207,7 +1229,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],setGoals:{1:{},2:{},3:{},4:{}},apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,gymDay:1,dtype:'',sleep:'',energy:'',soreness:'',perf:'',supersets:[],sessions:[],setGoals:{1:{},2:{},3:{},4:{}},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 
 const td=()=>new Date().toISOString().split('T')[0];
@@ -1215,7 +1237,7 @@ function ws(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r
 function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
-function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals}));}
+function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));}
 function utcDay(s){const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);}
 function mesoWkFor(dateStr){return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(S.mesoStart)))/(7*86400000))+1);}
 function mesoWk(){return mesoWkFor(td());}
@@ -1225,6 +1247,7 @@ function ph(){return S.phases[derivedPhase().phaseIdx];}
 function init(){
   const saved=localStorage.getItem('mp7');
   if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());S.sessions=p.sessions||[];if(p.setGoals){[1,2,3,4].forEach(d=>{S.setGoals[d]={...S.setGoals[d],...(p.setGoals[d]||{})}});}
+    if(p.globalSetGoal!=null)S.globalSetGoal=p.globalSetGoal;
     S.sessions.forEach(s=>{
       if(s.perf)s.perf=s.perf.replace(/^[↓↑→]\s*/,'');
       if(s.sleep==='5h')s.sleep='≤5.5h';
@@ -2193,7 +2216,21 @@ function setPlanGoal(day,exName,delta){
   renderPlanTab();
 }
 
+function adjustAllSets(delta){
+  S.globalSetGoal=Math.max(1,(S.globalSetGoal||3)+delta);
+  [1,2,3,4].forEach(day=>{
+    (TEMPLATES[day]||[]).forEach(ss=>ss.exercises.forEach(ex=>{
+      S.setGoals[day][ex.name]=S.globalSetGoal;
+    }));
+  });
+  persist();
+  renderPlanTab();
+}
+
 function renderPlanTab(){
+  // Update global stepper display
+  const gv=document.getElementById('plan-global-val');
+  if(gv)gv.textContent=S.globalSetGoal||3;
   const dayLabels={1:'Day A',2:'Day B',3:'Day C',4:'Day D'};
   const wrap=document.getElementById('plan-days-wrap');
   if(!wrap)return;
