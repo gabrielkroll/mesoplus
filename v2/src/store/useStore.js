@@ -39,6 +39,7 @@ const useStore = create(
 
       // ── Sync / integration (same keys as V1) ─────────────────────────────
       scriptUrl: '',   // Google Apps Script Web App URL
+      sheetId:   '',   // Google Spreadsheet ID (from URL)
       sheetTab:  'Sessions',
 
       // ── UI state (not persisted) ─────────────────────────────────────────
@@ -92,6 +93,8 @@ const useStore = create(
 
       setScriptUrl: (url) => set({ scriptUrl: url }),
 
+      setSheetId: (id) => set({ sheetId: id }),
+
       setSheetTab: (tab) => set({ sheetTab: tab }),
     }),
     {
@@ -106,6 +109,7 @@ const useStore = create(
         setGoals:      state.setGoals,
         globalSetGoal: state.globalSetGoal,
         scriptUrl:     state.scriptUrl,
+        sheetId:       state.sheetId,
         sheetTab:      state.sheetTab,
       }),
     }

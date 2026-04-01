@@ -1,0 +1,57 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+
+      - name: Install V2 dependencies
+        run: npm ci
+        working-directory: v2
+
+      - name: Build V2
+        run: npm run build
+        working-directory: v2
+
+      - name: Assemble deploy folder
+        run: |
+          mkdir -p deploy/v2
+
+          # V1 — copy everything except v2/ and hidden/dev files
+          rsync -a \
+            --exclude='v2/' \
+            --exclude='.github/' \
+            --exclude='.git/' \
+            --exclude='*.sh' \
+            --exclude='*.py' \
+            ./ deploy/
+
+          # V2 — built dist contents go into /v2
+          cp -r v2/dist/. deploy/v2/
+
+          # Ensure CNAME is at root (GitHub Pages custom domain)
+          cp CNAME deploy/CNAME
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          force_orphan: true

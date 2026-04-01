@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import useStore from '../../store/useStore'
 import Button from '../atoms/Button'
-import { syncToSheets } from '../../lib/sync'
+import { syncToSheets, testConnection, importFromSheets } from '../../lib/sync'
 import styles from './ProfilePage.module.css'
 
 const SYNC_KEY = 'mp7_synced_dates'
@@ -9,31 +9,103 @@ const SYNC_KEY = 'mp7_synced_dates'
 function getSyncedDates() {
   try { return new Set(JSON.parse(localStorage.getItem(SYNC_KEY) || '[]')) } catch { return new Set() }
 }
-
 function saveSyncedDates(set) {
   localStorage.setItem(SYNC_KEY, JSON.stringify([...set]))
 }
 
 export default function ProfilePage() {
-  const sessions      = useStore(s => s.sessions)
-  const scriptUrl     = useStore(s => s.scriptUrl)
-  const sheetTab      = useStore(s => s.sheetTab)
-  const setScriptUrl  = useStore(s => s.setScriptUrl)
-  const setSheetTab   = useStore(s => s.setSheetTab)
+  const sessions     = useStore(s => s.sessions)
+  const addSession   = useStore(s => s.addSession)
+  const scriptUrl    = useStore(s => s.scriptUrl)
+  const sheetId      = useStore(s => s.sheetId)
+  const sheetTab     = useStore(s => s.sheetTab)
+  const setScriptUrl = useStore(s => s.setScriptUrl)
+  const setSheetId   = useStore(s => s.setSheetId)
+  const setSheetTab  = useStore(s => s.setSheetTab)
 
-  const [copied,     setCopied]     = useState(false)
-  const [exportMsg,  setExportMsg]  = useState('')
-  const [syncStatus, setSyncStatus] = useState('')   // '', 'syncing', 'ok', 'error'
-  const [syncMsg,    setSyncMsg]    = useState('')
-  const [showScript, setShowScript] = useState(false)
+  const [copied,       setCopied]       = useState(false)
+  const [exportMsg,    setExportMsg]    = useState('')
+  const [syncStatus,   setSyncStatus]   = useState('')   // '' | 'syncing' | 'ok' | 'error'
+  const [syncMsg,      setSyncMsg]      = useState('')
+  const [confirmReset, setConfirmReset] = useState(false)
 
-  const syncedDates   = getSyncedDates()
-  const pendingCount  = (sessions || []).filter(s => s.date && !syncedDates.has(s.date)).length
+  const syncedDates  = getSyncedDates()
+  const pendingCount = (sessions || []).filter(s => s.date && !syncedDates.has(s.date)).length
 
-  // ── CSV export ────────────────────────────────────────────────────────────
+  const setStatus = (status, msg, ttl = 5000) => {
+    setSyncStatus(status)
+    setSyncMsg(msg)
+    if (ttl) setTimeout(() => { setSyncStatus(''); setSyncMsg('') }, ttl)
+  }
+
+  // ── Save + test connection ─────────────────────────────────────────────────
+  const saveAndTest = async () => {
+    if (!scriptUrl.trim()) { setStatus('error', 'Paste your Apps Script URL first.'); return }
+    // Persist API key locally
+    if (apiKey.trim()) localStorage.setItem(API_KEY_KEY, apiKey.trim())
+    else localStorage.removeItem(API_KEY_KEY)
+
+    setSyncStatus('syncing')
+    setSyncMsg('Testing connection…')
+    try {
+      await testConnection(scriptUrl.trim())
+      setStatus('ok', '✓ Connection successful.')
+    } catch (e) {
+      setStatus('error', `Connection failed: ${e.message}`)
+    }
+  }
+
+  // ── Re-sync to Sheets ──────────────────────────────────────────────────────
+  const runSync = async () => {
+    if (!scriptUrl.trim()) { setStatus('error', 'Save your Apps Script URL first.'); return }
+    setSyncStatus('syncing')
+    setSyncMsg('Syncing…')
+    try {
+      const result = await syncToSheets(scriptUrl.trim(), sheetTab || 'Sessions', sessions || [], getSyncedDates())
+      if (result.ok) {
+        if (result.dates?.length) {
+          const updated = getSyncedDates()
+          result.dates.forEach(d => updated.add(d))
+          saveSyncedDates(updated)
+        }
+        setStatus('ok', result.added > 0
+          ? `✓ Synced ${result.added} session${result.added !== 1 ? 's' : ''}.`
+          : '✓ Already up to date.')
+      }
+    } catch (e) {
+      setStatus('error', `Sync failed: ${e.message}`)
+    }
+  }
+
+  // ── Import from Sheets ─────────────────────────────────────────────────────
+  const runImport = async () => {
+    if (!scriptUrl.trim()) { setStatus('error', 'Save your Apps Script URL first.'); return }
+    setSyncStatus('syncing')
+    setSyncMsg('Importing…')
+    try {
+      const result = await importFromSheets(scriptUrl.trim(), sheetTab || 'Sessions')
+      if (result.ok) {
+        result.sessions.forEach(s => addSession(s))
+        // Mark imported sessions as synced so they don't re-send immediately
+        const updated = getSyncedDates()
+        result.sessions.forEach(s => updated.add(s.date))
+        saveSyncedDates(updated)
+        setStatus('ok', `✓ Imported ${result.sessions.length} session${result.sessions.length !== 1 ? 's' : ''}.`)
+      }
+    } catch (e) {
+      setStatus('error', `Import failed: ${e.message}`)
+    }
+  }
+
+  const clearSyncHistory = () => {
+    localStorage.removeItem(SYNC_KEY)
+    setConfirmReset(false)
+    setStatus('ok', 'Sync history cleared — all sessions will re-sync next time.', 4000)
+  }
+
+  // ── CSV export ─────────────────────────────────────────────────────────────
   const exportCSV = () => {
     if (!sessions?.length) { setExportMsg('No sessions to export.'); return }
-
     const headers = [
       'Date','Type','Gym Day','Sleep','Energy','Soreness',
       'Performance','Notes','BJJ Duration','BJJ Position','BJJ Good','BJJ Next','Total Sets',
@@ -48,7 +120,6 @@ export default function ProfilePage() {
         (s.bjjGood||'').replace(/,/g,';'), (s.bjjNext||'').replace(/,/g,';'), totalSets||'',
       ].join(',')
     })
-
     const csv  = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url  = URL.createObjectURL(blob)
@@ -70,44 +141,13 @@ export default function ProfilePage() {
     })
   }
 
-  // ── Google Sheets sync ────────────────────────────────────────────────────
-  // scriptUrl and sheetTab live in the mp7 store — same key as V1,
-  // so whatever was configured in V1 is already available here.
-
-  const runSync = async () => {
-    if (!scriptUrl.trim()) { setSyncMsg('Paste your Apps Script URL first.'); setSyncStatus('error'); return }
-    setSyncStatus('syncing')
-    setSyncMsg('Syncing…')
-    try {
-      const result = await syncToSheets(scriptUrl.trim(), sheetTab || 'Sessions', sessions || [], getSyncedDates())
-      if (result.ok) {
-        if (result.dates?.length) {
-          const updated = getSyncedDates()
-          result.dates.forEach(d => updated.add(d))
-          saveSyncedDates(updated)
-        }
-        setSyncStatus('ok')
-        setSyncMsg(result.added > 0 ? `✓ Synced ${result.added} session${result.added !== 1 ? 's' : ''}.` : '✓ Already up to date.')
-      }
-    } catch (e) {
-      setSyncStatus('error')
-      setSyncMsg(`Error: ${e.message}`)
-    }
-    setTimeout(() => { setSyncStatus(''); setSyncMsg('') }, 5000)
-  }
-
-  const clearSyncHistory = () => {
-    localStorage.removeItem(SYNC_KEY)
-    setSyncMsg('Sync history cleared — all sessions will re-sync next time.')
-    setSyncStatus('ok')
-    setTimeout(() => { setSyncStatus(''); setSyncMsg('') }, 3000)
-  }
-
-  // ── Stats ─────────────────────────────────────────────────────────────────
+  // ── Stats ──────────────────────────────────────────────────────────────────
   const sessionCount   = sessions?.length || 0
   const completedCount = (sessions || []).filter(s => s.completed).length
   const gymCount       = (sessions || []).filter(s => s.dtype?.includes('Resistance')).length
   const bjjCount       = (sessions || []).filter(s => s.dtype?.includes('BJJ')).length
+
+  const configured = !!scriptUrl
 
   return (
     <div className={styles.page} role="main">
@@ -128,23 +168,60 @@ export default function ProfilePage() {
 
       {/* ── Google Sheets sync ── */}
       <section className={styles.section} aria-labelledby="profile-sync">
-        <h2 className={styles.sectionTitle} id="profile-sync">Google Sheets sync</h2>
+        <h2 className={styles.sectionTitle} id="profile-sync">Google Sheets</h2>
+        <p className={styles.sectionSub}>One-time · free Google account · ~15 min</p>
 
-        <div className={styles.syncCard}>
-          <div className={styles.syncStatus}>
-            <span className={styles.syncDot} data-status={syncStatus || (scriptUrl ? 'idle' : 'none')} aria-hidden="true" />
-            <span className={styles.syncLabel}>
-              {scriptUrl ? `${pendingCount} session${pendingCount !== 1 ? 's' : ''} pending` : 'Not configured'}
-            </span>
-            <Button
-              variant="ghost"
-              onClick={runSync}
-              disabled={syncStatus === 'syncing' || !scriptUrl}
-            >
-              {syncStatus === 'syncing' ? 'Syncing…' : 'Sync now'}
-            </Button>
-          </div>
+        <div className={styles.setupCard}>
 
+          {/* Step 1 — Open your sheet */}
+          <SetupRow
+            step="1"
+            label="Open your sheet"
+            desc={<>From the URL: /spreadsheets/d/<strong className={styles.urlHighlight}>THIS_PART</strong>/edit</>}
+          >
+            <FieldInput
+              id="sheet-id"
+              label="SHEET ID"
+              type="text"
+              placeholder="1xsLuWy-JpVi7YDgot…"
+              value={sheetId}
+              onChange={e => setSheetId(e.target.value)}
+            />
+          </SetupRow>
+
+          {/* Step 2 — Tab name */}
+          <SetupRow
+            step="2"
+            label="Tab name"
+            desc="Exact tab name in your sheet."
+          >
+            <FieldInput
+              id="sheet-tab"
+              label="TAB NAME"
+              type="text"
+              placeholder="Sessions"
+              value={sheetTab}
+              onChange={e => setSheetTab(e.target.value)}
+            />
+          </SetupRow>
+
+          {/* Step 3 — Apps Script URL */}
+          <SetupRow
+            step="3"
+            label="Apps Script URL"
+            desc="Extensions → Apps Script → Deploy as web app → copy URL. Handles both sync and import."
+          >
+            <FieldInput
+              id="script-url"
+              label="WEB APP URL"
+              type="url"
+              placeholder="https://script.google.com/macros/s/…/exec"
+              value={scriptUrl}
+              onChange={e => setScriptUrl(e.target.value)}
+            />
+          </SetupRow>
+
+          {/* Status message */}
           {syncMsg && (
             <p
               className={`${styles.syncMsg} ${syncStatus === 'error' ? styles.syncError : styles.syncOk}`}
@@ -155,59 +232,70 @@ export default function ProfilePage() {
             </p>
           )}
 
-          {/* Setup accordion */}
-          <button
-            className={styles.setupToggle}
-            onClick={() => setShowScript(v => !v)}
-            aria-expanded={showScript}
-            aria-controls="sync-setup"
-          >
-            {showScript ? '▲' : '▼'} {scriptUrl ? 'Edit setup' : 'Set up sync'}
-          </button>
-
-          {showScript && (
-            <div id="sync-setup" className={styles.setupBody}>
-              <p className={styles.setupHint}>
-                In Google Sheets → Extensions → Apps Script, deploy a new Web App and paste the URL below.
-                {' '}<a className={styles.setupLink} href="https://github.com/gabrielkroll/mesoplus#sync-setup" target="_blank" rel="noopener noreferrer">Setup guide ↗</a>
+          {/* Reset confirm */}
+          {confirmReset && (
+            <div className={styles.confirmBox}>
+              <p className={styles.confirmText}>
+                This will re-send <strong>all {(sessions || []).length} sessions</strong> on next sync.
+                Your Apps Script uses delete-then-reinsert, so no duplicates will be created.
+                Are you sure?
               </p>
-
-              <label className={styles.fieldLabel} htmlFor="script-url">Apps Script URL</label>
-              <input
-                id="script-url"
-                className={styles.textInput}
-                type="url"
-                placeholder="https://script.google.com/macros/s/…/exec"
-                value={scriptUrl}
-                onChange={e => setScriptUrl(e.target.value)}
-                autoComplete="off"
-                spellCheck={false}
-              />
-
-              <label className={styles.fieldLabel} htmlFor="sheet-tab">Sheet tab name</label>
-              <input
-                id="sheet-tab"
-                className={styles.textInput}
-                type="text"
-                placeholder="Sessions"
-                value={sheetTab}
-                onChange={e => setSheetTab(e.target.value)}
-              />
-
-              <Button variant="danger" onClick={clearSyncHistory}>
-                Reset sync history
-              </Button>
+              <div className={styles.confirmRow}>
+                <Button variant="ghost" onClick={() => setConfirmReset(false)}>Cancel</Button>
+                <Button variant="danger" onClick={clearSyncHistory}>Yes, reset</Button>
+              </div>
             </div>
           )}
+
+          {/* Action buttons */}
+          <div className={styles.syncActions}>
+            <Button
+              variant="primary"
+              onClick={saveAndTest}
+              disabled={syncStatus === 'syncing'}
+            >
+              Save + test connection
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={runSync}
+              disabled={syncStatus === 'syncing' || !configured}
+            >
+              ↺ Re-sync to Sheets
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={runImport}
+              disabled={syncStatus === 'syncing' || !configured}
+            >
+              ↓ Import from Sheets
+            </Button>
+          </div>
+
+          {/* Pending badge + reset */}
+          <div className={styles.syncMeta}>
+            <span className={styles.pendingBadge} data-status={syncStatus || (configured ? 'idle' : 'none')}>
+              <span className={styles.syncDot} aria-hidden="true" />
+              {configured
+                ? `${pendingCount} session${pendingCount !== 1 ? 's' : ''} pending sync`
+                : 'Not configured'}
+            </span>
+            {configured && !confirmReset && (
+              <button className={styles.resetLink} onClick={() => setConfirmReset(true)}>
+                Reset sync history
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Apps Script snippet */}
-        {showScript && (
-          <details className={styles.codeDetails}>
-            <summary className={styles.codeSummary}>Apps Script code to paste</summary>
-            <pre className={styles.codeBlock}>{APPS_SCRIPT_CODE}</pre>
-          </details>
-        )}
+        <details className={styles.codeDetails}>
+          <summary className={styles.codeSummary}>Add to existing Apps Script</summary>
+          <p className={styles.codeNote}>
+            Already using V1? Paste this block at the top of your existing <code>doPost()</code>, before the <code>clearAll</code> check. Then redeploy.
+          </p>
+          <pre className={styles.codeBlock}>{APPS_SCRIPT_CODE}</pre>
+        </details>
       </section>
 
       {/* ── Export ── */}
@@ -253,6 +341,8 @@ export default function ProfilePage() {
   )
 }
 
+// ── Sub-components ─────────────────────────────────────────────────────────
+
 function Stat({ label, value }) {
   return (
     <div className={styles.stat}>
@@ -262,13 +352,80 @@ function Stat({ label, value }) {
   )
 }
 
-const APPS_SCRIPT_CODE = `function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(data.tab) || ss.insertSheet(data.tab);
-  if (sheet.getLastRow() === 0) sheet.appendRow(data.headers);
-  data.rows.forEach(row => sheet.appendRow(row));
-  return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, added: data.rows.length }))
-    .setMimeType(ContentService.MimeType.JSON);
-}`
+function SetupRow({ step, label, desc, children }) {
+  return (
+    <div className={styles.setupRow}>
+      <div className={styles.setupLeft}>
+        <span className={styles.setupStep}>{step} — <strong>{label}</strong></span>
+        <span className={styles.setupDesc}>{desc}</span>
+      </div>
+      <div className={styles.setupRight}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FieldInput({ id, label, type, placeholder, value, onChange }) {
+  return (
+    <div className={styles.fieldGroup}>
+      <label className={styles.fieldLabel} htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        className={styles.textInput}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        autoComplete="off"
+        spellCheck={false}
+      />
+    </div>
+  )
+}
+
+const APPS_SCRIPT_CODE = `// ─────────────────────────────────────────────────────────
+// 1. Add doGet() as a new function (handles import):
+// ─────────────────────────────────────────────────────────
+
+function doGet(e) {
+  const tab   = (e.parameter && e.parameter.tab) || 'Sessions';
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(tab);
+  if (!sheet) return respond({ ok: false, error: 'Sheet not found: ' + tab });
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return respond({ ok: true, headers: [], rows: [] });
+  const numCols = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, numCols).getValues()[0];
+  const rows    = sheet.getRange(2, 1, lastRow - 1, numCols).getValues();
+  return respond({ ok: true, headers, rows });
+}
+
+// ─────────────────────────────────────────────────────────
+// 2. Add this block at the top of your existing doPost(),
+//    before the clearAll check. Then redeploy.
+// ─────────────────────────────────────────────────────────
+
+if (data.tab) {
+  const ss2   = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss2.getSheetByName(data.tab) || ss2.insertSheet(data.tab);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(data.headers);
+    sheet.setFrozenRows(1);
+    const hdr = sheet.getRange(1, 1, 1, data.headers.length);
+    hdr.setFontWeight('bold');
+    hdr.setBackground('#f3f3f3');
+  }
+  const rows = (data.rows || []).filter(r => r && r[0]);
+  if (!rows.length) return respond({ ok: true, added: 0 });
+  const dates = [...new Set(rows.map(r => String(r[0])))];
+  dates.forEach(date => deleteRowsForDate(sheet, date));
+  const startRow = sheet.getLastRow() + 1;
+  const numCols  = data.headers.length;
+  sheet.getRange(startRow, 1, rows.length, numCols).setValues(
+    rows.map(r => Array.from({ length: numCols }, (_, i) => r[i] ?? ''))
+  );
+  return respond({ ok: true, added: rows.length });
+}
+
+// ── Your existing V1 doPost() code continues below ────────`
