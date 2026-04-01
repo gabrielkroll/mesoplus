@@ -3,6 +3,8 @@ import useStore from '../../store/useStore'
 import ReadinessSheet from '../sheets/ReadinessSheet'
 import RestSheet from '../sheets/RestSheet'
 import ResistanceSheet from '../sheets/ResistanceSheet'
+import BJJSheet from '../sheets/BJJSheet'
+import ResistanceBJJSheet from '../sheets/ResistanceBJJSheet'
 import NotesSheet from '../sheets/NotesSheet'
 import PerformanceSheet from '../sheets/PerformanceSheet'
 import styles from './LogPage.module.css'
@@ -78,10 +80,10 @@ export default function LogPage() {
           <section className={styles.section} aria-labelledby="training-heading">
             <h2 className={styles.sectionTitle} id="training-heading">Training</h2>
             {hasTraining ? (
-              <motion.div layoutId={`card-${todaySession.dtype === 'Rest' ? 'rest' : 'resistance'}`}>
+              <motion.div layoutId={`card-${todaySession.dtype === 'Rest' ? 'rest' : todaySession.dtype === 'BJJ' ? 'bjj' : todaySession.dtype === 'Resistance training + BJJ' ? 'resistance+bjj' : 'resistance'}`}>
                 <button
                   className={`${styles.card} ${styles.cardFull}`}
-                  onClick={() => openSheet('resistance')}
+                  onClick={() => openSheet(todaySession.dtype === 'Rest' ? 'rest' : todaySession.dtype === 'BJJ' ? 'bjj' : todaySession.dtype === 'Resistance training + BJJ' ? 'resistance+bjj' : 'resistance')}
                   aria-label={`${todaySession.dtype}. Tap to continue.`}
                 >
                   <span className={styles.cardLabel}>{todaySession.dtype}</span>
@@ -169,6 +171,14 @@ export default function LogPage() {
       />
       <ResistanceSheet
         isOpen={activeSheet === 'resistance'}
+        onClose={closeSheet}
+      />
+      <BJJSheet
+        isOpen={activeSheet === 'bjj'}
+        onClose={closeSheet}
+      />
+      <ResistanceBJJSheet
+        isOpen={activeSheet === 'resistance+bjj'}
         onClose={closeSheet}
       />
       <NotesSheet
