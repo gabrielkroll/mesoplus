@@ -11,12 +11,14 @@ export default function NotesSheet({ isOpen, onClose }) {
 
   const date    = today()
   const session = sessions.find(s => s.date === date) || {}
-  const [text, setText] = useState(session.notes || '')
 
-  // Sync text when session changes externally
+  const [text, setText] = useState('')
+
+  // Sync text when sheet opens (not on every session.notes change,
+  // which caused a re-render loop that prevented closing)
   useEffect(() => {
-    setText(session.notes || '')
-  }, [session.notes])
+    if (isOpen) setText(session.notes || '')
+  }, [isOpen])
 
   const save = () => {
     addSession({ ...session, date, notes: text.trim() })
@@ -26,7 +28,7 @@ export default function NotesSheet({ isOpen, onClose }) {
   return (
     <SheetBase
       isOpen={isOpen}
-      onClose={save}
+      onClose={save}           // auto-save on X / Escape / backdrop
       layoutId="card-notes"
       title="Notes"
       titleId="notes-title"
@@ -39,7 +41,6 @@ export default function NotesSheet({ isOpen, onClose }) {
         placeholder="How did today feel? Anything to remember for next session…"
         aria-label="Session notes"
         rows={10}
-        autoFocus={isOpen}
       />
     </SheetBase>
   )
