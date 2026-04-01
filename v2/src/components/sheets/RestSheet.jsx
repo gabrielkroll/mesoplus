@@ -1,5 +1,7 @@
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
+import Button from '../atoms/Button'
+import { today } from '../../lib/dates'
 import styles from './RestSheet.module.css'
 
 const REST_QUOTES = [
@@ -17,8 +19,6 @@ function quoteForDate(date) {
   const idx = date.split('-').reduce((a, v) => a + parseInt(v), 0) % REST_QUOTES.length
   return REST_QUOTES[idx]
 }
-
-const today = () => new Date().toISOString().split('T')[0]
 
 export default function RestSheet({ isOpen, onClose }) {
   const addSession = useStore(s => s.addSession)
@@ -48,11 +48,7 @@ export default function RestSheet({ isOpen, onClose }) {
       layoutId="card-rest"
       title="Rest"
       titleId="rest-title"
-      footer={
-        <button className={styles.closeBtn} onClick={onClose}>
-          Close
-        </button>
-      }
+      footer={<Button fullWidth variant="ghost" onClick={onClose}>Close</Button>}
     >
       <div className={styles.quoteWrap}>
         <blockquote className={styles.quote}>
@@ -65,13 +61,13 @@ export default function RestSheet({ isOpen, onClose }) {
         </p>
       </div>
 
-      <button
-        className={styles.notesBtn}
+      <Button
+        fullWidth
+        variant="ghost"
         onClick={() => { onClose(); setTimeout(() => openSheet('notes'), 250) }}
-        aria-label="Add reflection notes for your rest day"
       >
         Take reflection notes
-      </button>
+      </Button>
     </SheetBase>
   )
 }

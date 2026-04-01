@@ -1,8 +1,8 @@
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
+import Button from '../atoms/Button'
+import { today } from '../../lib/dates'
 import styles from './PerformanceSheet.module.css'
-
-const today = () => new Date().toISOString().split('T')[0]
 
 const OPTIONS = [
   { id: 'Below par', label: 'Below par',  sub: 'Harder than expected, didn\'t hit targets' },
@@ -30,11 +30,7 @@ export default function PerformanceSheet({ isOpen, onClose }) {
       layoutId="card-performance"
       title="Performance"
       titleId="performance-title"
-      footer={
-        <button className={styles.closeBtn} onClick={onClose}>
-          Close
-        </button>
-      }
+      footer={<Button fullWidth variant="ghost" onClick={onClose}>Close</Button>}
     >
       <div
         className={styles.options}

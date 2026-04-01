@@ -35,7 +35,6 @@
 .weekNav {
   display: flex;
   align-items: center;
-  gap: 6px;
 }
 
 .weekArr {
@@ -152,6 +151,18 @@
   color: var(--color-ink);
 }
 
+.cardRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardBadge {
+  font-size: 11px;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+}
+
 /* ── Training type grid ──────────────────────────────────── */
 .typeGrid {
   display: grid;
@@ -222,4 +233,8 @@
 .ctaBtn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+.ctaContinue {
+  background: var(--color-accent);
 }

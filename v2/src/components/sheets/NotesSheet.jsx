@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
+import Button from '../atoms/Button'
+import { today } from '../../lib/dates'
 import styles from './NotesSheet.module.css'
-
-const today = () => new Date().toISOString().split('T')[0]
 
 export default function NotesSheet({ isOpen, onClose }) {
   const sessions   = useStore(s => s.sessions)
@@ -30,11 +30,7 @@ export default function NotesSheet({ isOpen, onClose }) {
       layoutId="card-notes"
       title="Notes"
       titleId="notes-title"
-      footer={
-        <button className={styles.saveBtn} onClick={save}>
-          Save &amp; close
-        </button>
-      }
+      footer={<Button fullWidth onClick={save}>Save &amp; close</Button>}
     >
       <textarea
         className={styles.textarea}

@@ -2,7 +2,7 @@
 .overviewWrap {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 16px;
 }
 
 .dayTag {
