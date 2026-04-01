@@ -63,47 +63,49 @@ export default function TransferImport() {
       return
     }
 
+    const { p: payloadStr, sig } = parsed
+
+    let payload
     try {
-      const { p: payloadStr, sig } = parsed
-      const payload = JSON.parse(payloadStr)
+      payload = JSON.parse(payloadStr)
+    } catch (ex) {
+      setError(`PARSE FAIL: ${ex.message}`)
+      return
+    }
 
-      if (Date.now() > payload.exp) {
-        setError('Link expired — ask for a new one')
-        return
-      }
+    if (Date.now() > payload.exp) {
+      setError('Link expired — ask for a new one')
+      return
+    }
 
-      const used = getUsedTokens()
-      const tokenHash = hashPw(token.slice(0, 80))
-      if (used.includes(tokenHash)) {
-        setError('Link already used — generate a new one')
-        return
-      }
+    const used = getUsedTokens()
+    const tokenHash = hashPw(token.slice(0, 80))
+    if (used.includes(tokenHash)) {
+      setError('Link already used — generate a new one')
+      return
+    }
 
-      const expectedSig = hashPw(payloadStr + hashPw(password))
-      if (sig !== expectedSig) {
-        setError('Wrong password')
-        return
-      }
+    const expectedSig = hashPw(payloadStr + hashPw(password))
+    if (sig !== expectedSig) {
+      setError('Wrong password')
+      return
+    }
 
-      // Write config to store
+    try {
       if (payload.su) setScriptUrl(payload.su)
       if (payload.s)  setSheetId(payload.s)
       if (payload.t)  setSheetTab(payload.t)
       if (payload.ms) setMesoStart(payload.ms)
-
-      // Claude key goes to its own localStorage key
       if (payload.ck) localStorage.setItem(CLAUDE_KEY, payload.ck)
-
-      // Mark token as used
       const updated = [...used, tokenHash].slice(-20)
       localStorage.setItem(USED_KEY, JSON.stringify(updated))
-
-      setDone(true)
-      setToken(null)
     } catch (ex) {
-      const ps = String(parsed?.p)
-      setError(`err="${ex.message}" len=${ps.length} end="${ps.slice(-40)}"`)
+      setError(`WRITE FAIL: ${ex.message}`)
+      return
     }
+
+    setDone(true)
+    setToken(null)
   }
 
   const dismiss = () => {
