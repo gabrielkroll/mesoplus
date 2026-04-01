@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import useStore from '../../store/useStore'
 import ReadinessSheet from '../sheets/ReadinessSheet'
 import RestSheet from '../sheets/RestSheet'
+import ResistanceSheet from '../sheets/ResistanceSheet'
 import NotesSheet from '../sheets/NotesSheet'
 import PerformanceSheet from '../sheets/PerformanceSheet'
 import styles from './LogPage.module.css'
@@ -77,29 +78,32 @@ export default function LogPage() {
           <section className={styles.section} aria-labelledby="training-heading">
             <h2 className={styles.sectionTitle} id="training-heading">Training</h2>
             {hasTraining ? (
-              <button
-                className={styles.card}
-                onClick={() => openSheet('resistance')}
-                aria-label={`${todaySession.dtype}. Tap to continue.`}
-              >
-                <span className={styles.cardLabel}>{todaySession.dtype}</span>
-                {todaySession?.gymDay && (
-                  <span className={styles.cardValue}>
-                    Day {['A','B','C','D'][todaySession.gymDay - 1]}
-                  </span>
-                )}
-              </button>
+              <motion.div layoutId={`card-${todaySession.dtype === 'Rest' ? 'rest' : 'resistance'}`}>
+                <button
+                  className={`${styles.card} ${styles.cardFull}`}
+                  onClick={() => openSheet('resistance')}
+                  aria-label={`${todaySession.dtype}. Tap to continue.`}
+                >
+                  <span className={styles.cardLabel}>{todaySession.dtype}</span>
+                  {todaySession?.gymDay && (
+                    <span className={styles.cardValue}>
+                      Day {['A','B','C','D'][todaySession.gymDay - 1]}
+                    </span>
+                  )}
+                </button>
+              </motion.div>
             ) : (
               <div className={styles.typeGrid} role="group" aria-label="Select training type">
                 {TRAINING_TYPES.map(({ id, label }) => (
-                  <button
-                    key={id}
-                    className={styles.typeBtn}
-                    onClick={() => openSheet(id)}
-                    aria-label={label.replace('\n', ' ')}
-                  >
-                    {label}
-                  </button>
+                  <motion.div key={id} layoutId={`card-${id}`}>
+                    <button
+                      className={`${styles.typeBtn} ${styles.cardFull}`}
+                      onClick={() => openSheet(id)}
+                      aria-label={label.replace('\n', ' ')}
+                    >
+                      {label}
+                    </button>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -161,6 +165,10 @@ export default function LogPage() {
       />
       <RestSheet
         isOpen={activeSheet === 'rest'}
+        onClose={closeSheet}
+      />
+      <ResistanceSheet
+        isOpen={activeSheet === 'resistance'}
         onClose={closeSheet}
       />
       <NotesSheet
