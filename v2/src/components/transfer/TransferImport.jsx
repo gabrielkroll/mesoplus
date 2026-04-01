@@ -49,11 +49,17 @@ export default function TransferImport() {
     setError('')
     if (!password) { setError('Enter your password'); return }
 
-    let parsed
+    let decoded, parsed
     try {
-      parsed = JSON.parse(atob(token))
+      decoded = atob(token)
     } catch (ex) {
-      setError(`Token decode failed: ${ex.message} (len ${token.length})`)
+      setError(`atob failed (len=${token.length}): ${token.slice(0,40)}`)
+      return
+    }
+    try {
+      parsed = JSON.parse(decoded)
+    } catch (ex) {
+      setError(`JSON.parse failed: ${decoded.slice(0,80)}`)
       return
     }
 
@@ -95,7 +101,7 @@ export default function TransferImport() {
       setDone(true)
       setToken(null)
     } catch (ex) {
-      setError(`Import error: ${ex.message}`)
+      setError(`Import error (p type=${typeof parsed?.p}): ${ex.message}`)
     }
   }
 
