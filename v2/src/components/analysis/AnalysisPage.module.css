@@ -1,0 +1,213 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 0 0 calc(72px + env(safe-area-inset-bottom));
+}
+
+.header { padding: 20px 16px 8px; }
+
+.title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.section { padding: 16px 16px 0; }
+
+.sectionTitle {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  margin: 0 0 12px;
+  font-weight: 400;
+}
+
+/* ── API key ────────────────────────────────────── */
+.keyRow {
+  display: flex;
+  gap: 8px;
+}
+
+.keyInput {
+  flex: 1;
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.keyInput:focus { border-color: var(--color-line2); }
+.keyInput::placeholder { color: var(--color-ink3); }
+
+.keyToggle {
+  padding: 8px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: none;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-ink2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.keyToggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.keyHint {
+  font-size: 11px;
+  color: var(--color-ink3);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Prompt list ────────────────────────────────── */
+.promptList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.promptBtn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.promptBtn:hover         { border-color: var(--color-line2); background: var(--color-surf); }
+.promptBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.promptBtn:disabled      { opacity: 0.5; pointer-events: none; }
+
+.promptActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+.promptLabel {
+  font-size: 13px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+
+.promptDesc {
+  font-size: 11px;
+  color: var(--color-ink3);
+}
+
+/* ── Custom question ────────────────────────────── */
+.customRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customInput {
+  width: 100%;
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.12s;
+  line-height: 1.6;
+}
+
+.customInput:focus { border-color: var(--color-line2); }
+.customInput::placeholder { color: var(--color-ink3); }
+
+.askBtn {
+  align-self: flex-end;
+  padding: 10px 20px;
+  background: var(--color-ink);
+  color: var(--color-lift);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.askBtn:hover         { opacity: 0.85; }
+.askBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.askBtn:disabled      { opacity: 0.4; pointer-events: none; }
+
+/* ── Response ───────────────────────────────────── */
+.loading {
+  display: flex;
+  gap: 6px;
+  padding: 12px 0;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 1; }
+}
+
+.error {
+  font-size: 13px;
+  color: var(--color-danger);
+  padding: 8px 0;
+}
+
+.response {
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.bullet, .line {
+  font-size: 13px;
+  color: var(--color-ink);
+  line-height: 1.6;
+  margin: 0 0 4px;
+}
+
+.bullet { padding-left: 4px; }
+
+.cancelBtn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  background: none;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-ink2);
+  cursor: pointer;
+}
+
+.cancelBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

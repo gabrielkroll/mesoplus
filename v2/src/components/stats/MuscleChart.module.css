@@ -1,0 +1,106 @@
+.chartWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 80px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+}
+
+.name {
+  font-size: 11px;
+  color: var(--color-ink2);
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.barWrap { flex: 1; }
+
+.track {
+  position: relative;
+  height: 8px;
+  background: var(--color-line);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.over { background: var(--color-danger); }
+
+.mevLine {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--color-ink3);
+  z-index: 1;
+}
+
+.val {
+  font-size: 11px;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.valOver { color: var(--color-danger); }
+
+/* ── Mini (card preview) ─────────────────────────── */
+.miniWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.miniBar {
+  display: grid;
+  grid-template-columns: 56px 1fr 20px;
+  align-items: center;
+  gap: 8px;
+}
+
+.miniName {
+  font-size: 10px;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.miniTrack {
+  height: 4px;
+  background: var(--color-line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.miniFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+
+.miniVal {
+  font-size: 10px;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--color-ink3);
+  text-align: center;
+  padding: 16px 0;
+}

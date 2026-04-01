@@ -1,0 +1,134 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 0 0 calc(72px + env(safe-area-inset-bottom));
+}
+
+.header { padding: 20px 16px 8px; }
+
+.title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.section { padding: 16px 16px 0; }
+
+.sectionTitle {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  margin: 0 0 12px;
+  font-weight: 400;
+}
+
+/* ── Stat grid ─────────────────────────────────── */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.stat {
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.statVal {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 26px;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+/* ── Action list ───────────────────────────────── */
+.actionList {
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.actionRow:last-child { border-bottom: none; }
+
+.actionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actionLabel {
+  font-size: 13px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+
+.actionSub {
+  font-size: 11px;
+  color: var(--color-ink3);
+}
+
+.msg {
+  font-size: 12px;
+  color: var(--color-accent);
+  padding: 0 14px 8px;
+  margin: 0;
+}
+
+/* ── Info list ─────────────────────────────────── */
+.infoList {
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.infoRow:last-child { border-bottom: none; }
+
+.infoKey {
+  font-size: 12px;
+  color: var(--color-ink2);
+  font-family: var(--font-mono);
+}
+
+.infoVal {
+  font-size: 12px;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+}

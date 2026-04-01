@@ -1,0 +1,286 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 0 0 calc(72px + env(safe-area-inset-bottom));
+}
+
+.header {
+  padding: 20px 16px 8px;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* ── Sections ──────────────────────────────────── */
+.section {
+  padding: 16px 16px 0;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  margin: 0 0 12px;
+  font-weight: 400;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-ink3);
+  margin: -6px 0 12px;
+}
+
+/* ── Meso start ────────────────────────────────── */
+.dateInput {
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--color-ink);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.12s;
+}
+
+.dateInput:focus { border-color: var(--color-line2); }
+
+/* ── Phases ────────────────────────────────────── */
+.phaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.phaseRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.phaseRow:last-child { border-bottom: none; }
+.phaseActive { background: var(--color-accent-dim); }
+
+.phaseLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phaseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.phaseName {
+  font-size: 13px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+
+.phaseWeeks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phaseBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-line2);
+  border-radius: 6px;
+  background: none;
+  color: var(--color-ink2);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.phaseBtn:hover         { background: var(--color-surf); }
+.phaseBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.phaseWk {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-ink2);
+  min-width: 32px;
+  text-align: center;
+}
+
+/* ── Global stepper ────────────────────────────── */
+.globalRow {
+  padding-bottom: 8px;
+}
+
+/* ── Muscle totals ─────────────────────────────── */
+.muscleTotals {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.muscleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.muscleRow:last-child { border-bottom: none; }
+
+.muscleName {
+  font-size: 12px;
+  color: var(--color-ink2);
+  font-family: var(--font-mono);
+}
+
+.muscleSets {
+  font-size: 12px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+
+/* ── Day cards ─────────────────────────────────── */
+.dayCard {
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.dayHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.dayHeader:hover         { background: var(--color-surf); }
+.dayHeader:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.dayLabel {
+  font-size: 13px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.dayMeta {
+  font-size: 11px;
+  color: var(--color-ink3);
+  flex: 1;
+}
+
+.dayChevron {
+  font-size: 10px;
+  color: var(--color-ink3);
+}
+
+.dayBody {
+  padding: 0 16px 12px;
+  border-top: 1px solid var(--color-line);
+  background: var(--color-surf);
+}
+
+.supersetBlock {
+  padding-top: 12px;
+}
+
+.supersetLabel {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  margin-bottom: 8px;
+}
+
+.exRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.exRow:last-child { border-bottom: none; }
+
+.exInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.exName {
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.exMuscle {
+  font-size: 10px;
+  color: var(--color-ink3);
+}
+
+.exStepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-line2);
+  border-radius: 6px;
+  background: none;
+  color: var(--color-ink2);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.exBtn:hover         { background: var(--color-lift); }
+.exBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.exVal {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--color-ink);
+  min-width: 28px;
+  text-align: center;
+}

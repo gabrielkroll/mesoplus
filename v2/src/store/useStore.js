@@ -66,10 +66,13 @@ const useStore = create(
         return { setGoals: { ...state.setGoals, [day]: dayGoals } }
       }),
 
-      setAllGoals: (val) => set((state) => {
-        // Set in store — TEMPLATES imported in consuming component
-        return { globalSetGoal: Math.max(1, val) }
-      }),
+      setAllGoals: (val) => set(() => ({ globalSetGoal: Math.max(1, val) })),
+
+      setMesoStart: (date) => set({ mesoStart: date }),
+
+      setPhases: (phases) => set({ phases }),
+
+      setPhaseIdx: (idx) => set({ phaseIdx: idx }),
     }),
     {
       name: STORAGE_KEY,

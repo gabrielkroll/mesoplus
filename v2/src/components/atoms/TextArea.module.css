@@ -1,0 +1,30 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+}
+
+.textarea {
+  width: 100%;
+  background: var(--color-surf);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink);
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.textarea::placeholder { color: var(--color-ink3); }
+.textarea:focus        { border-color: var(--color-line2); }

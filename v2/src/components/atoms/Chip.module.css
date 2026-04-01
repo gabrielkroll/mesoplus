@@ -1,0 +1,29 @@
+.chip {
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  background: none;
+  color: var(--color-ink2);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+  cursor: pointer;
+}
+
+.chip:hover            { border-color: var(--color-line2); color: var(--color-ink); }
+.chip:focus-visible    { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.on {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+/* Size variants */
+.size-sm { font-size: 10px; padding: 4px 8px; }
+.size-md { font-size: 11px; padding: 6px 12px; }
+.size-lg { font-size: 13px; padding: 8px 16px; }
+
+/* Equal-width in chip row */
+.flex { flex: 1; text-align: center; }
