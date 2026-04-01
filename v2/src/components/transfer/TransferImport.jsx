@@ -91,16 +91,17 @@ export default function TransferImport() {
       return
     }
 
+    let step = 0
     try {
-      if (payload.su) setScriptUrl(payload.su)
-      if (payload.s)  setSheetId(payload.s)
-      if (payload.t)  setSheetTab(payload.t)
-      if (payload.ms) setMesoStart(payload.ms)
-      if (payload.ck) localStorage.setItem(CLAUDE_KEY, payload.ck)
-      const updated = [...used, tokenHash].slice(-20)
-      localStorage.setItem(USED_KEY, JSON.stringify(updated))
+      step = 1; if (payload.su) setScriptUrl(payload.su)
+      step = 2; if (payload.s)  setSheetId(payload.s)
+      step = 3; if (payload.t)  setSheetTab(payload.t)
+      step = 4; if (payload.ms) setMesoStart(payload.ms)
+      step = 5; if (payload.ck) localStorage.setItem(CLAUDE_KEY, payload.ck)
+      step = 6; const updated = [...used, tokenHash].slice(-20)
+      step = 7; localStorage.setItem(USED_KEY, JSON.stringify(updated))
     } catch (ex) {
-      setError(`WRITE FAIL: ${ex.message}`)
+      setError(`WRITE FAIL step=${step}: ${ex.message}`)
       return
     }
 
