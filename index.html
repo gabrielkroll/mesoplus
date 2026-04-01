@@ -1091,11 +1091,15 @@ select.bare{cursor:pointer}
       <div>
         <div class="field-lbl">Confirm password</div>
         <input class="bare" type="password" id="export-pw" placeholder="Your password" autocomplete="current-password">
-        <button class="btn-s" onclick="generateSetupToken()" style="margin-top:8px">Generate QR + link</button>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn-s" onclick="generateSetupToken('v1')">Generate QR + link</button>
+          <button class="btn-o" onclick="generateSetupToken('v2')">For V2 →</button>
+        </div>
         <div class="pin-err" id="export-err" style="text-align:left;margin-top:6px"></div>
       </div>
     </div>
     <div class="setup-export-result" id="setup-export-result" style="display:none">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em" id="setup-target-label"></div>
       <div class="setup-qr-wrap"><div id="setup-qr"></div></div>
       <div class="setup-link-row">
         <input class="setup-link-input" id="setup-link" readonly>
@@ -2404,7 +2408,7 @@ function togglePinMode(){
 
 /* DEVICE SETUP TRANSFER */
 let _countdownTimer=null;
-function generateSetupToken(){
+function generateSetupToken(target){
   const pw=document.getElementById('export-pw').value;
   const err=document.getElementById('export-err');
   err.textContent='';
@@ -2419,8 +2423,12 @@ function generateSetupToken(){
   const payloadStr=JSON.stringify(payload);
   const sig=hashPw(payloadStr+hashPw(pw));
   const token=btoa(JSON.stringify({p:payloadStr,sig}));
-  const url=window.location.origin+window.location.pathname+'?setup='+encodeURIComponent(token);
+  const base=target==='v2'
+    ?window.location.origin+'/v2/'
+    :window.location.origin+window.location.pathname;
+  const url=base+'?setup='+encodeURIComponent(token);
   document.getElementById('setup-link').value=url;
+  document.getElementById('setup-target-label').textContent=target==='v2'?'Opens in Meso+ V2':'Opens in Meso+ V1';
   const result=document.getElementById('setup-export-result');
   result.style.display='flex';
   const qrEl=document.getElementById('setup-qr');
