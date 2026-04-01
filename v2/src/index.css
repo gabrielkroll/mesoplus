@@ -1,0 +1,44 @@
+@import './tokens/tokens.css';
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink);
+  background: var(--color-lift);
+  line-height: 1.4;
+  min-height: 100svh;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+
+/* Reduced motion — all Framer Motion transitions respect this */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

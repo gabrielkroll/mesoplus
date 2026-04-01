@@ -1,0 +1,5 @@
+.claude/
+serve.sh
+mesoplus.html
+v2/node_modules
+v2/dist

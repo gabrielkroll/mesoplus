@@ -1,0 +1,56 @@
+/* Meso+ Design Tokens — source of truth, mirrors V1 CSS variables */
+/* Will be replaced by Token Studio → Style Dictionary pipeline */
+
+:root {
+  /* Colour */
+  --color-accent: #7aad2a;
+  --color-accent-dim: #7aad2a14;
+  --color-danger: #d44040;
+  --color-danger-bg: #fff0f0;
+  --color-amber: #c98a0a;
+
+  /* Ink */
+  --color-ink: #1a1a1a;
+  --color-ink2: #555;
+  --color-ink3: #999;
+
+  /* Surface */
+  --color-surf: #f5f5f3;
+  --color-lift: #fff;
+
+  /* Lines */
+  --color-line: #e0e0e0;
+  --color-line2: #bbb;
+
+  /* Typography */
+  --font-mono: 'DM Mono', monospace;
+  --font-serif: 'Instrument Serif', serif;
+
+  /* Spacing */
+  --sp1: 4px;
+  --sp2: 8px;
+  --sp3: 12px;
+  --sp4: 16px;
+  --sp5: 24px;
+  --sp6: 32px;
+  --sp7: 48px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink: #e8e8e8;
+    --color-ink2: #aaa;
+    --color-ink3: #666;
+    --color-line: #2a2a2a;
+    --color-line2: #444;
+    --color-surf: #1e1e1e;
+    --color-lift: #141414;
+    --color-danger-bg: #2a0808;
+  }
+}
