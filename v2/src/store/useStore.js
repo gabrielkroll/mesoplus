@@ -6,6 +6,26 @@ import { persist } from 'zustand/middleware'
 
 const STORAGE_KEY = 'mp7'
 
+// Custom storage adapter: V1 writes raw JSON, Zustand expects {state,version}
+// This bridges the two formats transparently
+const mp7Storage = {
+  getItem: (name) => {
+    const str = localStorage.getItem(name)
+    if (!str) return null
+    const data = JSON.parse(str)
+    // Already Zustand format
+    if (data.state) return str
+    // V1 raw format — wrap it for Zustand
+    return JSON.stringify({ state: data, version: 0 })
+  },
+  setItem: (name, str) => {
+    // Unwrap Zustand format back to V1 raw format so V1 can still read it
+    const { state } = JSON.parse(str)
+    localStorage.setItem(name, JSON.stringify(state))
+  },
+  removeItem: (name) => localStorage.removeItem(name),
+}
+
 const useStore = create(
   persist(
     (set, get) => ({
@@ -53,6 +73,7 @@ const useStore = create(
     }),
     {
       name: STORAGE_KEY,
+      storage: mp7Storage,
       // Only persist data fields, not UI state
       partialize: (state) => ({
         sessions: state.sessions,
