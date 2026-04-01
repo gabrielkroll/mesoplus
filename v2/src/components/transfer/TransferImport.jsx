@@ -32,11 +32,12 @@ export default function TransferImport() {
   const [done,     setDone]     = useState(false)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const raw = params.get('setup')
-    if (raw) {
+    // Use raw regex instead of URLSearchParams — URLSearchParams decodes '+' as
+    // space, which corrupts base64 tokens that contain '+' characters.
+    const match = window.location.search.match(/[?&]setup=([^&]*)/)
+    if (match) {
+      const raw = decodeURIComponent(match[1])
       setToken(raw)
-      // Clean URL immediately so refresh doesn't re-trigger
       window.history.replaceState({}, document.title, window.location.pathname)
     }
   }, [])
