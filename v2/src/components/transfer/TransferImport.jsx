@@ -35,7 +35,7 @@ export default function TransferImport() {
     const params = new URLSearchParams(window.location.search)
     const raw = params.get('setup')
     if (raw) {
-      setToken(decodeURIComponent(raw))
+      setToken(raw)
       // Clean URL immediately so refresh doesn't re-trigger
       window.history.replaceState({}, document.title, window.location.pathname)
     }
