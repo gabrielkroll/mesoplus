@@ -1,20 +1,18 @@
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
 import Button from '../atoms/Button'
-import { today } from '../../lib/dates'
 import styles from './PerformanceSheet.module.css'
 
 const OPTIONS = [
-  { id: 'Below par', label: 'Below par',  sub: 'Harder than expected, didn\'t hit targets' },
-  { id: 'On track',  label: 'On track',   sub: 'Solid session, met targets'                },
-  { id: 'Exceeded',  label: 'Exceeded',   sub: 'Felt strong, beat targets'                 },
+  { id: 'Below par', label: 'Below par',  sub: "Harder than expected, didn't hit targets" },
+  { id: 'On track',  label: 'On track',   sub: 'Solid session, met targets'               },
+  { id: 'Exceeded',  label: 'Exceeded',   sub: 'Felt strong, beat targets'                },
 ]
 
-export default function PerformanceSheet({ isOpen, onClose }) {
+export default function PerformanceSheet({ isOpen, onClose, date }) {
   const sessions   = useStore(s => s.sessions)
   const addSession = useStore(s => s.addSession)
 
-  const date    = today()
   const session = sessions.find(s => s.date === date) || {}
   const current = session.perf || ''
 

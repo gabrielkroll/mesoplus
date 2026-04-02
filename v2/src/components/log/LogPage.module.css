@@ -8,13 +8,10 @@
   overflow: hidden;
   z-index: -1;
 }
-
 .skipLink:focus {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: auto;
-  height: auto;
+  top: 0; left: 0;
+  width: auto; height: auto;
   padding: 8px 16px;
   background: var(--color-accent);
   color: var(--color-lift);
@@ -25,6 +22,7 @@
   outline: none;
 }
 
+/* ── Page ────────────────────────────────────────────────────── */
 .page {
   display: flex;
   flex-direction: column;
@@ -32,7 +30,7 @@
   padding-bottom: calc(56px + env(safe-area-inset-bottom) + 16px);
 }
 
-/* ── Header ──────────────────────────────────────────────── */
+/* ── Header ──────────────────────────────────────────────────── */
 .header {
   padding: 16px 16px 12px;
   border-bottom: 1px solid var(--color-line);
@@ -70,25 +68,19 @@
   border: 1px solid var(--color-line);
   color: var(--color-ink2);
   font-size: 14px;
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: border-color 0.12s, color 0.12s;
+  cursor: pointer;
 }
-
-.weekArr:hover {
-  border-color: var(--color-line2);
-  color: var(--color-ink);
-}
-
-.weekArr:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
+.weekArr:hover:not(:disabled)  { border-color: var(--color-line2); color: var(--color-ink); }
+.weekArr:disabled               { opacity: 0.3; cursor: default; }
+.weekArr:focus-visible          { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
 .weekLabel {
   flex: 1;
@@ -97,174 +89,21 @@
   gap: 1px;
 }
 
+/* ── ART DIRECTION: editorial week label ── */
 .weekMain {
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 15px;
+  font-size: 22px;        /* V1 nav wordmark size — substantial, not tiny */
   color: var(--color-ink);
   line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 .weekSub {
   font-size: 9px;
   color: var(--color-ink3);
-}
-
-.edit {
-  color: var(--color-ink3);
-  font-size: 13px;
-  padding: 4px;
-  cursor: pointer;
-}
-
-/* ── Sections ────────────────────────────────────────────── */
-.sections {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  flex: 1;
-}
-
-.section {
-  padding: 16px 16px 0;
-}
-
-.sectionTitle {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink3);
-  margin-bottom: 8px;
   font-family: var(--font-mono);
-  font-weight: 400;
-}
-
-/* ── Cards ───────────────────────────────────────────────── */
-.card {
-  width: 100%;
-  background: var(--color-surf);
-  border: 1px solid var(--color-line);
-  border-radius: 8px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  text-align: left;
-  transition: border-color 0.12s, background 0.12s;
-  min-height: 60px;
-}
-
-.card:hover:not(:disabled) {
-  border-color: var(--color-line2);
-}
-
-.card:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.cardInactive {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.cardLabel {
-  font-size: 11px;
-  color: var(--color-ink2);
-}
-
-.cardValue {
-  font-size: 12px;
-  color: var(--color-ink);
-}
-
-.cardRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cardBadge {
-  font-size: 11px;
-  color: var(--color-accent);
-  font-family: var(--font-mono);
-}
-
-/* ── Training type grid ──────────────────────────────────── */
-.typeGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.typeBtn {
-  background: var(--color-surf);
-  border: 1px solid var(--color-line);
-  border-radius: 8px;
-  padding: 14px;
-  text-align: left;
-  font-size: 12px;
-  color: var(--color-ink);
-  line-height: 1.4;
-  white-space: pre-line;
-  transition: border-color 0.12s, background 0.12s;
-  min-height: 70px;
-}
-
-.typeBtn:hover {
-  border-color: var(--color-line2);
-}
-
-.typeBtn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-/* ── Reflect row ─────────────────────────────────────────── */
-.reflectRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.cardHalf {
-  width: 100%;
-}
-
-.cardFull {
-  width: 100%;
-  height: 100%;
-}
-
-/* ── Quick start / Continue ──────────────────────────────── */
-.cta {
-  padding: 20px 16px 0;
-}
-
-.ctaBtn {
-  width: 100%;
-  background: var(--color-ink);
-  color: var(--color-lift);
-  border: none;
-  border-radius: 8px;
-  padding: 14px;
-  font-size: 13px;
-  font-family: var(--font-mono);
-  transition: opacity 0.12s;
-}
-
-.ctaBtn:hover {
-  opacity: 0.85;
-}
-
-.ctaBtn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.ctaContinue {
-  background: var(--color-accent);
+  letter-spacing: 0.04em;
 }
 
 /* ── Week strip ──────────────────────────────────────────────── */
@@ -281,13 +120,18 @@
   align-items: center;
   gap: 2px;
   flex: 1;
-  padding: 4px 2px;
-  border-radius: 6px;
+  padding: 6px 2px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.1s;
+  min-height: 44px;
+  justify-content: center;
 }
 
-.stripToday {
-  background: var(--color-surf);
-}
+.stripToday   { background: none; }   /* today styled via stripDt only */
+.stripSelected { background: var(--color-surf); }
 
 .stripWd {
   font-size: 9px;
@@ -306,7 +150,6 @@
 
 .stripDay.stripToday .stripDt {
   color: var(--color-accent);
-  font-weight: 500;
 }
 
 .stripDot {
@@ -314,94 +157,171 @@
   height: 5px;
   border-radius: 50%;
 }
-
 .stripDotDone     { background: var(--color-accent); }
-.stripDotProgress { background: var(--color-amber); }
+.stripDotProgress { background: var(--color-amber, #c98a0a); }
 
-/* ── Past week view ──────────────────────────────────────────── */
-.pastWrap {
+/* ── Date banner ─────────────────────────────────────────────── */
+.dateBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 0;
+}
+
+.dateLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink2);
+  letter-spacing: 0.04em;
+}
+
+.todayBtn {
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  min-height: 36px;
+}
+.todayBtn:focus-visible { outline: 2px solid var(--color-accent); border-radius: 2px; }
+
+/* ── Sections ────────────────────────────────────────────────── */
+.sections {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 16px 0 0;
-}
-
-.pastEmpty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 48px 16px;
-}
-
-.pastEmptyText {
-  font-size: 13px;
-  color: var(--color-ink3);
-}
-
-.pastList {
-  display: flex;
-  flex-direction: column;
-  padding: 0 16px;
-}
-
-.pastRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.pastRow:last-child { border-bottom: none; }
-
-.pastLeft {
-  display: flex;
-  flex-direction: column;
-  min-width: 44px;
-}
-
-.pastDate { font-size: 12px; color: var(--color-ink); font-family: var(--font-mono); }
-.pastWd   { font-size: 10px; color: var(--color-ink3); font-family: var(--font-mono); }
-
-.pastMid {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
-.pastType { font-size: 12px; color: var(--color-ink); font-family: var(--font-mono); }
-.pastMeta { font-size: 10px; color: var(--color-ink3); }
+.section { padding: 16px 16px 0; }
 
-.pastRight {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.pastPerf  { font-size: 10px; font-family: var(--font-mono); color: var(--color-ink3); }
-.perfGood  { color: var(--color-accent); }
-.perfBad   { color: var(--color-danger); }
-.pastScore { font-size: 12px; font-family: var(--font-mono); color: var(--color-ink3); }
-
-.returnBtn {
-  margin: 16px 16px 0;
-  background: none;
-  border: none;
-  color: var(--color-accent);
-  font-size: 13px;
+/* ── ART DIRECTION: section label matches DESIGN.md spec ── */
+.sectionTitle {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  margin-bottom: 8px;
   font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+/* ── Cards ── ART DIRECTION: no surface fill, border only ─── */
+.card {
+  width: 100%;
+  background: none;                    /* was var(--color-surf) — removed per DESIGN.md */
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   text-align: left;
-  padding: 0;
-  min-height: 44px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+  min-height: 60px;
+}
+.card:hover:not(:disabled) { border-color: var(--color-line2); }
+.card:focus-visible         { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.card:disabled              { cursor: default; }
+
+.cardDone { border-color: var(--color-accent); }
+
+.cardInactive {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── ART DIRECTION: cardLabel = section label spec ── */
+.cardLabel {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+}
+
+.cardValue {
+  font-size: 14px;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  line-height: 1.3;
+}
+
+.cardHint {
+  font-size: 12px;
+  color: var(--color-ink3);
+  font-family: var(--font-mono);
+}
+
+.cardRow {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.returnBtn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
+.cardBadge {
+  font-size: 12px;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
 }
+
+/* ── Training type grid ── ART DIRECTION: no fill ─────────── */
+.typeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.typeBtn {
+  background: none;                   /* was var(--color-surf) — removed */
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink2);
+  line-height: 1.5;
+  white-space: pre-line;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+  min-height: 70px;
+}
+.typeBtn:hover         { border-color: var(--color-line2); color: var(--color-ink); }
+.typeBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ── Reflect row ─────────────────────────────────────────────── */
+.reflectRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cardHalf { width: 100%; }
+.cardFull { width: 100%; height: 100%; }
+
+/* ── CTA ─────────────────────────────────────────────────────── */
+.cta { padding: 20px 16px 0; }
+
+.ctaBtn {
+  width: 100%;
+  background: var(--color-ink);
+  color: var(--color-lift);
+  border: none;
+  border-radius: 4px;            /* DESIGN.md: btn-s uses r4 */
+  padding: 12px 18px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.ctaBtn:hover         { opacity: 0.85; }
+.ctaBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.ctaContinue { background: var(--color-accent); }

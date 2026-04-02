@@ -48,23 +48,29 @@ export default function LogPage() {
   const openSheet   = useStore(s => s.openSheet)
   const closeSheet  = useStore(s => s.closeSheet)
 
-  const todayStr  = today()
-  const [weekOffset, setWeekOffset] = useState(0)   // 0 = current week
+  const todayStr = today()
+  const [weekOffset,    setWeekOffset]    = useState(0)
+  const [selectedDate,  setSelectedDate]  = useState(todayStr)
 
-  // Week the user is viewing
   const viewMon = addDays(getMonday(todayStr), weekOffset * 7)
   const viewSun = addDays(viewMon, 6)
-  const isThisWeek = weekOffset === 0
 
-  // Today's session (always)
-  const todaySession = (sessions || []).find(s => s.date === todayStr)
-  const hasTraining  = !!todaySession?.dtype
-  const hasCheckin   = !!(todaySession?.sleep || todaySession?.energy || todaySession?.soreness)
-  const inProgress   = hasTraining && !todaySession?.completed
+  const goToWeek = (offset) => {
+    const clamped = Math.min(0, offset)
+    setWeekOffset(clamped)
+    setSelectedDate(clamped === 0 ? todayStr : addDays(getMonday(todayStr), clamped * 7))
+  }
 
-  // Readiness display
+  const isViewingToday = selectedDate === todayStr
+
+  // Selected day's session
+  const dateSession = (sessions || []).find(s => s.date === selectedDate)
+  const hasTraining = !!dateSession?.dtype
+  const hasCheckin  = !!(dateSession?.sleep || dateSession?.energy || dateSession?.soreness)
+  const inProgress  = hasTraining && !dateSession?.completed
+
   const readinessVal = hasCheckin
-    ? readinessScore(todaySession.sleep, todaySession.energy, todaySession.soreness)
+    ? readinessScore(dateSession.sleep, dateSession.energy, dateSession.soreness)
     : null
   const readinessTag = readinessVal != null
     ? `${readinessVal} · ${readinessLabel(readinessVal)}`
@@ -81,15 +87,14 @@ export default function LogPage() {
     : `${fmtShort(viewMon)} – ${fmtShort(viewSun)}`
   const weekSub = mesoPos
     ? `Week ${mesoPos.weekInPhase} of ${activePlan[mesoPos.phaseIdx]?.weeks || '?'} in phase`
-    : !mesoStart ? 'Set your meso start date in Plan' : ''
+    : !mesoStart ? 'Set meso start in Plan' : ''
 
-  // Sessions in viewed week (for the mini-calendar strip)
   const viewWeekSessions = useMemo(() => {
     return (sessions || []).filter(s => s.date >= viewMon && s.date <= viewSun)
   }, [sessions, viewMon, viewSun])
 
   const handleContinue = () => {
-    if (inProgress) openSheet(dtypeToSheet(todaySession?.dtype))
+    if (inProgress) openSheet(dtypeToSheet(dateSession?.dtype))
     else openSheet('readiness')
   }
 
@@ -97,7 +102,6 @@ export default function LogPage() {
     <>
       <div className={styles.page}>
 
-        {/* ── Skip link ── */}
         <a href="#main-content" className={styles.skipLink}>Skip to main content</a>
 
         {/* ── Header ── */}
@@ -108,7 +112,7 @@ export default function LogPage() {
           <nav className={styles.weekNav} aria-label="Week navigation">
             <button
               className={styles.weekArr}
-              onClick={() => setWeekOffset(w => w - 1)}
+              onClick={() => goToWeek(weekOffset - 1)}
               aria-label="Previous week"
             >‹</button>
             <div className={styles.weekLabel} aria-live="polite" aria-atomic="true">
@@ -117,112 +121,139 @@ export default function LogPage() {
             </div>
             <button
               className={styles.weekArr}
-              onClick={() => setWeekOffset(w => Math.min(0, w + 1))}
+              onClick={() => goToWeek(weekOffset + 1)}
               aria-label="Next week"
-              aria-disabled={isThisWeek}
-              disabled={isThisWeek}
+              aria-disabled={weekOffset >= 0}
+              disabled={weekOffset >= 0}
             >›</button>
           </nav>
         </header>
 
-        {/* ── Week strip (always visible) ── */}
-        <WeekStrip days={weekDays(viewMon)} sessions={sessions || []} todayStr={todayStr} />
+        {/* ── Week strip ── */}
+        <WeekStrip
+          days={weekDays(viewMon)}
+          sessions={sessions || []}
+          todayStr={todayStr}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        />
 
-        {/* ── Past week view ── */}
-        {!isThisWeek ? (
-          <main id="main-content" className={styles.sections} role="main">
-            <PastWeekView sessions={viewWeekSessions} onReturn={() => setWeekOffset(0)} />
-          </main>
-        ) : (
-          <main id="main-content" className={styles.sections} role="main">
+        {/* ── Main content ── */}
+        <main id="main-content" className={styles.sections} role="main">
 
-            {/* CHECK-IN */}
-            <section className={styles.section} aria-labelledby="checkin-heading">
-              <h2 className={styles.sectionTitle} id="checkin-heading">Check-in</h2>
-              <motion.div layoutId="card-readiness">
+          {/* Date banner for past days */}
+          {!isViewingToday && (
+            <div className={styles.dateBanner}>
+              <span className={styles.dateLabel}>
+                {fmtWeekday(selectedDate)}, {fmtShort(selectedDate)}
+              </span>
+              <button
+                className={styles.todayBtn}
+                onClick={() => { setSelectedDate(todayStr); setWeekOffset(0) }}
+              >
+                ← Today
+              </button>
+            </div>
+          )}
+
+          {/* CHECK-IN */}
+          <section className={styles.section} aria-labelledby="checkin-heading">
+            <h2 className={styles.sectionTitle} id="checkin-heading">Check-in</h2>
+            <motion.div layoutId="card-readiness">
+              <button
+                className={styles.card}
+                onClick={() => openSheet('readiness')}
+                aria-label={readinessTag ? `Readiness: ${readinessTag}. Tap to edit.` : 'Log readiness check-in'}
+              >
+                <span className={styles.cardLabel}>Readiness</span>
+                {readinessTag
+                  ? <span className={styles.cardValue}>{readinessTag}</span>
+                  : <span className={styles.cardHint}>Tap to log</span>
+                }
+              </button>
+            </motion.div>
+          </section>
+
+          {/* TRAINING */}
+          <section className={styles.section} aria-labelledby="training-heading">
+            <h2 className={styles.sectionTitle} id="training-heading">Training</h2>
+            {hasTraining ? (
+              <motion.div layoutId={dtypeToLayoutId(dateSession.dtype)}>
                 <button
-                  className={styles.card}
-                  onClick={() => openSheet('readiness')}
-                  aria-label={readinessTag ? `Readiness: ${readinessTag}. Tap to edit.` : 'Log readiness check-in'}
+                  className={`${styles.card} ${styles.cardFull} ${dateSession.completed ? styles.cardDone : ''}`}
+                  onClick={() => openSheet(dtypeToSheet(dateSession.dtype))}
+                  aria-label={`${dateSession.dtype}${inProgress ? ', in progress' : ', completed'}. Tap to open.`}
                 >
-                  <span className={styles.cardLabel}>Readiness</span>
-                  {readinessTag && <span className={styles.cardValue}>{readinessTag}</span>}
+                  <span className={styles.cardLabel}>{dateSession.dtype}</span>
+                  <div className={styles.cardRow}>
+                    {dateSession.gymDay && (
+                      <span className={styles.cardValue}>Day {['A','B','C','D'][dateSession.gymDay - 1]}</span>
+                    )}
+                    {dateSession.bjjDuration && (
+                      <span className={styles.cardValue}>{dateSession.bjjDuration} min</span>
+                    )}
+                    {dateSession.completed && (
+                      <span className={styles.cardBadge} aria-label="Completed">✓</span>
+                    )}
+                  </div>
                 </button>
               </motion.div>
-            </section>
-
-            {/* TRAINING */}
-            <section className={styles.section} aria-labelledby="training-heading">
-              <h2 className={styles.sectionTitle} id="training-heading">Training</h2>
-              {hasTraining ? (
-                <motion.div layoutId={dtypeToLayoutId(todaySession.dtype)}>
-                  <button
-                    className={`${styles.card} ${styles.cardFull}`}
-                    onClick={() => openSheet(dtypeToSheet(todaySession.dtype))}
-                    aria-label={`${todaySession.dtype}${inProgress ? ', in progress' : ', completed'}. Tap to open.`}
-                  >
-                    <span className={styles.cardLabel}>{todaySession.dtype}</span>
-                    <div className={styles.cardRow}>
-                      {todaySession.gymDay && (
-                        <span className={styles.cardValue}>Day {['A','B','C','D'][todaySession.gymDay - 1]}</span>
-                      )}
-                      {todaySession.completed && (
-                        <span className={styles.cardBadge} aria-label="Completed">✓</span>
-                      )}
-                    </div>
-                  </button>
-                </motion.div>
-              ) : (
-                <div className={styles.typeGrid} role="group" aria-label="Select training type for today">
-                  {TRAINING_TYPES.map(({ id, label }) => (
-                    <motion.div key={id} layoutId={`card-${id}`}>
-                      <button
-                        className={`${styles.typeBtn} ${styles.cardFull}`}
-                        onClick={() => openSheet(id)}
-                        aria-label={label.replace('\n', ' ')}
-                      >
-                        {label}
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* REFLECT */}
-            <section className={styles.section} aria-labelledby="reflect-heading">
-              <h2 className={styles.sectionTitle} id="reflect-heading">Reflect</h2>
-              <div className={styles.reflectRow}>
-                <motion.div layoutId="card-performance" className={styles.cardHalf}>
-                  <button
-                    className={`${styles.card} ${styles.cardFull} ${!hasTraining ? styles.cardInactive : ''}`}
-                    onClick={() => hasTraining && openSheet('performance')}
-                    disabled={!hasTraining}
-                    aria-label={hasTraining ? 'Log performance' : 'Complete training first to log performance'}
-                    aria-disabled={!hasTraining}
-                  >
-                    <span className={styles.cardLabel}>Performance</span>
-                    {todaySession?.perf && <span className={styles.cardValue}>{todaySession.perf}</span>}
-                  </button>
-                </motion.div>
-                <motion.div layoutId="card-notes" className={styles.cardHalf}>
-                  <button
-                    className={`${styles.card} ${styles.cardFull}`}
-                    onClick={() => openSheet('notes')}
-                    aria-label="Add session notes"
-                  >
-                    <span className={styles.cardLabel}>Notes</span>
-                    {todaySession?.notes && (
-                      <span className={styles.cardValue}>
-                        {todaySession.notes.slice(0, 40)}{todaySession.notes.length > 40 ? '…' : ''}
-                      </span>
-                    )}
-                  </button>
-                </motion.div>
+            ) : (
+              <div className={styles.typeGrid} role="group" aria-label="Select training type">
+                {TRAINING_TYPES.map(({ id, label }) => (
+                  <motion.div key={id} layoutId={`card-${id}`}>
+                    <button
+                      className={`${styles.typeBtn} ${styles.cardFull}`}
+                      onClick={() => openSheet(id)}
+                      aria-label={label.replace('\n', ' ')}
+                    >
+                      {label}
+                    </button>
+                  </motion.div>
+                ))}
               </div>
-            </section>
+            )}
+          </section>
 
-            {/* CTA */}
+          {/* REFLECT */}
+          <section className={styles.section} aria-labelledby="reflect-heading">
+            <h2 className={styles.sectionTitle} id="reflect-heading">Reflect</h2>
+            <div className={styles.reflectRow}>
+              <motion.div layoutId="card-performance" className={styles.cardHalf}>
+                <button
+                  className={`${styles.card} ${styles.cardFull} ${!hasTraining ? styles.cardInactive : ''}`}
+                  onClick={() => hasTraining && openSheet('performance')}
+                  disabled={!hasTraining}
+                  aria-label={hasTraining ? 'Log performance' : 'Complete training first'}
+                  aria-disabled={!hasTraining}
+                >
+                  <span className={styles.cardLabel}>Performance</span>
+                  {dateSession?.perf
+                    ? <span className={styles.cardValue}>{dateSession.perf}</span>
+                    : <span className={styles.cardHint}>{hasTraining ? 'Tap to log' : '—'}</span>
+                  }
+                </button>
+              </motion.div>
+              <motion.div layoutId="card-notes" className={styles.cardHalf}>
+                <button
+                  className={`${styles.card} ${styles.cardFull}`}
+                  onClick={() => openSheet('notes')}
+                  aria-label="Add session notes"
+                >
+                  <span className={styles.cardLabel}>Notes</span>
+                  {dateSession?.notes
+                    ? <span className={styles.cardValue}>
+                        {dateSession.notes.slice(0, 40)}{dateSession.notes.length > 40 ? '…' : ''}
+                      </span>
+                    : <span className={styles.cardHint}>Tap to add</span>
+                  }
+                </button>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* CTA — hide when session is completed */}
+          {!dateSession?.completed && (
             <div className={styles.cta}>
               <button
                 className={`${styles.ctaBtn} ${inProgress ? styles.ctaContinue : ''}`}
@@ -232,38 +263,41 @@ export default function LogPage() {
                 {inProgress ? 'Continue' : 'Quick start'}
               </button>
             </div>
+          )}
 
-          </main>
-        )}
+        </main>
       </div>
 
       {/* ── Sheets ── */}
-      <ReadinessSheet      isOpen={activeSheet === 'readiness'}      onClose={closeSheet} />
-      <RestSheet           isOpen={activeSheet === 'rest'}           onClose={closeSheet} />
-      <ResistanceSheet     isOpen={activeSheet === 'resistance'}     onClose={closeSheet} />
-      <BJJSheet            isOpen={activeSheet === 'bjj'}            onClose={closeSheet} />
-      <ResistanceBJJSheet  isOpen={activeSheet === 'resistance+bjj'} onClose={closeSheet} />
-      <NotesSheet          isOpen={activeSheet === 'notes'}          onClose={closeSheet} />
-      <PerformanceSheet    isOpen={activeSheet === 'performance'}    onClose={closeSheet} />
+      <ReadinessSheet      isOpen={activeSheet === 'readiness'}      onClose={closeSheet} date={selectedDate} />
+      <RestSheet           isOpen={activeSheet === 'rest'}           onClose={closeSheet} date={selectedDate} />
+      <ResistanceSheet     isOpen={activeSheet === 'resistance'}     onClose={closeSheet} date={selectedDate} />
+      <BJJSheet            isOpen={activeSheet === 'bjj'}            onClose={closeSheet} date={selectedDate} />
+      <ResistanceBJJSheet  isOpen={activeSheet === 'resistance+bjj'} onClose={closeSheet} date={selectedDate} />
+      <NotesSheet          isOpen={activeSheet === 'notes'}          onClose={closeSheet} date={selectedDate} />
+      <PerformanceSheet    isOpen={activeSheet === 'performance'}    onClose={closeSheet} date={selectedDate} />
     </>
   )
 }
 
 // ── Week strip ────────────────────────────────────────────────────────────────
-function WeekStrip({ days, sessions, todayStr }) {
+function WeekStrip({ days, sessions, todayStr, selectedDate, onSelectDate }) {
   const sessMap = Object.fromEntries(sessions.map(s => [s.date, s]))
   return (
     <div className={styles.weekStrip} role="list" aria-label="Week at a glance">
       {days.map(d => {
-        const s   = sessMap[d]
-        const dot = s?.dtype ? (s.completed ? 'done' : 'progress') : null
-        const isToday = d === todayStr
+        const s          = sessMap[d]
+        const dot        = s?.dtype ? (s.completed ? 'done' : 'progress') : null
+        const isToday    = d === todayStr
+        const isSelected = d === selectedDate
         return (
-          <div
+          <button
             key={d}
-            className={`${styles.stripDay} ${isToday ? styles.stripToday : ''}`}
+            className={`${styles.stripDay} ${isToday ? styles.stripToday : ''} ${isSelected ? styles.stripSelected : ''}`}
+            onClick={() => onSelectDate(d)}
             role="listitem"
-            aria-label={`${fmtWeekday(d)}${isToday ? ', today' : ''}${s?.dtype ? `, ${s.dtype}${s.completed ? ', completed' : ', in progress'}` : ''}`}
+            aria-label={`${fmtWeekday(d)}${isToday ? ', today' : ''}${s?.dtype ? `, ${s.dtype}${s.completed ? ', done' : ', in progress'}` : ''}`}
+            aria-pressed={isSelected}
           >
             <span className={styles.stripWd}>{fmtWeekday(d).slice(0,3).toUpperCase()}</span>
             <span className={styles.stripDt}>{new Date(d + 'T12:00').getDate()}</span>
@@ -273,54 +307,9 @@ function WeekStrip({ days, sessions, todayStr }) {
                 aria-hidden="true"
               />
             )}
-          </div>
+          </button>
         )
       })}
-    </div>
-  )
-}
-
-// ── Past week view ────────────────────────────────────────────────────────────
-function PastWeekView({ sessions, onReturn }) {
-  if (sessions.length === 0) {
-    return (
-      <div className={styles.pastEmpty}>
-        <p className={styles.pastEmptyText}>No sessions logged this week.</p>
-        <button className={styles.returnBtn} onClick={onReturn}>← Back to today</button>
-      </div>
-    )
-  }
-
-  const sorted = [...sessions].sort((a, b) => a.date.localeCompare(b.date))
-
-  return (
-    <div className={styles.pastWrap}>
-      <div className={styles.pastList}>
-        {sorted.map(s => {
-          const totalSets = (s.supersets || []).reduce(
-            (t, ss) => t + ss.exercises.reduce((tt, ex) => tt + (Number(ex.sets) || 0), 0), 0
-          )
-          const score = readinessScore(s.sleep, s.energy, s.soreness)
-          return (
-            <div key={s.date} className={styles.pastRow}>
-              <div className={styles.pastLeft}>
-                <span className={styles.pastDate}>{fmtShort(s.date)}</span>
-                <span className={styles.pastWd}>{fmtWeekday(s.date)}</span>
-              </div>
-              <div className={styles.pastMid}>
-                <span className={styles.pastType}>{s.dtype || '—'}</span>
-                {totalSets > 0 && <span className={styles.pastMeta}>{totalSets} sets</span>}
-                {s.bjjDuration && <span className={styles.pastMeta}>{s.bjjDuration} min BJJ</span>}
-              </div>
-              <div className={styles.pastRight}>
-                {s.perf && <span className={`${styles.pastPerf} ${s.perf === 'Exceeded' ? styles.perfGood : s.perf === 'Below par' ? styles.perfBad : ''}`}>{s.perf}</span>}
-                {score != null && <span className={styles.pastScore}>{score}</span>}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <button className={styles.returnBtn} onClick={onReturn} aria-label="Return to this week">← Back to today</button>
     </div>
   )
 }

@@ -6,7 +6,6 @@ import ChipGroup from '../molecules/ChipGroup'
 import NumInput from '../atoms/NumInput'
 import TextArea from '../atoms/TextArea'
 import Button from '../atoms/Button'
-import { today } from '../../lib/dates'
 import styles from './BJJSheet.module.css'
 
 const GC_OPTIONS   = ['Clinch', 'Guard', 'Half Guard', 'Side Control', 'Mount', 'Back', 'Turtle', 'Standing']
@@ -76,12 +75,11 @@ function BJJJournal({ data, onChange, onComplete }) {
 }
 
 // ── Main sheet ────────────────────────────────────────────────────────────────
-export default function BJJSheet({ isOpen, onClose, layoutId = 'card-bjj' }) {
+export default function BJJSheet({ isOpen, onClose, date, layoutId = 'card-bjj' }) {
   const sessions       = useStore(s => s.sessions)
   const addSession     = useStore(s => s.addSession)
   const removeTraining = useStore(s => s.removeTraining)
 
-  const date    = today()
   const session = sessions.find(s => s.date === date) || {}
 
   const [step, setStep] = useState(-1)

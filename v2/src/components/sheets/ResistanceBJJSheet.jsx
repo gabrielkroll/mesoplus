@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
 import { getExercises, deriveGymDay, TEMPLATES } from '../../lib/templates'
-import { today, fmtShort } from '../../lib/dates'
+import { fmtShort } from '../../lib/dates'
 import { getLastSet } from '../../lib/suggestions'
 import ProgressBar from '../atoms/ProgressBar'
 import Stepper from '../atoms/Stepper'
@@ -18,13 +18,11 @@ const DAY_LABELS   = { 1: 'A', 2: 'B', 3: 'C', 4: 'D' }
 const GC_OPTIONS   = ['Clinch', 'Guard', 'Half Guard', 'Side Control', 'Mount', 'Back', 'Turtle', 'Standing']
 const PERF_OPTIONS = ['Below par', 'On track', 'Exceeded']
 
-// Phases: 'gym-overview' → 'gym-ex' → 'bjj-overview' → 'bjj-journal'
-export default function ResistanceBJJSheet({ isOpen, onClose }) {
+export default function ResistanceBJJSheet({ isOpen, onClose, date }) {
   const sessions       = useStore(s => s.sessions)
   const addSession     = useStore(s => s.addSession)
   const removeTraining = useStore(s => s.removeTraining)
 
-  const date         = today()
   const session      = sessions.find(s => s.date === date) || {}
   const gymDay       = session.gymDay || deriveGymDay(sessions, date) || 1
   const exercises    = getExercises(gymDay)
@@ -39,7 +37,18 @@ export default function ResistanceBJJSheet({ isOpen, onClose }) {
     if (isOpen) {
       setPhase('gym-overview')
       setExStep(0)
-      setExData({})
+      // Pre-populate gym data from saved session
+      const saved = {}
+      if (session.supersets) {
+        let i = 0
+        session.supersets.forEach(ss => {
+          ss.exercises.forEach(ex => {
+            saved[i] = { sets: ex.sets, kg: ex.kg, reps: ex.reps, rir: ex.rir }
+            i++
+          })
+        })
+      }
+      setExData(saved)
       setBjjData({
         duration: session.bjjDuration || '',
         gc:       session.bjjGc       || '',
@@ -100,7 +109,7 @@ export default function ResistanceBJJSheet({ isOpen, onClose }) {
               ))}
             </div>
             <Button fullWidth onClick={() => setPhase('gym-ex')}>Start first exercise</Button>
-            <Button fullWidth variant="danger" onClick={() => { removeTraining(date); onClose() }}>
+            <Button fullWidth variant="ghost" onClick={() => { removeTraining(date); onClose() }}>
               Change training type
             </Button>
           </motion.div>
@@ -136,7 +145,6 @@ export default function ResistanceBJJSheet({ isOpen, onClose }) {
   )
 }
 
-// ── Gym exercise entry ────────────────────────────────────────────────────────
 function GymExercise({ exercise, index, total, data, onChange, onNext, isLast, lastSet }) {
   const set  = (field) => (val) => onChange({ ...data, [field]: val })
   const sets = parseInt(data.sets) || exercise.sets
@@ -157,7 +165,7 @@ function GymExercise({ exercise, index, total, data, onChange, onNext, isLast, l
       </div>
 
       {lastSet && (
-        <div className={styles.lastSet} aria-label={`Last session: ${lastSet.kg ? lastSet.kg + 'kg' : ''}${lastSet.kg && lastSet.reps ? ' × ' : ''}${lastSet.reps ? lastSet.reps + ' reps' : ''} on ${fmtShort(lastSet.date)}`}>
+        <div className={styles.lastSet}>
           <span className={styles.lastSetLabel}>Last</span>
           <span className={styles.lastSetVal}>
             {lastSet.kg ? `${lastSet.kg}kg` : ''}{lastSet.kg && lastSet.reps ? ' × ' : ''}{lastSet.reps || ''}
@@ -191,7 +199,6 @@ function GymExercise({ exercise, index, total, data, onChange, onNext, isLast, l
   )
 }
 
-// ── BJJ journal ───────────────────────────────────────────────────────────────
 function BJJJournal({ data, onChange, onComplete }) {
   const set = (field) => (val) => onChange({ ...data, [field]: val })
   return (

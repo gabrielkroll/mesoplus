@@ -2,18 +2,16 @@ import useStore from '../../store/useStore'
 import SheetBase from './SheetBase'
 import ChipGroup from '../molecules/ChipGroup'
 import Button from '../atoms/Button'
-import { today } from '../../lib/dates'
 import {
   SLEEP_OPTIONS, ENERGY_OPTIONS, SORENESS_OPTIONS,
   readinessScore, readinessLabel,
 } from '../../lib/readiness'
 import styles from './ReadinessSheet.module.css'
 
-export default function ReadinessSheet({ isOpen, onClose }) {
+export default function ReadinessSheet({ isOpen, onClose, date }) {
   const sessions   = useStore(s => s.sessions)
   const addSession = useStore(s => s.addSession)
 
-  const date    = today()
   const session = sessions.find(s => s.date === date) || {}
 
   const sleep    = session.sleep    || ''
