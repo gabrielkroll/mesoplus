@@ -297,9 +297,9 @@ export default function ProfilePage() {
 
         {/* Apps Script snippet */}
         <details className={styles.codeDetails}>
-          <summary className={styles.codeSummary}>Add to existing Apps Script</summary>
+          <summary className={styles.codeSummary}>Apps Script setup · 3 steps</summary>
           <p className={styles.codeNote}>
-            Already using V1? Paste this block at the top of your existing <code>doPost()</code>, before the <code>clearAll</code> check. Then redeploy.
+            Follow the 3 steps in the snippet. <strong>doGet</strong> must be a standalone function (not inside doPost). After pasting, redeploy as a <strong>new version</strong> — otherwise changes won't take effect.
           </p>
           <pre className={styles.codeBlock}>{APPS_SCRIPT_CODE}</pre>
         </details>
@@ -416,9 +416,11 @@ function ClaudeKeyRow() {
   )
 }
 
-const APPS_SCRIPT_CODE = `// ─────────────────────────────────────────────────────────
-// 1. Add doGet() as a new function (handles import):
-// ─────────────────────────────────────────────────────────
+const APPS_SCRIPT_CODE = `// ═════════════════════════════════════════════════════════
+// STEP 1 — Add doGet() as a NEW standalone function.
+//           Paste this OUTSIDE doPost(), at the file level.
+//           This enables Import from Sheets.
+// ═════════════════════════════════════════════════════════
 
 function doGet(e) {
   const tab   = (e.parameter && e.parameter.tab) || 'Sessions';
@@ -433,10 +435,10 @@ function doGet(e) {
   return respond({ ok: true, headers, rows });
 }
 
-// ─────────────────────────────────────────────────────────
-// 2. Add this block at the top of your existing doPost(),
-//    before the clearAll check. Then redeploy.
-// ─────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// STEP 2 — Inside your existing doPost(), paste this block
+//           BEFORE the clearAll check. Enables sync.
+// ═════════════════════════════════════════════════════════
 
 if (data.tab) {
   const ss2   = SpreadsheetApp.getActiveSpreadsheet();
@@ -460,4 +462,11 @@ if (data.tab) {
   return respond({ ok: true, added: rows.length });
 }
 
-// ── Your existing V1 doPost() code continues below ────────`
+// ── Your existing V1 doPost() code continues below ────────
+
+// ═════════════════════════════════════════════════════════
+// STEP 3 — Redeploy: Deploy → Manage deployments →
+//           select your deployment → Edit (pencil) →
+//           Version: "New version" → Deploy.
+//           Copy the new URL if it changed.
+// ═════════════════════════════════════════════════════════`

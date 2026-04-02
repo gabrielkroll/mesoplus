@@ -228,7 +228,13 @@ export async function importFromSheets(scriptUrl, tab = 'Sessions') {
     throw new Error('Invalid response from Apps Script. Make sure doGet() is deployed.')
   }
 
-  if (!json.ok) throw new Error(json.error || 'Script returned error')
+  if (!json.ok) {
+    const msg = json.error || 'Script returned error'
+    if (msg.includes('contents') || msg.includes('postData')) {
+      throw new Error('doGet() not found. Add it from the snippet in Profile → Google Sheets, then redeploy as a new version.')
+    }
+    throw new Error(msg)
+  }
 
   const rows    = json.rows    || []
   const headers = json.headers || HEADERS
