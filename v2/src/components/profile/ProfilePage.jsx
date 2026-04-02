@@ -41,10 +41,6 @@ export default function ProfilePage() {
   // ── Save + test connection ─────────────────────────────────────────────────
   const saveAndTest = async () => {
     if (!scriptUrl.trim()) { setStatus('error', 'Paste your Apps Script URL first.'); return }
-    // Persist API key locally
-    if (apiKey.trim()) localStorage.setItem(API_KEY_KEY, apiKey.trim())
-    else localStorage.removeItem(API_KEY_KEY)
-
     setSyncStatus('syncing')
     setSyncMsg('Testing connection…')
     try {
