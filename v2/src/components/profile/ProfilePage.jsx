@@ -164,6 +164,15 @@ export default function ProfilePage() {
         </div>
       </section>
 
+      {/* ── Claude AI ── */}
+      <section className={styles.section} aria-labelledby="profile-claude">
+        <h2 className={styles.sectionTitle} id="profile-claude">Claude AI</h2>
+        <p className={styles.sectionSub}>Required for smart analysis · console.anthropic.com → API Keys</p>
+        <div className={styles.setupCard}>
+          <ClaudeKeyRow />
+        </div>
+      </section>
+
       {/* ── Google Sheets sync ── */}
       <section className={styles.section} aria-labelledby="profile-sync">
         <h2 className={styles.sectionTitle} id="profile-sync">Google Sheets</h2>
@@ -381,6 +390,28 @@ function FieldInput({ id, label, type, placeholder, value, onChange }) {
         autoComplete="off"
         spellCheck={false}
       />
+    </div>
+  )
+}
+
+function ClaudeKeyRow() {
+  const [val, setVal] = useState(() => localStorage.getItem('mp7_claude_key') || '')
+  const save = (v) => {
+    setVal(v)
+    if (v.trim()) localStorage.setItem('mp7_claude_key', v.trim())
+    else localStorage.removeItem('mp7_claude_key')
+  }
+  return (
+    <div className={styles.claudeRow}>
+      <FieldInput
+        id="claude-key"
+        label="API KEY"
+        type="password"
+        placeholder="sk-ant-…"
+        value={val}
+        onChange={e => save(e.target.value)}
+      />
+      <p className={styles.claudeHint}>Stored locally in your browser. Never sent anywhere except Anthropic.</p>
     </div>
   )
 }

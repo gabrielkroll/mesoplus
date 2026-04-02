@@ -27,49 +27,6 @@
   font-weight: 400;
 }
 
-/* ── API key ────────────────────────────────────── */
-.keyRow {
-  display: flex;
-  gap: 8px;
-}
-
-.keyInput {
-  flex: 1;
-  background: var(--color-surf);
-  border: 1px solid var(--color-line);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--color-ink);
-  outline: none;
-  transition: border-color 0.12s;
-}
-
-.keyInput:focus { border-color: var(--color-line2); }
-.keyInput::placeholder { color: var(--color-ink3); }
-
-.keyToggle {
-  padding: 8px 14px;
-  border: 1px solid var(--color-line);
-  border-radius: 8px;
-  background: none;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--color-ink2);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.keyToggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-
-.keyHint {
-  font-size: 11px;
-  color: var(--color-ink3);
-  margin: 8px 0 0;
-  line-height: 1.5;
-}
-
 /* ── Prompt list ────────────────────────────────── */
 .promptList {
   display: flex;
@@ -179,6 +136,13 @@
 .error {
   font-size: 13px;
   color: var(--color-danger);
+  padding: 8px 0;
+}
+
+.noKey {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-ink3);
   padding: 8px 0;
 }
 

@@ -58,7 +58,6 @@ export default function AnalysisPage() {
   const sessions  = useStore(s => s.sessions)
   const mesoStart = useStore(s => s.mesoStart)
 
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('mp7_claude_key') || '')
   const [selectedPrompt, setSelectedPrompt] = useState(null)
   const [customPrompt, setCustomPrompt] = useState('')
   const [response, setResponse] = useState('')
@@ -66,14 +65,9 @@ export default function AnalysisPage() {
   const [error, setError] = useState('')
   const abortRef = useRef(null)
 
-  const saveKey = (val) => {
-    setApiKey(val)
-    localStorage.setItem('mp7_claude_key', val)
-  }
-
   const run = async (promptId) => {
-    const key = apiKey.trim()
-    if (!key) { setError('Enter your Claude API key first.'); return }
+    const key = (localStorage.getItem('mp7_claude_key') || '').trim()
+    if (!key) { setError('no-key'); return }
 
     const found = PROMPTS.find(p => p.id === promptId)
     const userMessage = found ? found.desc : customPrompt.trim()
@@ -129,26 +123,6 @@ export default function AnalysisPage() {
         <h1 className={styles.title}>Analysis</h1>
       </header>
 
-      {/* ── API key ── */}
-      <section className={styles.section} aria-labelledby="analysis-key">
-        <h2 className={styles.sectionTitle} id="analysis-key">Claude API key</h2>
-        <div className={styles.keyRow}>
-          <input
-            type="password"
-            className={styles.keyInput}
-            value={apiKey}
-            onChange={e => saveKey(e.target.value)}
-            placeholder="sk-ant-…"
-            aria-label="Claude API key"
-            autoComplete="current-password"
-            spellCheck={false}
-          />
-        </div>
-        <p className={styles.keyHint}>
-          Your key is stored only in this browser. It goes directly to Anthropic — never to any server.
-        </p>
-      </section>
-
       {/* ── Quick prompts ── */}
       <section className={styles.section} aria-labelledby="analysis-prompts">
         <h2 className={styles.sectionTitle} id="analysis-prompts">Ask about your training</h2>
@@ -202,7 +176,10 @@ export default function AnalysisPage() {
               <span className={styles.dot} />
             </div>
           )}
-          {error && <p className={styles.error} role="alert">{error}</p>}
+          {error === 'no-key'
+            ? <p className={styles.noKey} role="alert">No Claude API key — add it in Profile → Setup.</p>
+            : error && <p className={styles.error} role="alert">{error}</p>
+          }
           {response && (
             <div className={styles.response}>
               {response.split('\n').map((line, i) => (
