@@ -59,7 +59,6 @@ export default function AnalysisPage() {
   const mesoStart = useStore(s => s.mesoStart)
 
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('mp7_claude_key') || '')
-  const [showKey, setShowKey] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState(null)
   const [customPrompt, setCustomPrompt] = useState('')
   const [response, setResponse] = useState('')
@@ -135,22 +134,15 @@ export default function AnalysisPage() {
         <h2 className={styles.sectionTitle} id="analysis-key">Claude API key</h2>
         <div className={styles.keyRow}>
           <input
-            type={showKey ? 'text' : 'password'}
+            type="password"
             className={styles.keyInput}
             value={apiKey}
             onChange={e => saveKey(e.target.value)}
             placeholder="sk-ant-…"
             aria-label="Claude API key"
-            autoComplete="off"
+            autoComplete="current-password"
             spellCheck={false}
           />
-          <button
-            className={styles.keyToggle}
-            onClick={() => setShowKey(v => !v)}
-            aria-label={showKey ? 'Hide API key' : 'Show API key'}
-          >
-            {showKey ? 'Hide' : 'Show'}
-          </button>
         </div>
         <p className={styles.keyHint}>
           Your key is stored only in this browser. It goes directly to Anthropic — never to any server.

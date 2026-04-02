@@ -2,6 +2,7 @@ import { useState } from 'react'
 import useStore from '../../store/useStore'
 import Button from '../atoms/Button'
 import { syncToSheets, testConnection, importFromSheets } from '../../lib/sync'
+import { useLock } from '../auth/LoginGate'
 import styles from './ProfilePage.module.css'
 
 const SYNC_KEY = 'mp7_synced_dates'
@@ -144,6 +145,7 @@ export default function ProfilePage() {
   const bjjCount       = (sessions || []).filter(s => s.dtype?.includes('BJJ')).length
 
   const configured = !!scriptUrl
+  const lock = useLock()
 
   return (
     <div className={styles.page} role="main">
@@ -331,6 +333,9 @@ export default function ProfilePage() {
               <span className={styles.infoVal}>{v}</span>
             </div>
           ))}
+        </div>
+        <div className={styles.lockRow}>
+          <Button variant="danger" onClick={lock}>Log out</Button>
         </div>
       </section>
     </div>

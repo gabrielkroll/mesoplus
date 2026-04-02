@@ -1,20 +1,11 @@
 import { useState, useEffect } from 'react'
 import useStore from '../../store/useStore'
+import { hashPw } from '../../lib/auth'
 import Button from '../atoms/Button'
 import styles from './TransferImport.module.css'
 
-const USED_KEY = 'mp7_used_tokens'
+const USED_KEY  = 'mp7_used_tokens'
 const CLAUDE_KEY = 'mp7_claude_key'
-
-function hashPw(pw) {
-  const s = pw + 'mp7salt'
-  let h = 5381
-  for (let i = 0; i < s.length; i++) {
-    h = ((h << 5) + h) ^ s.charCodeAt(i)
-    h = h >>> 0
-  }
-  return h.toString(36)
-}
 
 function getUsedTokens() {
   try { return JSON.parse(localStorage.getItem(USED_KEY) || '[]') } catch { return [] }

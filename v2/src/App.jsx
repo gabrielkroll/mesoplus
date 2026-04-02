@@ -1,4 +1,5 @@
 import useStore from './store/useStore'
+import LoginGate from './components/auth/LoginGate'
 import BottomNav from './components/layout/BottomNav'
 import LogPage from './components/log/LogPage'
 import StatsPage from './components/stats/StatsPage'
@@ -11,7 +12,7 @@ export default function App() {
   const activeTab = useStore(s => s.activeTab)
 
   return (
-    <>
+    <LoginGate>
       <TransferImport />
       {activeTab === 'log'      && <LogPage />}
       {activeTab === 'stats'    && <StatsPage />}
@@ -19,6 +20,6 @@ export default function App() {
       {activeTab === 'plan'     && <PlanPage />}
       {activeTab === 'profile'  && <ProfilePage />}
       <BottomNav />
-    </>
+    </LoginGate>
   )
 }

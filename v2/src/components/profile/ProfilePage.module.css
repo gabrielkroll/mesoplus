@@ -388,3 +388,10 @@
   color: var(--color-ink3);
   font-family: var(--font-mono);
 }
+
+.lockRow {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 16px;
+}
