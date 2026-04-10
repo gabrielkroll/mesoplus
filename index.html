@@ -1445,9 +1445,9 @@ function loadSess(sess){
   S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
   document.getElementById('m-extra').value=sess.extra||'';
   document.getElementById('m-notes').value=sess.notes||'';
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
   buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
   renderSession();
   updateCheckinCollapse();
@@ -1455,9 +1455,9 @@ function loadSess(sess){
 function resetForm(){
   S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
-  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
-  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();});
+  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
+  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
   buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
   document.getElementById('checkout-section').classList.add('hidden');
   document.getElementById('checkin-summary').classList.add('hidden');
@@ -1495,6 +1495,29 @@ function shiftWeek(d){
   },{passive:true});
 })();
 
+function computeReadiness(){
+  const sl={'≤5.5h':5,'6h':20,'6.5h':35,'7h':55,'7.5h':70,'8h':85,'≥8.5h':100}[S.sleep];
+  const en={Drained:5,Low:25,Moderate:55,Good:75,Charged:100}[S.energy];
+  const so={Wrecked:5,Heavy:25,Moderate:55,Mild:75,Fresh:100}[S.soreness];
+  const vals=[sl,en,so].filter(v=>v!==undefined);
+  return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+}
+function sessionNudgeText(){
+  const r=computeReadiness();
+  const dayLetter=['A','B','C','D'][(derivedGymDay(S.selectedDate)||1)-1];
+  if(r===null)return'Complete check-in and we\'ll assess what\'s best next';
+  if(r<25)return'Body needs recovery — Rest recommended';
+  if(r<50)return'Take it easy today — light session or rest';
+  if(r<75)return`It's time for Day ${dayLetter}`;
+  if(r<95)return`Energy is high — Day ${dayLetter}, go get it`;
+  return`Peak readiness — Day ${dayLetter} and then some`;
+}
+function updateNudge(){
+  if(S.isRest!==null)return;
+  const nudge=document.getElementById('session-nudge');
+  if(nudge)nudge.textContent=sessionNudgeText();
+}
+
 function renderSession(){
   const unpicked=S.isRest===null;
   document.getElementById('btn-rest').classList.toggle('on',S.isRest===true);
@@ -1503,7 +1526,7 @@ function renderSession(){
   document.getElementById('train-content').classList.toggle('hidden',S.isRest!==false);
   const nudge=document.getElementById('session-nudge');
   nudge.classList.toggle('hidden',!unpicked);
-  if(unpicked){const sugDay=derivedGymDay(S.selectedDate);nudge.textContent=`Day ${sugDay} suggested`;}
+  if(unpicked){nudge.textContent=sessionNudgeText();}
   if(S.isRest===true){
     const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
     document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;
