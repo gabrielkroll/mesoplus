@@ -446,6 +446,17 @@ select.bare{cursor:pointer}
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
 .a-out.loading{color:var(--ink3);font-style:italic}
+/* ANALYSIS HISTORY */
+.a-hist-item{border-top:1px solid var(--line);padding:10px 0}
+.a-hist-header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.a-hist-meta{font-size:10px;color:var(--ink3);flex-shrink:0}
+.a-hist-summary{font-size:11px;color:var(--ink2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.a-hist-chevron{font-size:13px;color:var(--ink3);flex-shrink:0;transition:transform .15s}
+.a-hist-chevron.open{transform:rotate(90deg)}
+.a-hist-body{display:none;font-size:11px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:8px}
+.a-hist-body.open{display:block}
+.a-hist-copy{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;cursor:pointer;padding:4px 0;margin-top:4px;text-decoration:underline;text-underline-offset:2px;outline:none}
+.a-hist-copy:hover{color:var(--ink2)}
 .s-row{display:grid;grid-template-columns:160px 1fr;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
 .s-lbl{font-size:11px;color:var(--ink2)}
 .s-note{font-size:10px;color:var(--ink3);margin-top:3px;line-height:1.5}
@@ -969,6 +980,14 @@ select.bare{cursor:pointer}
     <div style="margin-bottom:12px"><div class="field-lbl">Paste data from sheet (optional)</div><textarea id="a-data" rows="3" style="width:100%;background:none;border:1px solid var(--line);color:var(--ink2);font-family:var(--mono);font-size:11px;padding:8px;outline:none;resize:vertical;border-radius:4px;margin-top:4px" placeholder="Paste CSV rows for richer analysis..."></textarea></div>
     <button class="btn-s" onclick="runAnalysis()" style="width:100%">Run analysis</button>
     <div class="a-out" id="a-out">Analysis will appear here.</div>
+    <!-- Analysis history -->
+    <div id="a-history-wrap" style="margin-top:28px;display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+        <div class="section-title" style="margin-bottom:0">History</div>
+        <span id="a-history-status" style="font-size:10px;color:var(--ink3)"></span>
+      </div>
+      <div id="a-history-list"></div>
+    </div>
   </div>
 
   <div id="v-profile" class="hidden">
@@ -2296,9 +2315,81 @@ function exportCSV(){if(!S.sessions.length){alert('No sessions to export yet.');
 async function runAnalysis(){
   const out=document.getElementById('a-out');out.className='a-out loading';out.textContent='Asking Claude…';
   const p=ph(),flagged=[...new Set(S.sessions.flatMap(s=>s.flagged||[]))].filter(Boolean);
-  const prompt=`You are a hypertrophy + BJJ coach.\nGoals: Chest, Biceps, Forearms, Grip (primary) · Delts, Shoulder stability, Back (secondary). BJJ: Gracie Combatives.\nPhase: ${p.name} · RIR ${p.rir} · Week ${mesoWk()}. Flexible mesocycle.\nFlagged exercises (pain/discomfort): ${flagged.length?flagged.join(', '):'none'}.\nScope: ${document.getElementById('a-scope').value}. Focus: ${document.getElementById('a-focus').value}.\nSessions: ${JSON.stringify(S.sessions.slice(-8),null,2)}\n${document.getElementById('a-data').value?'Extra data:\n'+document.getElementById('a-data').value:''}\nDirect. Specific. Exact kg/rep targets where relevant. Max 300 words.`;
+  const scope=document.getElementById('a-scope').value;
+  const focus=document.getElementById('a-focus').value;
+  const prompt=`You are a hypertrophy + BJJ coach.\nGoals: Chest, Biceps, Forearms, Grip (primary) · Delts, Shoulder stability, Back (secondary). BJJ: Gracie Combatives.\nPhase: ${p.name} · RIR ${p.rir} · Week ${mesoWk()}. Flexible mesocycle.\nFlagged exercises (pain/discomfort): ${flagged.length?flagged.join(', '):'none'}.\nScope: ${scope}. Focus: ${focus}.\nSessions: ${JSON.stringify(S.sessions.slice(-8),null,2)}\n${document.getElementById('a-data').value?'Extra data:\n'+document.getElementById('a-data').value:''}\nDirect. Specific. Exact kg/rep targets where relevant. Max 300 words.`;
   if(!S.claudeKey){out.className='a-out';out.textContent='No Claude API key — add it in Setup tab.';return;}
-  try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});const d=await res.json();out.className='a-out';out.textContent=d.content?.[0]?.text||d.error?.message||'No response.';}catch(e){out.className='a-out';out.textContent='Error: '+e.message;}
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await res.json();
+    const text=d.content?.[0]?.text||d.error?.message||'No response.';
+    out.className='a-out';out.textContent=text;
+    // Cache last result locally
+    localStorage.setItem('mp7_last_analysis',JSON.stringify({date:td(),scope,focus,text}));
+    // Save to Sheets + refresh history
+    if(S.scriptUrl){
+      await saveAnalysisToSheets({date:td(),scope,focus,text});
+      loadAnalysisHistory();
+    }
+  }catch(e){out.className='a-out';out.textContent='Error: '+e.message;}
+}
+
+async function saveAnalysisToSheets(entry){
+  try{
+    await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'logAnalysis',date:entry.date,scope:entry.scope,focus:entry.focus,text:entry.text})});
+  }catch(e){console.warn('[analysis] Sheets save failed:',e.message);}
+}
+
+async function loadAnalysisHistory(){
+  const wrap=document.getElementById('a-history-wrap');
+  const list=document.getElementById('a-history-list');
+  const status=document.getElementById('a-history-status');
+  if(!S.apiKey||!S.sheetId){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  status.textContent='Loading…';
+  try{
+    const range=encodeURIComponent('Analysis_Log!A:E');
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${range}?key=${S.apiKey}`);
+    if(!res.ok){status.textContent='Could not load history';return;}
+    const data=await res.json();
+    const rows=(data.values||[]).filter(r=>r[0]&&/^\d{4}-\d{2}-\d{2}$/.test(r[0])).reverse();
+    if(!rows.length){status.textContent='No history yet';list.innerHTML='';return;}
+    status.textContent=`${rows.length} saved`;
+    list.innerHTML=rows.slice(0,20).map((r,i)=>{
+      const [date,time,scope,focus,text]=r;
+      const scopeLabel={'last':'Last session','week':'This week','meso':'Full meso'}[scope]||scope;
+      const focusLabel={'next':'Next targets','volume':'Volume','progress':'Progress','bjj':'BJJ','goals':'Goals','phase':'Phase ready?'}[focus]||focus;
+      const preview=(text||'').slice(0,80).replace(/\n/g,' ');
+      return `<div class="a-hist-item">
+        <div class="a-hist-header" onclick="toggleHistItem(${i})">
+          <span class="a-hist-meta">${date} ${time||''}</span>
+          <span class="a-hist-summary">${scopeLabel} · ${focusLabel} — ${preview}…</span>
+          <span class="a-hist-chevron" id="ahc-${i}">›</span>
+        </div>
+        <div class="a-hist-body" id="ahb-${i}">${text||''}
+          <button class="a-hist-copy" onclick="copyAnalysis(${i})">Copy</button>
+        </div>
+      </div>`;
+    }).join('');
+    // Store texts for copy
+    window._analysisRows=rows.slice(0,20).map(r=>r[4]||'');
+  }catch(e){status.textContent='Error loading history';console.warn('[analysis history]',e);}
+}
+
+function toggleHistItem(i){
+  const body=document.getElementById(`ahb-${i}`);
+  const chev=document.getElementById(`ahc-${i}`);
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+
+function copyAnalysis(i){
+  const text=(window._analysisRows||[])[i]||'';
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=event.target;btn.textContent='Copied!';
+    setTimeout(()=>{btn.textContent='Copy';},2000);
+  });
 }
 
 async function saveSettings(){
@@ -2323,6 +2414,7 @@ function nav(id){
   ['log','progress','analysis','program'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
   const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','setup'].includes(id));
   if(id==='progress')renderProgress();
+  if(id==='analysis')loadAnalysisHistory();
   if(id==='program')renderPlanTab();
   if(id==='profile')updateHubSubtitles();
   closeProfileMenu();
