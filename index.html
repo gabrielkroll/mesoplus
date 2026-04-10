@@ -152,10 +152,12 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 select.bare{cursor:pointer}
 
 /* SESSION TOGGLE */
-.session-toggle{display:flex;gap:6px;margin-bottom:var(--sp2)}
+.session-toggle{display:flex;gap:6px;margin-bottom:var(--sp3)}
 .session-btn{flex:1;padding:10px 0;border:1px solid var(--line);border-radius:8px;background:none;color:var(--ink3);font-family:var(--mono);font-size:12px;letter-spacing:.04em;cursor:pointer;transition:all .15s;outline:none;min-height:44px}
 .session-btn.on{border-color:var(--accent);background:var(--adim);color:var(--accent);font-weight:500}
-.session-nudge{font-family:var(--mono);font-size:10px;color:var(--ink3);text-align:center;letter-spacing:.04em;padding:6px 0 10px}
+.session-brief{padding:14px 0 18px;min-height:64px}
+.session-brief-head{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink2);line-height:1.2;margin-bottom:5px}
+.session-brief-sub{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.03em}
 /* ACTIVITY BLOCKS */
 .activity-block{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
 .activity-block-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px}
@@ -769,12 +771,17 @@ select.bare{cursor:pointer}
     <div class="section-sep"></div>
     <div class="section-title">Session</div>
 
+    <!-- Readiness brief — above the decision -->
+    <div id="session-brief" class="session-brief hidden">
+      <div class="session-brief-head" id="session-brief-head"></div>
+      <div class="session-brief-sub" id="session-brief-sub"></div>
+    </div>
+
     <!-- Level 1: Rest / Train -->
     <div class="session-toggle">
       <button class="session-btn" id="btn-rest" onclick="setSessionType('rest')">Rest</button>
       <button class="session-btn" id="btn-train" onclick="setSessionType('train')">Train</button>
     </div>
-    <div id="session-nudge" class="session-nudge hidden"></div>
 
     <!-- Rest card -->
     <div id="rest-content" class="hidden"><div class="rest-card" id="rest-card"></div></div>
@@ -1502,20 +1509,28 @@ function computeReadiness(){
   const vals=[sl,en,so].filter(v=>v!==undefined);
   return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
 }
-function sessionNudgeText(){
+function sessionBrief(){
   const r=computeReadiness();
   const dayLetter=['A','B','C','D'][(derivedGymDay(S.selectedDate)||1)-1];
-  if(r===null)return'Complete check-in and we\'ll assess what\'s best next';
-  if(r<25)return'Body needs recovery — Rest recommended';
-  if(r<50)return'Take it easy today — light session or rest';
-  if(r<75)return`It's time for Day ${dayLetter}`;
-  if(r<95)return`Energy is high — Day ${dayLetter}, go get it`;
-  return`Peak readiness — Day ${dayLetter} and then some`;
+  const checkinParts=[];
+  if(S.sleep)checkinParts.push(`Sleep ${S.sleep}`);
+  if(S.energy)checkinParts.push(S.energy+' energy');
+  if(S.soreness)checkinParts.push(S.soreness+' soreness');
+  const sub=checkinParts.join(' · ');
+  if(r===null)return{head:'How are you feeling today?',sub:'Complete check-in above.'};
+  if(r<25)return{head:'Your body needs recovery.',sub:sub};
+  if(r<50)return{head:'Take it easy today.',sub:sub};
+  if(r<75)return{head:`It's time for Day ${dayLetter}.`,sub:sub};
+  if(r<95)return{head:`Day ${dayLetter} — energy is high, go get it.`,sub:sub};
+  return{head:`Peak readiness — Day ${dayLetter} and then some.`,sub:sub};
 }
 function updateNudge(){
   if(S.isRest!==null)return;
-  const nudge=document.getElementById('session-nudge');
-  if(nudge)nudge.textContent=sessionNudgeText();
+  const brief=sessionBrief();
+  const el=document.getElementById('session-brief');
+  if(!el)return;
+  document.getElementById('session-brief-head').textContent=brief.head;
+  document.getElementById('session-brief-sub').textContent=brief.sub;
 }
 
 function renderSession(){
@@ -1524,9 +1539,9 @@ function renderSession(){
   document.getElementById('btn-train').classList.toggle('on',S.isRest===false);
   document.getElementById('rest-content').classList.toggle('hidden',S.isRest!==true);
   document.getElementById('train-content').classList.toggle('hidden',S.isRest!==false);
-  const nudge=document.getElementById('session-nudge');
-  nudge.classList.toggle('hidden',!unpicked);
-  if(unpicked){nudge.textContent=sessionNudgeText();}
+  const brief=document.getElementById('session-brief');
+  brief.classList.toggle('hidden',!unpicked);
+  if(unpicked){const b=sessionBrief();document.getElementById('session-brief-head').textContent=b.head;document.getElementById('session-brief-sub').textContent=b.sub;}
   if(S.isRest===true){
     const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
     document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;
