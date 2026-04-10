@@ -152,9 +152,10 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 select.bare{cursor:pointer}
 
 /* SESSION TOGGLE */
-.session-toggle{display:flex;gap:6px;margin-bottom:var(--sp3)}
+.session-toggle{display:flex;gap:6px;margin-bottom:var(--sp2)}
 .session-btn{flex:1;padding:10px 0;border:1px solid var(--line);border-radius:8px;background:none;color:var(--ink3);font-family:var(--mono);font-size:12px;letter-spacing:.04em;cursor:pointer;transition:all .15s;outline:none;min-height:44px}
-.session-btn.on{border-color:var(--ink);background:var(--ink);color:var(--lift)}
+.session-btn.on{border-color:var(--accent);background:var(--adim);color:var(--accent);font-weight:500}
+.session-nudge{font-family:var(--mono);font-size:10px;color:var(--ink3);text-align:center;letter-spacing:.04em;padding:6px 0 10px}
 /* ACTIVITY BLOCKS */
 .activity-block{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
 .activity-block-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px}
@@ -773,6 +774,7 @@ select.bare{cursor:pointer}
       <button class="session-btn" id="btn-rest" onclick="setSessionType('rest')">Rest</button>
       <button class="session-btn" id="btn-train" onclick="setSessionType('train')">Train</button>
     </div>
+    <div id="session-nudge" class="session-nudge hidden"></div>
 
     <!-- Rest card -->
     <div id="rest-content" class="hidden"><div class="rest-card" id="rest-card"></div></div>
@@ -1237,7 +1239,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:false,activities:[],sleep:'',energy:'',soreness:'',perf:'',sessions:[],setGoals:{1:{},2:{},3:{},4:{}},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',sessions:[],setGoals:{1:{},2:{},3:{},4:{}},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 const uid=()=>'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 function getAct(id){return S.activities.find(a=>a.id===id);}
@@ -1330,9 +1332,9 @@ function expandCheckin(){
   document.getElementById('checkin-form').classList.remove('hidden');
 }
 function updateCheckoutReveal(){
-  const show=S.isRest||S.activities.length>0;
+  const show=S.isRest===true||(S.isRest===false&&S.activities.length>0);
   document.getElementById('checkout-section').classList.toggle('hidden',!show);
-  document.getElementById('checkout-perf').classList.toggle('hidden',S.isRest);
+  document.getElementById('checkout-perf').classList.toggle('hidden',S.isRest!==false);
 }
 
 function phaseWeekRange(idx){let cum=0;for(let i=0;i<idx;i++)cum+=S.phases[i].weeks;const p=S.phases[idx],wS=cum+1,wE=cum+p.weeks;return p.weeks===1?`W${wS}`:p.weeks<=3?Array.from({length:p.weeks},(_,k)=>`W${wS+k}`).join(', '):`W${wS}–W${wE}`;}
@@ -1438,7 +1440,7 @@ function selectDate(date){
   renderWeekNav();
 }
 function loadSess(sess){
-  S.isRest=sess.isRest||false;
+  S.isRest='isRest' in sess?sess.isRest:null;
   S.activities=JSON.parse(JSON.stringify(sess.activities||[]));
   S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
   document.getElementById('m-extra').value=sess.extra||'';
@@ -1451,7 +1453,7 @@ function loadSess(sess){
   updateCheckinCollapse();
 }
 function resetForm(){
-  S.isRest=false;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';
+  S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
   buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
   buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
@@ -1494,27 +1496,34 @@ function shiftWeek(d){
 })();
 
 function renderSession(){
-  document.getElementById('btn-rest').classList.toggle('on',S.isRest);
-  document.getElementById('btn-train').classList.toggle('on',!S.isRest);
-  document.getElementById('rest-content').classList.toggle('hidden',!S.isRest);
-  document.getElementById('train-content').classList.toggle('hidden',S.isRest);
-  if(S.isRest){
+  const unpicked=S.isRest===null;
+  document.getElementById('btn-rest').classList.toggle('on',S.isRest===true);
+  document.getElementById('btn-train').classList.toggle('on',S.isRest===false);
+  document.getElementById('rest-content').classList.toggle('hidden',S.isRest!==true);
+  document.getElementById('train-content').classList.toggle('hidden',S.isRest!==false);
+  const nudge=document.getElementById('session-nudge');
+  nudge.classList.toggle('hidden',!unpicked);
+  if(unpicked){const sugDay=derivedGymDay(S.selectedDate);nudge.textContent=`Day ${sugDay} suggested`;}
+  if(S.isRest===true){
     const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
     document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;
-  } else {
+  } else if(S.isRest===false){
     renderActivityList();
   }
   updateCheckoutReveal();
 }
 
 function setSessionType(type){
-  if(type==='rest'){S.isRest=true;S.activities=[];}
+  const tappingRest=type==='rest';
+  const alreadyActive=(tappingRest&&S.isRest===true)||(!tappingRest&&S.isRest===false);
+  if(alreadyActive){S.isRest=null;}
+  else if(tappingRest){S.isRest=true;S.activities=[];}
   else{S.isRest=false;}
   renderSession();markDirty();
 }
 
 function addActivity(type){
-  if(S.isRest)return;
+  if(S.isRest===true)return;
   const id=uid();
   const act={id,type,supersets:[],bjj:{}};
   if(type==='template'){
@@ -1900,7 +1909,7 @@ async function completeDay(){
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function sessionHasData(s){
-  if(s.isRest||s.dtype==='Rest')return true;
+  if(s.isRest===true||s.dtype==='Rest')return true;
   const acts=s.activities||[];
   if(acts.some(a=>{
     if(a.type==='bjj'){const b=a.bjj||{};return b.gc||b.desc||b.partner||b.drilling||b.good||b.bad||b.subs||b.next||(b.positions||[]).length;}
@@ -1933,7 +1942,7 @@ function toRows(s){
     }
   });
   if(!rows.length&&sessionHasData(s)){
-    const typeLabel=s.isRest||s.dtype==='Rest'?'Rest':'';
+    const typeLabel=s.isRest===true||s.dtype==='Rest'?'Rest':'';
     rows.push([s.date,wk,s.phase,typeLabel,'','','','','','','','','','','',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'','',s.extra||'',s.notes||'']);
   }
   return rows;
@@ -2069,7 +2078,7 @@ function showOverview(){
 
 // ── SESSION ROW ───────────────────────────────────────────────────────────────
 function sessionTypeLabel(s){
-  if(s.isRest||s.dtype==='Rest')return'Rest';
+  if(s.isRest===true||s.dtype==='Rest')return'Rest';
   const acts=s.activities||[];
   if(acts.length){
     const counts={};
