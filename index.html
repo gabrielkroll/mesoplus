@@ -136,8 +136,12 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .csw.show{display:flex}
 .csi{background:none;border:none;border-bottom:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:11px;width:40px;text-align:center;outline:none;padding:2px 0}
 .extras-col{display:flex;flex-direction:column;gap:16px;padding-top:2px}
-.checkin-summary{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin-bottom:14px;background:var(--surf);border-radius:6px;border:1px solid var(--line)}
-.checkin-summary-text{font-size:12px;color:var(--ink2);font-family:var(--mono);letter-spacing:.01em}
+.checkin-summary{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 14px;margin-bottom:14px;background:var(--surf);border-radius:6px;border:1px solid var(--line)}
+.checkin-readiness{display:flex;flex-direction:column;gap:4px}
+.checkin-score-row{display:flex;align-items:baseline;gap:8px}
+.checkin-score{font-family:var(--mono);font-size:22px;color:var(--ink);line-height:1}
+.checkin-tier-label{font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.05em;text-transform:uppercase}
+.checkin-inputs{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.02em}
 .checkin-expand-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;cursor:pointer;padding:4px 8px;border-radius:3px;transition:color .12s;outline:none;flex-shrink:0}
 .checkin-expand-btn:hover{color:var(--ink2)}
 .checkout-section{margin-top:4px}
@@ -740,7 +744,13 @@ select.bare{cursor:pointer}
 
     <div class="section-title">Check-in</div>
     <div id="checkin-summary" class="checkin-summary hidden">
-      <span class="checkin-summary-text" id="checkin-summary-text"></span>
+      <div class="checkin-readiness">
+        <div class="checkin-score-row">
+          <span class="checkin-score" id="checkin-score"></span>
+          <span class="checkin-tier-label" id="checkin-tier-label"></span>
+        </div>
+        <div class="checkin-inputs" id="checkin-inputs"></div>
+      </div>
       <button class="checkin-expand-btn" onclick="expandCheckin()">edit</button>
     </div>
     <div id="checkin-form">
@@ -1331,7 +1341,10 @@ function updateCheckinCollapse(){
   document.getElementById('checkin-form').classList.toggle('hidden',!!filled);
   if(filled){
     const sleepLabel=S.sleep==='Custom'?(document.getElementById('csi')?.value||'?')+'h':S.sleep;
-    document.getElementById('checkin-summary-text').textContent=`Sleep ${sleepLabel} · Energy ${S.energy} · Soreness ${S.soreness}`;
+    const r=computeReadiness();
+    document.getElementById('checkin-score').textContent=r??'';
+    document.getElementById('checkin-tier-label').textContent=readinessTier(r);
+    document.getElementById('checkin-inputs').textContent=`Sleep ${sleepLabel} · ${S.energy} energy · ${S.soreness} soreness`;
   }
 }
 function expandCheckin(){
@@ -1509,20 +1522,24 @@ function computeReadiness(){
   const vals=[sl,en,so].filter(v=>v!==undefined);
   return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
 }
+function readinessTier(r){
+  if(r===null)return'';
+  if(r<25)return'Poor';
+  if(r<50)return'Low';
+  if(r<75)return'Moderate';
+  if(r<95)return'High';
+  return'Prime';
+}
 function sessionBrief(){
   const r=computeReadiness();
   const dayLetter=['A','B','C','D'][(derivedGymDay(S.selectedDate)||1)-1];
-  const checkinParts=[];
-  if(S.sleep)checkinParts.push(`Sleep ${S.sleep}`);
-  if(S.energy)checkinParts.push(S.energy+' energy');
-  if(S.soreness)checkinParts.push(S.soreness+' soreness');
-  const sub=checkinParts.join(' · ');
+  const tier=readinessTier(r);
   if(r===null)return{head:'How are you feeling today?',sub:'Complete check-in above.'};
-  if(r<25)return{head:'Your body needs recovery.',sub:sub};
-  if(r<50)return{head:'Take it easy today.',sub:sub};
-  if(r<75)return{head:`It's time for Day ${dayLetter}.`,sub:sub};
-  if(r<95)return{head:`Day ${dayLetter} — energy is high, go get it.`,sub:sub};
-  return{head:`Peak readiness — Day ${dayLetter} and then some.`,sub:sub};
+  if(r<25)return{head:'Your body needs recovery.',sub:tier+' readiness'};
+  if(r<50)return{head:'Take it easy today.',sub:tier+' readiness'};
+  if(r<75)return{head:`It's time for Day ${dayLetter}.`,sub:tier+' readiness'};
+  if(r<95)return{head:`Day ${dayLetter} — energy is high, go get it.`,sub:tier+' readiness'};
+  return{head:`Peak readiness — Day ${dayLetter} and then some.`,sub:tier+' readiness'};
 }
 function updateNudge(){
   if(S.isRest!==null)return;
