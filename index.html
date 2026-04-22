@@ -2690,7 +2690,12 @@ function renderSummaryWeek(){
   let urgencyHtml='';
   if(impossible)urgencyHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:6px">${gymLeft} sessions needed · ${calDaysLeft} day${calDaysLeft!==1?'s':''} left — not possible</div>`;
   else if(urgent)urgencyHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:6px">${gymLeft} sessions · ${calDaysLeft} day${calDaysLeft!==1?'s':''} — train daily to finish</div>`;
-  el.innerHTML=`<div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sessions</div></div>${extraHtml}<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${calDaysLeft} day${calDaysLeft!==1?'s':''} left in week</div>${urgencyHtml}`;
+  const dayIndicators=[1,2,3,4].map(day=>{
+    const daySess=weekSess.find(s=>(s.activities||[]).some(a=>a.type==='template'&&a.gymDay===day));
+    const color=!daySess?'var(--line)':daySess.completed?'var(--accent)':'var(--ink2)';
+    return `<span style="font-family:var(--mono);font-size:11px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
+  }).join('<span style="color:var(--line);margin:0 4px">·</span>');
+  el.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${calDaysLeft} day${calDaysLeft!==1?'s':''} left in week</div>${urgencyHtml}`;
 }
 function nav(id){
   ['summary','train','insights','profile','program','setup','progress'].forEach(v=>{
