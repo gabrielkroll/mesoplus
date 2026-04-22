@@ -7,8 +7,8 @@
 
 ## Now
 
-**Slice 2 — Summary MVP**
-Goal: Open the app and understand your situation in under 3 seconds.
+**Slice 3 — Plan → Train Clarity**
+Goal: No confusion about what to train or why.
 Status: Not started — discuss acceptance criteria before touching code.
 
 ---
@@ -18,6 +18,7 @@ Status: Not started — discuss acceptance criteria before touching code.
 | Slice | Commit | Key decisions |
 |---|---|---|
 | 1 — Navigation Refactor | `8e36b7c` | Log→Train, Stats→Summary (placeholder), Analysis→Insights. Nav order: Summary→Train→Insights→Plan→Profile. Old Stats preserved under Profile→Stats. |
+| 2 — Summary MVP | `2a0e50a` | Today card (Day X · Full Body · Focus, done ✓, or Rest day). Week card (gymDone/4, extra count, days left, urgency signal). DAY_FOCUS: A/C=Posterior & Biceps, B/D=Quads & Chest. Week = Mon–Sun. |
 
 ---
 
