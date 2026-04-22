@@ -722,8 +722,8 @@ select.bare{cursor:pointer}
 
   <div id="v-summary">
     <div style="padding:24px 0 16px">
-      <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:4px" id="sum-wk-label">Week —</div>
-      <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:24px">Your week</div>
+      <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:4px" id="sum-wk-label">Microcycle · —</div>
+      <div id="sum-phase-head" style="font-family:var(--serif);font-style:italic;font-size:32px;margin-bottom:24px">—</div>
       <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">Today</div>
       <div id="sum-today-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:20px"></div>
       <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">This week</div>
@@ -2650,8 +2650,11 @@ async function saveSettings(){
 }
 
 function renderSummary(){
+  const dp=derivedPhase();const phase=ph();
   const wkEl=document.getElementById('sum-wk-label');
-  if(wkEl)wkEl.textContent='Mesocycle · W'+mesoWk();
+  if(wkEl)wkEl.textContent=`Microcycle · W${dp.weekInPhase} of ${phase.weeks}`;
+  const headEl=document.getElementById('sum-phase-head');
+  if(headEl){headEl.textContent=phase.name;headEl.style.color=phase.color;}
   renderSummaryToday();
   renderSummaryWeek();
 }
