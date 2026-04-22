@@ -809,7 +809,6 @@ select.bare{cursor:pointer}
 
     <!-- Train: stackable activity blocks -->
     <div id="train-content" class="hidden">
-      <div id="train-day-label" class="hidden" style="font-family:var(--mono);font-size:12px;color:var(--ink2);padding:14px 0 4px;letter-spacing:.02em"></div>
       <div id="activity-list"></div>
       <div class="add-activity-row" id="add-activity-row">
         <button class="add-act-btn" onclick="addActivity('template')">+ Day Template</button>
@@ -1586,14 +1585,7 @@ function renderSession(){
   if(S.isRest===true){
     const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
     document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;
-    const dl=document.getElementById('train-day-label');if(dl)dl.classList.add('hidden');
   } else if(S.isRest===false){
-    const gymAct=S.activities.find(a=>a.type==='template');
-    const day=gymAct?gymAct.gymDay:derivedGymDay(S.selectedDate);
-    const letter=DAY_LETTER[day-1]||'A';
-    const focus=DAY_FOCUS[day]||'';
-    const dl=document.getElementById('train-day-label');
-    if(dl){dl.textContent=`Day ${letter} · Full Body · ${focus}`;dl.classList.remove('hidden');}
     renderActivityList();
   }
   updateCheckoutReveal();
@@ -1674,15 +1666,15 @@ function appendActivityBlock(act){
   const div=document.createElement('div');
   div.className='activity-block';
   div.id='act-block-'+act.id;
-  const typeLabels={template:'Day Template',custom:'Custom Workout',bjj:'BJJ Session'};
-  const subLabel=act.type==='template'?` · Day ${['A','B','C','D'][act.gymDay-1]||act.gymDay}`:'';
+  const typeLabels={custom:'Custom Workout',bjj:'BJJ Session'};
+  const subLabel=act.type==='template'?`Day ${DAY_LETTER[act.gymDay-1]||act.gymDay} · Full Body · ${DAY_FOCUS[act.gymDay]||''}`:'';
   const countOfType=S.activities.filter(a=>a.type===act.type).length;
   const actIndex=S.activities.filter(a=>a.type===act.type).indexOf(act)+1;
   const numLabel=countOfType>1?` ${actIndex}`:'';
   if(act.type==='template'||act.type==='custom'){
     div.innerHTML=`
       <div class="activity-block-hdr">
-        <span class="activity-block-lbl">${typeLabels[act.type]}${subLabel}${numLabel}</span>
+        <span class="activity-block-lbl">${act.type==='template'?subLabel:typeLabels[act.type]}${act.type!=='template'?numLabel:''}</span>
         <button class="activity-toggle-btn" onclick="removeActivity('${act.id}')">× Remove</button>
       </div>
       <div class="activity-block-body">
