@@ -7,8 +7,8 @@
 
 ## Now
 
-**Slice 4 — Weekly Completion Loop**
-Goal: Create consistency behaviour — feel the pull to complete the week.
+**Slice 5 — Volume Awareness**
+Goal: Show total sets this week vs. planned — give the week a number, not just a colour.
 Status: Not started — discuss acceptance criteria before touching code.
 
 ---
@@ -20,6 +20,7 @@ Status: Not started — discuss acceptance criteria before touching code.
 | 1 — Navigation Refactor | `8e36b7c` | Log→Train, Stats→Summary (placeholder), Analysis→Insights. Nav order: Summary→Train→Insights→Plan→Profile. Old Stats preserved under Profile→Stats. |
 | 2 — Summary MVP | `2a0e50a` | Today card (Day X · Full Body · Focus, done ✓/in progress). Week card (gymDone/4, ABCD indicators, days left, urgency). DAY_FOCUS: A/C=Posterior & Biceps, B/D=Quads & Chest. Week = Mon–Sun. |
 | 3 — Plan → Train Clarity | `0fdf3f0` | Focus labels on Plan day headers. Activity block header = "Day A · Full Body · Posterior & Biceps" (no duplication). completed flag added to completeDay(). ABCD indicators: faded=pending, grey=in progress, green=done. |
+| 4 — Weekly Completion Loop | `d0e013c` | Pull created by ABCD indicators (S2). Summary header: phase name in phase color (serif italic 32px) + microcycle week label (mono). Deselect fix: Summary updates immediately when Train deselected. Active nudge deferred to S6. |
 
 ---
 
@@ -27,8 +28,6 @@ Status: Not started — discuss acceptance criteria before touching code.
 
 | # | Slice | Depends on |
 |---|---|---|
-| 3 | Plan → Train Clarity | 2 |
-| 4 | Weekly Completion Loop | 2 |
 | 5 | Volume Awareness | 4 |
 | 6 | Adaptive Action Bar | 2, 3 |
 | 7 | Readiness Integration | 6 |
