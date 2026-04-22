@@ -50,3 +50,4 @@ Status: Not started — discuss acceptance criteria before touching code.
 - One slice = one commit on v1-extension
 - Always discuss acceptance criteria before writing code
 - Grep before reading — never load index.html whole
+- Extra sessions card (BJJ/custom count) — parked, add after S6
