@@ -2731,8 +2731,8 @@ function renderSummaryWeek(){
   let paceLabel='',paceColor='var(--ink3)';
   if(gymDone===gymPlanned){paceLabel='complete';paceColor='var(--accent)';}
   else if(gymDone>0){paceLabel=actual>=expectedSets?'on pace':'behind';paceColor=actual>=expectedSets?'var(--accent)':'var(--ink2)';}
-  const contextLine=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:var(--mono);font-size:10px;color:var(--ink3)">${actual} of ${planned} sets · ${calDaysLeft} day${calDaysLeft!==1?'s':''} left</div>${paceLabel?`<div style="font-family:var(--mono);font-size:10px;color:${paceColor}">${paceLabel}</div>`:''}</div>`;
-  const barHtml=pct>0?`<div style="height:2px;background:var(--line);border-radius:1px;overflow:hidden;margin-top:8px"><div style="height:2px;width:${pct}%;background:var(--accent);border-radius:1px"></div></div>`:'';
+  const contextLine=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:var(--mono);font-size:10px;color:var(--ink3)">${calDaysLeft} day${calDaysLeft!==1?'s':''} left${paceLabel?' · <span style="color:'+paceColor+'">'+paceLabel+'</span>':''}</div><div style="font-family:var(--mono);font-size:10px;color:var(--ink2)">${actual}/${planned} sets</div></div>`;
+  const barHtml=pct>0?`<div style="height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px"><div style="height:6px;width:${pct}%;background:var(--accent);border-radius:3px"></div></div>`:'';
   let urgencyLine='';
   if(impossible)urgencyLine=`<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:6px">Not possible this week</div>`;
   else if(urgent)urgencyLine=`<div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:6px">Train daily to finish</div>`;
