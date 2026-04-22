@@ -677,17 +677,17 @@ select.bare{cursor:pointer}
 <!-- BOTTOM NAV (mobile only) -->
 <nav class="bottom-nav" id="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-item on" id="bn-log" onclick="nav('log')">
+    <button class="bnav-item on" id="bn-summary" onclick="nav('summary')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Summary</span>
+    </button>
+    <button class="bnav-item" id="bn-train" onclick="nav('train')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/></svg>
-      <span>Log</span>
+      <span>Train</span>
     </button>
-    <button class="bnav-item" id="bn-progress" onclick="nav('progress')">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
-      <span>Stats</span>
-    </button>
-    <button class="bnav-item" id="bn-analysis" onclick="nav('analysis')">
+    <button class="bnav-item" id="bn-insights" onclick="nav('insights')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-      <span>Analysis</span>
+      <span>Insights</span>
     </button>
     <button class="bnav-item" id="bn-program" onclick="nav('program')">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
@@ -704,9 +704,9 @@ select.bare{cursor:pointer}
   <div class="nav">
     <div class="wordmark">Meso<sup>+</sup></div>
     <div class="nav-links">
-      <button class="nl on" id="nl-log" onclick="nav('log')">Log</button>
-      <button class="nl" id="nl-progress" onclick="nav('progress')">Stats</button>
-      <button class="nl" id="nl-analysis" onclick="nav('analysis')">Analysis</button>
+      <button class="nl on" id="nl-summary" onclick="nav('summary')">Summary</button>
+      <button class="nl" id="nl-train" onclick="nav('train')">Train</button>
+      <button class="nl" id="nl-insights" onclick="nav('insights')">Insights</button>
       <button class="nl" id="nl-program" onclick="nav('program')">Plan</button>
       <div class="profile-wrap">
         <button class="nl" id="nl-profile" onclick="toggleProfileMenu()" style="display:inline-flex;align-items:center"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
@@ -720,7 +720,18 @@ select.bare{cursor:pointer}
     </div>
   </div>
 
-  <div id="v-log">
+  <div id="v-summary">
+    <div style="padding:24px 0 16px">
+      <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:6px">Summary</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:32px">Your day</div>
+      <div style="border:1px solid var(--line);border-radius:8px;padding:20px 16px;color:var(--ink3);font-family:var(--mono);font-size:11px;line-height:1.6">
+        <div style="color:var(--ink2);margin-bottom:4px">Coming in Slice 2</div>
+        Next workout · Weekly sessions · Days remaining
+      </div>
+    </div>
+  </div>
+
+  <div id="v-train" class="hidden">
     <div class="week-nav">
       <div class="week-label">
         <div class="wl-main" id="wl-main"></div>
@@ -822,7 +833,7 @@ select.bare{cursor:pointer}
         <button class="btn-ghost" id="undo-btn" onclick="undoSession()" style="display:none">↩ Undo</button>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn-o" onclick="nav('analysis')">Analyse ↗</button>
+        <button class="btn-o" onclick="nav('insights')">Analyse ↗</button>
         <button class="btn-o" onclick="manualSync()">Sync ↑</button>
         <button class="btn-s" onclick="completeDay()">Complete day</button>
       </div>
@@ -830,6 +841,7 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-progress" class="hidden">
+    <button class="detail-back" onclick="nav('profile')">‹ Profile</button>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
       <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)" id="prog-view-title">Stats</div>
       <button class="btn-o" onclick="exportCSV()" id="prog-export-btn">Export CSV</button>
@@ -975,8 +987,8 @@ select.bare{cursor:pointer}
     </div>
   </div>
 
-  <div id="v-analysis" class="hidden">
-    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:14px">Analysis</div>
+  <div id="v-insights" class="hidden">
+    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:14px">Insights</div>
     <div class="analysis-selects" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div><div class="field-lbl">Scope</div><select class="bare" id="a-scope"><option value="last">Last session</option><option value="week" selected>This week</option><option value="meso">Full mesocycle</option></select></div>
       <div><div class="field-lbl">Focus</div><select class="bare" id="a-focus"><option value="next">Next session targets</option><option value="volume">Volume per muscle</option><option value="progress">Progress over time</option><option value="bjj">BJJ + training load</option><option value="goals">Goal tracking</option><option value="phase">Ready to advance phase?</option></select></div>
@@ -1004,6 +1016,14 @@ select.bare{cursor:pointer}
         <div class="settings-nav-content">
           <div class="settings-nav-label">Plan</div>
           <div class="settings-nav-sub" id="hub-program-sub"></div>
+        </div>
+        <div class="settings-nav-chevron">›</div>
+      </button>
+      <div class="settings-nav-divider"></div>
+      <button class="settings-nav-row" onclick="nav('progress')">
+        <div class="settings-nav-content">
+          <div class="settings-nav-label">Stats</div>
+          <div class="settings-nav-sub">Session history · Volume</div>
         </div>
         <div class="settings-nav-chevron">›</div>
       </button>
@@ -2622,16 +2642,16 @@ async function saveSettings(){
 }
 
 function nav(id){
-  ['log','progress','analysis','profile','program','setup'].forEach(v=>{
+  ['summary','train','insights','profile','program','setup','progress'].forEach(v=>{
     document.getElementById('v-'+v).classList.toggle('hidden',v!==id);
     const el=document.getElementById('nl-'+v);if(el)el.classList.toggle('on',v===id);
   });
   const pp=document.getElementById('nl-profile');if(pp)pp.classList.toggle('on',['profile','setup'].includes(id));
   // Sync bottom nav
-  ['log','progress','analysis','program'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
+  ['summary','train','insights','program'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
   const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','setup'].includes(id));
   if(id==='progress')renderProgress();
-  if(id==='analysis')loadAnalysisHistory();
+  if(id==='insights')loadAnalysisHistory();
   if(id==='program')renderPlanTab();
   if(id==='profile')updateHubSubtitles();
   closeProfileMenu();
