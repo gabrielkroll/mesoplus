@@ -30,13 +30,13 @@ Status: Not started — discuss acceptance criteria before touching code.
 | # | Slice | Depends on |
 |---|---|---|
 | 6 | Adaptive Action Bar | 2, 3 |
-| 6 | Adaptive Action Bar | 2, 3 |
 | 7 | Readiness Integration | 6 |
 | 8 | Insights → Weekly Review Flow | 4, 5 |
 | 9 | RIR → Stimulus Signal | existing data |
 | 10 | Summary Upgrade | 5, 9 |
-| 11 | Weekly Check-in Shell | 8 |
-| 12 | AI Check-in | 11, 9 |
+| 11 | Train tab refactor — activity block as full-screen sheet | 6 |
+| 12 | Weekly Check-in Shell | 8 |
+| 13 | AI Check-in | 12, 9 |
 
 ---
 
@@ -51,3 +51,4 @@ Status: Not started — discuss acceptance criteria before touching code.
 - Always discuss acceptance criteria before writing code
 - Grep before reading — never load index.html whole
 - Extra sessions card (BJJ/custom count) — parked, add after S6
+- Train tab refactor (activity block → full-screen sheet, shared component) — parked as S11, depends on S6
