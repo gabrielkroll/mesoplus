@@ -1594,10 +1594,14 @@ function renderSession(){
 function setSessionType(type){
   const tappingRest=type==='rest';
   const alreadyActive=(tappingRest&&S.isRest===true)||(!tappingRest&&S.isRest===false);
-  if(alreadyActive){S.isRest=null;}
+  if(alreadyActive){
+    S.isRest=null;S.activities=[];
+    const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
+    if(ei>=0&&!sessionHasData(buildCurrentSession()))S.sessions.splice(ei,1);
+  }
   else if(tappingRest){S.isRest=true;S.activities=[];}
   else{S.isRest=false;}
-  renderSession();markDirty();
+  renderSession();renderSummary();markDirty();
 }
 
 function addActivity(type){
