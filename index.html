@@ -456,6 +456,8 @@ select.bare{cursor:pointer}
 }
 /* Desktop: strip the profile card, hide mobile-only hub nav */
 @media(min-width:601px){
+  .action-bar{bottom:0}
+  .wrap{padding-bottom:68px}
   .settings-card{border:none;border-radius:0;padding:0;margin-bottom:0;background:none}
   .settings-card-title{font-size:20px;margin-bottom:0}
   .settings-card .s-row{border-bottom:1px solid var(--line);padding-bottom:14px}
@@ -487,6 +489,17 @@ select.bare{cursor:pointer}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:9px;letter-spacing:.04em;padding:10px 4px 8px;cursor:pointer;min-height:52px;transition:color .12s;outline:none;-webkit-tap-highlight-color:transparent}
 .bnav-item.on{color:var(--accent)}
 .bnav-item svg{display:block;flex-shrink:0}
+
+/* ACTION BAR */
+.action-bar{position:fixed;left:0;right:0;z-index:199;background:var(--lift);border-top:1px solid var(--line);height:52px;overflow:hidden;transition:height .22s cubic-bezier(0.32,0.72,0,1)}
+.action-bar.ab-off{height:24px}
+.ab-expand-btn{display:none;width:100%;height:24px;background:none;border:none;cursor:pointer;align-items:center;justify-content:center;outline:none;-webkit-tap-highlight-color:transparent}
+.action-bar.ab-off .ab-expand-btn{display:flex}
+.ab-body{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.action-bar.ab-off .ab-body{visibility:hidden;pointer-events:none}
+.ab-content{flex:1;display:flex;align-items:center;font-family:var(--mono);font-size:13px;color:var(--ink)}
+.ab-collapse-btn{background:none;border:none;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;outline:none;padding:0;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.ab-pill{width:32px;height:3px;background:var(--line);border-radius:2px}
 
 /* EXERCISE SHEET */
 .ex-sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .25s;pointer-events:none;visibility:hidden}
@@ -525,7 +538,8 @@ select.bare{cursor:pointer}
 @media(max-width:600px){
   .nav{display:none!important}
   .bottom-nav{display:block}
-  .wrap{padding:16px 16px 88px}
+  .wrap{padding:16px 16px 148px}
+  .action-bar{bottom:calc(52px + env(safe-area-inset-bottom,0))}
   body{font-size:14px}
   .extras-row{grid-template-columns:1fr}
   .readiness-row{grid-template-columns:1fr;gap:12px 0}
@@ -699,6 +713,19 @@ select.bare{cursor:pointer}
     </button>
   </div>
 </nav>
+
+<!-- ACTION BAR — always on, all tabs -->
+<div id="action-bar" class="action-bar" role="complementary" aria-label="Quick actions">
+  <button class="ab-expand-btn" id="ab-expand-btn" onclick="toggleActionBar()" aria-label="Show action bar">
+    <div class="ab-pill"></div>
+  </button>
+  <div class="ab-body">
+    <div id="ab-content" class="ab-content"></div>
+    <button class="ab-collapse-btn" onclick="toggleActionBar()" aria-label="Collapse action bar" id="ab-collapse-btn">
+      <div class="ab-pill"></div>
+    </button>
+  </div>
+</div>
 
 <div class="wrap">
   <div class="nav">
@@ -1344,7 +1371,7 @@ function init(){
   renderPhaseBar();renderAdvBar();renderWeekNav();
   const _initSess=S.sessions.find(s=>s.date===S.selectedDate);
   if(_initSess)loadSess(_initSess);else renderSession();
-  renderSummary();
+  renderSummary();initActionBar();
 }
 
 function buildChips(id,opts,sel,cb){
@@ -2648,6 +2675,26 @@ async function saveSettings(){
     if(d.spreadsheetId){st.textContent='Connected: '+d.properties.title;st.style.color='var(--accent)';}
     else{st.textContent='Error: '+(d.error?.message||'Check API key and Sheet ID');st.style.color='var(--danger)';}
   }catch(e){st.textContent='Network error — check credentials';st.style.color='var(--danger)';}
+}
+
+// ── ACTION BAR ────────────────────────────────────────────────────────────────
+function toggleActionBar(){
+  const bar=document.getElementById('action-bar');if(!bar)return;
+  const isOff=bar.classList.toggle('ab-off');
+  document.getElementById('ab-expand-btn')?.setAttribute('aria-label',isOff?'Show action bar':'Collapse action bar');
+  document.getElementById('ab-collapse-btn')?.setAttribute('aria-label',isOff?'Show action bar':'Collapse action bar');
+  localStorage.setItem('mp7_bar_off',isOff?td():'');
+  renderActionBar();
+}
+function initActionBar(){
+  const bar=document.getElementById('action-bar');if(!bar)return;
+  const saved=localStorage.getItem('mp7_bar_off');
+  if(saved&&saved===td())bar.classList.add('ab-off');
+  renderActionBar();
+}
+function renderActionBar(){
+  const el=document.getElementById('ab-content');if(!el)return;
+  el.innerHTML=''; // 6b: content wired next slice
 }
 
 function renderSummary(){
