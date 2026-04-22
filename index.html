@@ -809,6 +809,7 @@ select.bare{cursor:pointer}
 
     <!-- Train: stackable activity blocks -->
     <div id="train-content" class="hidden">
+      <div id="train-day-label" class="hidden" style="font-family:var(--mono);font-size:12px;color:var(--ink2);padding:14px 0 4px;letter-spacing:.02em"></div>
       <div id="activity-list"></div>
       <div class="add-activity-row" id="add-activity-row">
         <button class="add-act-btn" onclick="addActivity('template')">+ Day Template</button>
@@ -1585,7 +1586,14 @@ function renderSession(){
   if(S.isRest===true){
     const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
     document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;
+    const dl=document.getElementById('train-day-label');if(dl)dl.classList.add('hidden');
   } else if(S.isRest===false){
+    const gymAct=S.activities.find(a=>a.type==='template');
+    const day=gymAct?gymAct.gymDay:derivedGymDay(S.selectedDate);
+    const letter=DAY_LETTER[day-1]||'A';
+    const focus=DAY_FOCUS[day]||'';
+    const dl=document.getElementById('train-day-label');
+    if(dl){dl.textContent=`Day ${letter} · Full Body · ${focus}`;dl.classList.remove('hidden');}
     renderActivityList();
   }
   updateCheckoutReveal();
@@ -2514,7 +2522,7 @@ function renderPlanTab(){
         </div>
       </div>`;
     }).join('');
-    return `<div class="plan-day-card"><div class="plan-day-title">${dayLabels[day]}</div>${rows}</div>`;
+    return `<div class="plan-day-card"><div class="plan-day-title">${dayLabels[day]}</div><div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:-6px;margin-bottom:12px">Full Body · ${DAY_FOCUS[day]||''}</div>${rows}</div>`;
   }).join('');
 
   // Weekly muscle totals
