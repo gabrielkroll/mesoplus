@@ -1975,6 +1975,7 @@ function undoSession(){
 async function completeDay(){
   clearTimeout(_syncTimer);
   const sess=buildCurrentSession();
+  sess.completed=true;
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   S.weekInPhase=Math.min(S.weekInPhase+1,ph().weeks);
@@ -2658,7 +2659,10 @@ function renderSummaryToday(){
   if(gymAct){
     const letter=DAY_LETTER[gymAct.gymDay-1];
     const focus=DAY_FOCUS[gymAct.gymDay]||'';
-    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div><div style="font-family:var(--mono);font-size:11px;color:var(--accent)">done ✓</div></div>`;
+    const statusHtml=sess.completed
+      ?`<div style="font-family:var(--mono);font-size:11px;color:var(--accent)">done ✓</div>`
+      :`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3)">in progress</div>`;
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
   } else if(sess&&!(sess.activities||[]).some(a=>a.type==='template')){
     el.innerHTML=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2)">Rest day</div>`;
   } else {
