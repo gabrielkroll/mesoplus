@@ -2668,16 +2668,16 @@ function renderSummaryToday(){
     const letter=DAY_LETTER[gymAct.gymDay-1];
     const focus=DAY_FOCUS[gymAct.gymDay]||'';
     const statusHtml=sess.completed
-      ?`<div style="font-family:var(--mono);font-size:11px;color:var(--accent)">done ✓</div>`
-      :`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3)">in progress</div>`;
-    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
+      ?`<div style="font-family:var(--mono);font-size:13px;color:var(--accent)">done ✓</div>`
+      :`<div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">in progress</div>`;
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
   } else if(sess&&!(sess.activities||[]).some(a=>a.type==='template')){
     el.innerHTML=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2)">Rest day</div>`;
   } else {
     const nextDay=derivedGymDay(today);
     const letter=DAY_LETTER[nextDay-1];
     const focus=DAY_FOCUS[nextDay]||'';
-    el.innerHTML=`<div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div>`;
+    el.innerHTML=`<div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>`;
   }
 }
 function weeklyPlannedSets(){
@@ -2723,12 +2723,12 @@ function renderSummaryWeek(){
   const dayIndicators=[1,2,3,4].map(day=>{
     const daySess=weekSess.find(s=>(s.activities||[]).some(a=>a.type==='template'&&a.gymDay===day));
     const color=!daySess?'var(--line)':daySess.completed?'var(--accent)':'var(--ink2)';
-    return `<span style="font-family:var(--mono);font-size:11px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
+    return `<span style="font-family:var(--mono);font-size:13px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
   }).join('<span style="color:var(--line);margin:0 4px">·</span>');
   let urgencyLine='';
-  if(impossible)urgencyLine=`<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:8px">Not possible this week</div>`;
-  else if(urgent)urgencyLine=`<div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:8px">Train daily to finish</div>`;
-  el.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}${urgencyLine}`;
+  if(impossible)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--danger);margin-top:8px">Not possible this week</div>`;
+  else if(urgent)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:8px">Train daily to finish</div>`;
+  el.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}${urgencyLine}`;
   const setsEl=document.getElementById('sum-sets-card');if(!setsEl)return;
   const planned=weeklyPlannedSets();
   const actual=weeklyActualSets(mon,sun);
