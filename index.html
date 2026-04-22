@@ -2670,7 +2670,7 @@ function renderSummaryToday(){
     const statusHtml=sess.completed
       ?`<div style="font-family:var(--mono);font-size:13px;color:var(--accent)">done ✓</div>`
       :`<div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">in progress</div>`;
-    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
   } else if(sess&&!(sess.activities||[]).some(a=>a.type==='template')){
     el.innerHTML=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2)">Rest day</div>`;
   } else {
@@ -2728,7 +2728,7 @@ function renderSummaryWeek(){
   let urgencyLine='';
   if(impossible)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--danger);margin-top:8px">Not possible this week</div>`;
   else if(urgent)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:8px">Train daily to finish</div>`;
-  el.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}${urgencyLine}`;
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}${urgencyLine}`;
   const setsEl=document.getElementById('sum-sets-card');if(!setsEl)return;
   const planned=weeklyPlannedSets();
   const actual=weeklyActualSets(mon,sun);
