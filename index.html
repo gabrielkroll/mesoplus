@@ -722,12 +722,12 @@ select.bare{cursor:pointer}
 
   <div id="v-summary">
     <div style="padding:24px 0 16px">
-      <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:6px">Summary</div>
-      <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:32px">Your day</div>
-      <div style="border:1px solid var(--line);border-radius:8px;padding:20px 16px;color:var(--ink3);font-family:var(--mono);font-size:11px;line-height:1.6">
-        <div style="color:var(--ink2);margin-bottom:4px">Coming in Slice 2</div>
-        Next workout · Weekly sessions · Days remaining
-      </div>
+      <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:4px" id="sum-wk-label">Week —</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:24px">Your week</div>
+      <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">Today</div>
+      <div id="sum-today-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:20px"></div>
+      <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">This week</div>
+      <div id="sum-week-card" style="border:1px solid var(--line);border-radius:8px;padding:16px"></div>
     </div>
   </div>
 
@@ -1246,6 +1246,8 @@ const TEMPLATES={
     ]}
   ],
 };
+const DAY_FOCUS={1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'};
+const DAY_LETTER=['A','B','C','D'];
 const EX_MUSCLE={'Seated Calf Raises':'Calves','Standing Calf Raises':'Calves','Romanian Deadlift':'Hamstrings','Face Pulls':'Delts','Incline DB Curl':'Biceps','Bayesian Cable Curl':'Biceps','EZ Bar Curl':'Biceps','Hammer Curl':'Biceps','Barbell Bench Press':'Chest','DB Bench Press':'Chest','Incline DB Bench Press':'Chest','Pec Deck Fly':'Chest','Chest Supported Row':'Back','Lat Pulldown':'Back','Towel Grip Farmer Carry':'Forearms','Plate Pinch Hold':'Forearms','Squat':'Quads','Front Squat':'Quads','Wrist Curl':'Forearms','Reverse Wrist Curl':'Forearms','Reverse Pec Deck':'Delts','Overhead Press':'Delts','Lateral Raises':'Delts','Overhead Cable Triceps Ext':'Triceps','Skull Crushers':'Triceps','Cable Fly':'Chest','Pull-ups':'Back','Dips':'Triceps','Leg Curl':'Hamstrings','Leg Press':'Quads'};
 const EX_MUSCLE2={'Romanian Deadlift':'Glutes','Squat':'Glutes','Front Squat':'Glutes','Leg Press':'Glutes','Leg Curl':'Glutes','Face Pulls':'Stability','Reverse Pec Deck':'Stability','Hammer Curl':'Forearms','EZ Bar Curl':'Forearms','Towel Grip Farmer Carry':'Grip','Plate Pinch Hold':'Grip','Wrist Curl':'Grip','Reverse Wrist Curl':'Grip'};
 const EX_RES={'Seated Calf Raises':'Machine','Romanian Deadlift':'Free Weights','Face Pulls':'Cable','Incline DB Curl':'Free Weights','Bayesian Cable Curl':'Cable','EZ Bar Curl':'Free Weights','Hammer Curl':'Free Weights','Barbell Bench Press':'Free Weights','DB Bench Press':'Free Weights','Pec Deck Fly':'Machine','Chest Supported Row':'Machine','Lat Pulldown':'Machine','Towel Grip Farmer Carry':'Free Weights','Plate Pinch Hold':'Free Weights','Squat':'Free Weights','Front Squat':'Free Weights','Wrist Curl':'Free Weights','Reverse Wrist Curl':'Free Weights','Reverse Pec Deck':'Machine','Overhead Press':'Free Weights','Lateral Raises':'Free Weights','Overhead Cable Triceps Ext':'Cable','Skull Crushers':'Free Weights','Cable Fly':'Cable','Pull-ups':'Bodyweight','Dips':'Bodyweight','Leg Curl':'Machine','Leg Press':'Machine'};
@@ -1337,10 +1339,11 @@ function init(){
   buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
   buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
   buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
-  document.getElementById('v-log').addEventListener('input',()=>markDirty());
+  document.getElementById('v-train').addEventListener('input',()=>markDirty());
   renderPhaseBar();renderAdvBar();renderWeekNav();
   const _initSess=S.sessions.find(s=>s.date===S.selectedDate);
   if(_initSess)loadSess(_initSess);else renderSession();
+  renderSummary();
 }
 
 function buildChips(id,opts,sel,cb){
@@ -2641,6 +2644,50 @@ async function saveSettings(){
   }catch(e){st.textContent='Network error — check credentials';st.style.color='var(--danger)';}
 }
 
+function renderSummary(){
+  const wkEl=document.getElementById('sum-wk-label');
+  if(wkEl)wkEl.textContent='Mesocycle · W'+mesoWk();
+  renderSummaryToday();
+  renderSummaryWeek();
+}
+function renderSummaryToday(){
+  const el=document.getElementById('sum-today-card');if(!el)return;
+  const today=td();
+  const sess=S.sessions.find(s=>s.date===today);
+  const gymAct=sess?(sess.activities||[]).find(a=>a.type==='template'):null;
+  if(gymAct){
+    const letter=DAY_LETTER[gymAct.gymDay-1];
+    const focus=DAY_FOCUS[gymAct.gymDay]||'';
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div><div style="font-family:var(--mono);font-size:11px;color:var(--accent)">done ✓</div></div>`;
+  } else if(sess&&!(sess.activities||[]).some(a=>a.type==='template')){
+    el.innerHTML=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2)">Rest day</div>`;
+  } else {
+    const nextDay=derivedGymDay(today);
+    const letter=DAY_LETTER[nextDay-1];
+    const focus=DAY_FOCUS[nextDay]||'';
+    el.innerHTML=`<div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div>`;
+  }
+}
+function renderSummaryWeek(){
+  const el=document.getElementById('sum-week-card');if(!el)return;
+  const today=td();
+  const mon=ws(today);
+  const sun=addD(mon,6);
+  const weekSess=S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
+  const gymDone=weekSess.filter(s=>(s.activities||[]).some(a=>a.type==='template')).length;
+  const extraDone=weekSess.filter(s=>!(s.activities||[]).some(a=>a.type==='template')).length;
+  const gymPlanned=4;
+  const gymLeft=Math.max(0,gymPlanned-gymDone);
+  const dayOfWeekMon=(new Date(today+'T12:00:00').getDay()+6)%7;
+  const calDaysLeft=7-dayOfWeekMon;
+  const impossible=gymLeft>calDaysLeft;
+  const urgent=!impossible&&gymLeft>=calDaysLeft&&gymLeft>0;
+  const extraHtml=extraDone>0?`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:4px">+ ${extraDone} extra session${extraDone!==1?'s':''}</div>`:'';
+  let urgencyHtml='';
+  if(impossible)urgencyHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:6px">${gymLeft} sessions needed · ${calDaysLeft} day${calDaysLeft!==1?'s':''} left — not possible</div>`;
+  else if(urgent)urgencyHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:6px">${gymLeft} sessions · ${calDaysLeft} day${calDaysLeft!==1?'s':''} — train daily to finish</div>`;
+  el.innerHTML=`<div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sessions</div></div>${extraHtml}<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${calDaysLeft} day${calDaysLeft!==1?'s':''} left in week</div>${urgencyHtml}`;
+}
 function nav(id){
   ['summary','train','insights','profile','program','setup','progress'].forEach(v=>{
     document.getElementById('v-'+v).classList.toggle('hidden',v!==id);
@@ -2650,6 +2697,7 @@ function nav(id){
   // Sync bottom nav
   ['summary','train','insights','program'].forEach(v=>{const b=document.getElementById('bn-'+v);if(b)b.classList.toggle('on',v===id);});
   const bnp=document.getElementById('bn-profile');if(bnp)bnp.classList.toggle('on',['profile','setup'].includes(id));
+  if(id==='summary')renderSummary();
   if(id==='progress')renderProgress();
   if(id==='insights')loadAnalysisHistory();
   if(id==='program')renderPlanTab();
