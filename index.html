@@ -2737,8 +2737,8 @@ function renderSummaryWeek(){
   let stateLabel='',stateColor='var(--ink3)';
   if(gymDone===gymPlanned){stateLabel='complete';stateColor='var(--accent)';}
   else if(gymDone>0){stateLabel=actual>=expectedSets?'on pace':'behind';stateColor=actual>=expectedSets?'var(--accent)':'var(--ink2)';}
-  const labelBarHtml=`<div style="display:flex;align-items:center;gap:8px;margin-top:10px">${stateLabel?`<div style="font-family:var(--mono);font-size:10px;color:${stateColor};flex-shrink:0">${stateLabel}</div>`:''}<div style="flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden"><div style="height:6px;width:${pct}%;background:var(--accent);border-radius:3px"></div></div></div>`;
-  setsEl.innerHTML=`<div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${actual}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${planned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sets</div></div>${labelBarHtml}`;
+  const rightHtml=`<div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><div style="width:72px;height:6px;background:var(--line);border-radius:3px;overflow:hidden"><div style="height:6px;width:${pct}%;background:var(--accent);border-radius:3px"></div></div>${stateLabel?`<div style="font-family:var(--mono);font-size:10px;color:${stateColor}">${stateLabel}</div>`:''}</div>`;
+  setsEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${actual}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${planned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sets</div></div>${rightHtml}</div>`;
 }
 function nav(id){
   ['summary','train','insights','profile','program','setup','progress'].forEach(v=>{
