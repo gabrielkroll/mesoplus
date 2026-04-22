@@ -2679,6 +2679,28 @@ function renderSummaryToday(){
     el.innerHTML=`<div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px">${focus}</div></div>`;
   }
 }
+function weeklyPlannedSets(){
+  let total=0;
+  [1,2,3,4].forEach(day=>{
+    const dg=S.setGoals[day]||{};
+    (TEMPLATES[day]||[]).forEach(ss=>ss.exercises.forEach(ex=>{
+      const n=parseInt(dg[ex.name]!=null?dg[ex.name]:ex.sets)||0;
+      total+=n;
+    }));
+  });
+  return total;
+}
+function weeklyActualSets(mon,sun){
+  let total=0;
+  S.sessions.filter(s=>s.date>=mon&&s.date<=sun).forEach(s=>{
+    (s.activities||[]).filter(a=>a.type==='template').forEach(a=>{
+      (a.supersets||[]).forEach(ss=>ss.exercises.forEach(ex=>{
+        total+=parseInt(ex.sets)||0;
+      }));
+    });
+  });
+  return total;
+}
 function renderSummaryWeek(){
   const el=document.getElementById('sum-week-card');if(!el)return;
   const today=td();
@@ -2702,7 +2724,15 @@ function renderSummaryWeek(){
     const color=!daySess?'var(--line)':daySess.completed?'var(--accent)':'var(--ink2)';
     return `<span style="font-family:var(--mono);font-size:11px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
   }).join('<span style="color:var(--line);margin:0 4px">·</span>');
-  el.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${calDaysLeft} day${calDaysLeft!==1?'s':''} left in week</div>${urgencyHtml}`;
+  const planned=weeklyPlannedSets();
+  const actual=weeklyActualSets(mon,sun);
+  const pct=planned>0?Math.min(100,Math.round(actual/planned*100)):0;
+  const expectedSets=gymDone>0?Math.round(planned/4*gymDone):0;
+  let paceLabel='',paceColor='var(--ink3)';
+  if(gymDone===gymPlanned){paceLabel='complete';paceColor='var(--accent)';}
+  else if(gymDone>0){paceLabel=actual>=expectedSets?'on pace':'behind';paceColor=actual>=expectedSets?'var(--accent)':'var(--ink2)';}
+  const setsHtml=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><div style="font-family:var(--mono);font-size:11px;color:var(--ink2)">${actual} of ${planned} sets</div>${paceLabel?`<div style="font-family:var(--mono);font-size:10px;color:${paceColor}">${paceLabel}</div>`:''}</div><div style="height:2px;background:var(--line);border-radius:1px;overflow:hidden"><div style="height:2px;width:${pct}%;background:var(--accent);border-radius:1px"></div></div></div>`;
+  el.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${calDaysLeft} day${calDaysLeft!==1?'s':''} left in week</div>${urgencyHtml}${setsHtml}`;
 }
 function nav(id){
   ['summary','train','insights','profile','program','setup','progress'].forEach(v=>{
