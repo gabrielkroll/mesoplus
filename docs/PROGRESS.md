@@ -7,8 +7,8 @@
 
 ## Now
 
-**Slice 3 — Plan → Train Clarity**
-Goal: No confusion about what to train or why.
+**Slice 4 — Weekly Completion Loop**
+Goal: Create consistency behaviour — feel the pull to complete the week.
 Status: Not started — discuss acceptance criteria before touching code.
 
 ---
@@ -18,7 +18,8 @@ Status: Not started — discuss acceptance criteria before touching code.
 | Slice | Commit | Key decisions |
 |---|---|---|
 | 1 — Navigation Refactor | `8e36b7c` | Log→Train, Stats→Summary (placeholder), Analysis→Insights. Nav order: Summary→Train→Insights→Plan→Profile. Old Stats preserved under Profile→Stats. |
-| 2 — Summary MVP | `2a0e50a` | Today card (Day X · Full Body · Focus, done ✓, or Rest day). Week card (gymDone/4, extra count, days left, urgency signal). DAY_FOCUS: A/C=Posterior & Biceps, B/D=Quads & Chest. Week = Mon–Sun. |
+| 2 — Summary MVP | `2a0e50a` | Today card (Day X · Full Body · Focus, done ✓/in progress). Week card (gymDone/4, ABCD indicators, days left, urgency). DAY_FOCUS: A/C=Posterior & Biceps, B/D=Quads & Chest. Week = Mon–Sun. |
+| 3 — Plan → Train Clarity | `0fdf3f0` | Focus labels on Plan day headers. Activity block header = "Day A · Full Body · Posterior & Biceps" (no duplication). completed flag added to completeDay(). ABCD indicators: faded=pending, grey=in progress, green=done. |
 
 ---
 
