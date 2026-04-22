@@ -2709,7 +2709,7 @@ function renderSummaryWeek(){
   const sun=addD(mon,6);
   const weekSess=S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
   const gymDone=weekSess.filter(s=>(s.activities||[]).some(a=>a.type==='template')).length;
-  const extraDone=weekSess.filter(s=>!(s.activities||[]).some(a=>a.type==='template')).length;
+  const extraDone=weekSess.filter(s=>!s.isRest&&(s.activities||[]).some(a=>a.type==='bjj'||a.type==='custom')).length;
   const gymPlanned=4;
   const gymLeft=Math.max(0,gymPlanned-gymDone);
   const dayOfWeekMon=(new Date(today+'T12:00:00').getDay()+6)%7;
