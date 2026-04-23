@@ -456,7 +456,7 @@ select.bare{cursor:pointer}
 }
 /* Desktop: strip the profile card, hide mobile-only hub nav */
 @media(min-width:601px){
-  .action-bar{bottom:0}
+  .action-bar{bottom:16px}
   .wrap{padding-bottom:68px}
   .settings-card{border:none;border-radius:0;padding:0;margin-bottom:0;background:none}
   .settings-card-title{font-size:20px;margin-bottom:0}
@@ -491,8 +491,12 @@ select.bare{cursor:pointer}
 .bnav-item svg{display:block;flex-shrink:0}
 
 /* ACTION BAR */
-.action-bar{position:fixed;left:0;right:0;z-index:199;background:var(--lift);border-top:1px solid var(--line);height:52px;display:flex;align-items:center;padding:0 16px}
-.ab-content{flex:1;display:flex;align-items:center;font-family:var(--mono);font-size:13px;color:var(--ink)}
+.action-bar{position:fixed;left:16px;right:16px;z-index:199;background:#1a1a1a;border-radius:14px;height:56px;display:flex;align-items:center;padding:0 6px 0 16px}
+.ab-content{flex:1;display:flex;align-items:center;min-width:0}
+/* Dot menu popover */
+.ab-menu{position:fixed;z-index:400;background:#2c2c2e;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:4px 0;min-width:180px;box-shadow:0 12px 40px rgba(0,0,0,.7),0 2px 8px rgba(0,0,0,.4)}
+.ab-menu-item{display:block;width:100%;background:none;border:none;padding:14px 18px;font-family:var(--mono);font-size:13px;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1}
+.ab-menu-item:active{background:rgba(255,255,255,.08)}
 
 /* EXERCISE SHEET */
 .ex-sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .25s;pointer-events:none;visibility:hidden}
@@ -527,12 +531,25 @@ select.bare{cursor:pointer}
 .ex-mobile-val{display:none;font-size:10px;color:var(--ink3);white-space:nowrap}
 .ex-mobile-val.has-data{color:var(--accent)}
 
+/* TRAINING DAY SHEET */
+.tday-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
+.tday-backdrop.open{opacity:1;pointer-events:auto;visibility:visible}
+.tday-sheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
+.tday-sheet.open{transform:translateY(0);visibility:visible}
+.tday-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 0;border-bottom:1px solid var(--line);position:relative}
+.tday-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
+.tday-close:hover{background:var(--surf)}
+.tday-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.tday-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:52px;margin-bottom:0}
+.tday-sug{font-family:var(--mono);font-size:12px;color:var(--ink2);padding:8px 16px;border-top:1px solid var(--line);margin:8px -16px 0}
+.tday-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom,0))}
+
 /* MOBILE */
 @media(max-width:600px){
   .nav{display:none!important}
   .bottom-nav{display:block}
   .wrap{padding:16px 16px 148px}
-  .action-bar{bottom:calc(52px + env(safe-area-inset-bottom,0))}
+  .action-bar{bottom:calc(68px + env(safe-area-inset-bottom,0))}
   body{font-size:14px}
   .extras-row{grid-template-columns:1fr}
   .readiness-row{grid-template-columns:1fr;gap:12px 0}
@@ -2674,22 +2691,140 @@ function getActionBarState(){
     return{type:'not-started',label:`Start Day ${letter}`,day,letter};}
   // Priority 3 — gym in progress
   if(!todaySess.completed){
-    const letter=DAY_LETTER[gymAct.gymDay-1];
-    return{type:'in-progress',label:`Day ${letter} · in progress`,letter};}
+    const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
+    return{type:'in-progress',day,letter,focus};}
   // Priority 6 — nothing left (stubs 4,5 filled by 6e,6f)
   return{type:'idle',label:`Let's check in again tomorrow`};
 }
 function initActionBar(){renderActionBar();}
 function renderActionBar(){
-  const el=document.getElementById('ab-content');if(!el)return;
+  const el=document.getElementById('ab-content');
+  const bar=document.getElementById('action-bar');
+  if(!el||!bar)return;
+  closeAbMenu();
   const state=getActionBarState();
+  const txt='font-family:var(--mono);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
   if(state.type==='not-started'){
-    el.innerHTML=`<button onclick="nav('train')" style="background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--ink);padding:0;display:flex;align-items:center;gap:8px;min-height:44px;-webkit-tap-highlight-color:transparent">Start Day ${state.letter} <span style="color:var(--accent)">→</span></button>`;
+    bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
+    el.innerHTML=`<span style="${txt};color:var(--ink)">Start Day ${state.letter}</span>`;
   }else if(state.type==='in-progress'){
-    el.innerHTML=`<span style="font-family:var(--mono);font-size:13px;color:var(--ink2)">${state.label}</span>`;
+    bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
+    el.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0"><span style="${txt};color:var(--ink)">Day ${state.letter} · ${state.focus}</span><span style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em">in progress</span></div><button onclick="event.stopPropagation();toggleAbMenu()" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:18px;letter-spacing:1px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;border-radius:10px" aria-label="More options">···</button>`;
   }else{
-    el.innerHTML=`<span style="font-family:var(--mono);font-size:13px;color:var(--ink3)">${state.label}</span>`;
+    bar.onclick=null;bar.style.cursor='default';
+    el.innerHTML=`<span style="${txt};color:var(--ink3)">Day done · see you tomorrow</span>`;
   }
+}
+function toggleAbMenu(){
+  if(document.getElementById('ab-menu')){closeAbMenu();return;}
+  const state=getActionBarState();
+  const bar=document.getElementById('action-bar');
+  const r=bar.getBoundingClientRect();
+  const menu=document.createElement('div');
+  menu.id='ab-menu';menu.className='ab-menu';
+  menu.style.bottom=(window.innerHeight-r.top+16)+'px';
+  menu.style.right='16px';
+  menu.innerHTML=`<button class="ab-menu-item" onclick="doneForToday()">Wrap up Day ${state.letter}</button>`;
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',_abMenuOutside,true),10);
+}
+function _abMenuOutside(e){
+  const menu=document.getElementById('ab-menu');
+  if(menu&&!menu.contains(e.target)){closeAbMenu();}
+}
+function closeAbMenu(){
+  const menu=document.getElementById('ab-menu');
+  if(menu)menu.remove();
+  document.removeEventListener('click',_abMenuOutside,true);
+}
+function doneForToday(){
+  closeAbMenu();
+  endSession();
+}
+
+/* ── TRAINING DAY SHEET ── */
+let _tdayActId=null,_tdayWasEmpty=false;
+
+function openTrainingSheet(){
+  const today=td();
+  autoSaveCurrentDay();
+  // Load today into S working state
+  const existSess=S.sessions.find(s=>s.date===today);
+  S.selectedDate=today;
+  if(existSess){
+    S.activities=JSON.parse(JSON.stringify(existSess.activities||[]));
+    S.sleep=existSess.sleep||'';S.energy=existSess.energy||'';
+    S.soreness=existSess.soreness||'';S.perf=existSess.perf||'';
+    S.isRest=existSess.isRest||null;
+  }else{
+    S.activities=[];S.isRest=null;
+  }
+  // Find or create template activity
+  let gymAct=S.activities.find(a=>a.type==='template');
+  if(!gymAct){
+    _tdayWasEmpty=!existSess||!sessionHasData(existSess);
+    const id=uid();
+    const day=derivedGymDay(today);
+    gymAct={id,type:'template',gymDay:day,
+      supersets:TEMPLATES[day].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({
+        name:e.name,muscle:e.muscle,muscle2:e.muscle2||'',res:e.res,
+        side:e.side||'Both',rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false
+      }))}))};
+    S.activities.push(gymAct);
+    markDirty();
+  }else{_tdayWasEmpty=false;}
+  _tdayActId=gymAct.id;
+  computeSug(_tdayActId);
+  _buildTrainingSheetUI(gymAct);
+  const backdrop=document.getElementById('tday-backdrop');
+  const sheet=document.getElementById('tday-sheet');
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    backdrop.classList.add('open');sheet.classList.add('open');
+  });});
+}
+
+function _buildTrainingSheetUI(act){
+  const letter=DAY_LETTER[act.gymDay-1];
+  const focus=DAY_FOCUS[act.gymDay]||'';
+  const p=ph();
+  document.getElementById('tday-eyebrow').textContent=`Day ${letter} · Full Body`;
+  document.getElementById('tday-title').textContent=focus;
+  document.getElementById('tday-sug').textContent=`${p.name} · RIR target ${p.rir}. ${p.load}.`;
+  // Orphan any existing tbody with this id (Train tab may have rendered it)
+  const clash=document.getElementById('ex-tbody-'+act.id);
+  if(clash)clash.removeAttribute('id');
+  // Inject table — renderTable will find #ex-tbody-${actId} in the sheet body
+  const body=document.getElementById('tday-body');
+  body.innerHTML=`<div class="ex-table-wrap"><table class="ex-table"><colgroup><col class="c-num"><col class="c-name"><col class="c-res"><col class="c-side"><col class="c-last"><col class="c-kg"><col class="c-sets"><col class="c-reps"><col class="c-rir"><col class="c-act"></colgroup><thead><tr><th></th><th>Exercise</th><th class="c-res-th">Resistance</th><th class="c-side-th">Side</th><th>Last</th><th class="c-kg-th">kg</th><th class="c-sets-th">Sets</th><th class="c-reps-th">Reps</th><th class="c-rir-th">RIR</th><th></th></tr></thead><tbody id="ex-tbody-${act.id}"></tbody></table></div>`;
+  renderTable(act.id);
+}
+
+function closeTrainingSheet(){
+  const backdrop=document.getElementById('tday-backdrop');
+  const sheet=document.getElementById('tday-sheet');
+  backdrop.classList.remove('open');sheet.classList.remove('open');
+  // If opened on an empty session and no data was entered, clean up
+  if(_tdayWasEmpty){
+    const sess=S.sessions.find(s=>s.date===td());
+    if(sess&&!sessionHasData(sess)){
+      const ei=S.sessions.findIndex(s=>s.date===td());
+      if(ei>=0)S.sessions.splice(ei,1);
+      S.activities=[];persist();
+    }
+  }
+  _tdayActId=null;
+  renderSummary();renderActionBar();
+}
+
+async function endSession(){
+  const today=td();
+  const ei=S.sessions.findIndex(s=>s.date===today);
+  if(ei<0)return;
+  S.sessions[ei].completed=true;
+  S.weekInPhase=Math.min(S.weekInPhase+1,ph().weeks);
+  persist();
+  renderSummary();renderActionBar();
+  if(S.scriptUrl){const ok=await appendRows(toRows(S.sessions[ei]));if(ok)markSynced(today);}
 }
 
 function renderSummary(){
@@ -2711,7 +2846,7 @@ function renderSummaryToday(){
     const focus=DAY_FOCUS[gymAct.gymDay]||'';
     const statusHtml=sess.completed
       ?`<div style="font-family:var(--mono);font-size:13px;color:var(--accent)">done ✓</div>`
-      :`<div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">in progress</div>`;
+      :'';
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
   } else if(sess&&!(sess.activities||[]).some(a=>a.type==='template')){
     el.innerHTML=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2)">Rest day</div>`;
@@ -3146,6 +3281,18 @@ init();
   <div class="ex-sheet-footer">
     <button class="ex-sheet-save-btn" onclick="closePlanModal()">Done</button>
   </div>
+</div>
+
+<!-- TRAINING DAY SHEET -->
+<div id="tday-backdrop" class="tday-backdrop" onclick="closeTrainingSheet()"></div>
+<div id="tday-sheet" class="tday-sheet" role="dialog" aria-modal="true" aria-label="Training day">
+  <div class="tday-hdr">
+    <button class="tday-close" onclick="closeTrainingSheet()" aria-label="Close">×</button>
+    <div class="tday-eyebrow" id="tday-eyebrow"></div>
+    <div class="tday-title" id="tday-title"></div>
+    <div class="tday-sug" id="tday-sug"></div>
+  </div>
+  <div class="tday-body" id="tday-body"></div>
 </div>
 
 <!-- EXERCISE ENTRY SHEET -->
