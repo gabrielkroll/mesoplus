@@ -1614,7 +1614,7 @@ function setSessionType(type){
   }
   else if(tappingRest){S.isRest=true;S.activities=[];}
   else{S.isRest=false;}
-  renderSession();renderSummary();markDirty();
+  renderSession();renderSummary();renderActionBar();markDirty();
 }
 
 function addActivity(type){
@@ -1996,7 +1996,7 @@ async function completeDay(){
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   S.weekInPhase=Math.min(S.weekInPhase+1,ph().weeks);
-  persist();renderPhaseBar();renderAdvBar();renderWeekNav();
+  persist();renderPhaseBar();renderAdvBar();renderWeekNav();renderActionBar();
   _undoPrev=undefined;showUndo(false);
   if(S.scriptUrl){setSave('Syncing…');const ok=await appendRows(toRows(sess));if(ok)markSynced(S.selectedDate);setSave(ok?'Day complete ✓':'Saved locally · Sync error',ok?'ok':'err');}
   else setSave('Day complete ✓','ok');
@@ -2663,10 +2663,33 @@ async function saveSettings(){
 }
 
 // ── ACTION BAR ────────────────────────────────────────────────────────────────
+function getActionBarState(){
+  const today=td();
+  const todaySess=S.sessions.find(s=>s.date===today);
+  const gymAct=todaySess?(todaySess.activities||[]).find(a=>a.type==='template'):null;
+  // Priority 2 — gym not started today
+  if(!gymAct){
+    const day=derivedGymDay(today);
+    const letter=DAY_LETTER[day-1];
+    return{type:'not-started',label:`Start Day ${letter}`,day,letter};}
+  // Priority 3 — gym in progress
+  if(!todaySess.completed){
+    const letter=DAY_LETTER[gymAct.gymDay-1];
+    return{type:'in-progress',label:`Day ${letter} · in progress`,letter};}
+  // Priority 6 — nothing left (stubs 4,5 filled by 6e,6f)
+  return{type:'idle',label:`Let's check in again tomorrow`};
+}
 function initActionBar(){renderActionBar();}
 function renderActionBar(){
   const el=document.getElementById('ab-content');if(!el)return;
-  el.innerHTML=''; // 6b: content wired next slice
+  const state=getActionBarState();
+  if(state.type==='not-started'){
+    el.innerHTML=`<button onclick="nav('train')" style="background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--ink);padding:0;display:flex;align-items:center;gap:8px;min-height:44px;-webkit-tap-highlight-color:transparent">Start Day ${state.letter} <span style="color:var(--accent)">→</span></button>`;
+  }else if(state.type==='in-progress'){
+    el.innerHTML=`<span style="font-family:var(--mono);font-size:13px;color:var(--ink2)">${state.label}</span>`;
+  }else{
+    el.innerHTML=`<span style="font-family:var(--mono);font-size:13px;color:var(--ink3)">${state.label}</span>`;
+  }
 }
 
 function renderSummary(){
