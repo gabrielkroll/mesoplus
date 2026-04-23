@@ -753,8 +753,6 @@ select.bare{cursor:pointer}
     <div style="padding:24px 0 16px">
       <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:4px" id="sum-wk-label">Microcycle · —</div>
       <div id="sum-phase-head" style="font-family:var(--serif);font-style:italic;font-size:32px;margin-bottom:24px">—</div>
-      <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">Today</div>
-      <div id="sum-today-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:20px"></div>
       <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">This week</div>
       <div id="sum-week-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px"></div>
       <div id="sum-sets-card" style="border:1px solid var(--line);border-radius:8px;padding:16px"></div>
@@ -2684,6 +2682,8 @@ function getActionBarState(){
   const today=td();
   const todaySess=S.sessions.find(s=>s.date===today);
   const gymAct=todaySess?(todaySess.activities||[]).find(a=>a.type==='template'):null;
+  // Priority 1.5 — rest day logged (session exists, no gym activity)
+  if(todaySess&&!gymAct){return{type:'rest'};}
   // Priority 2 — gym not started today
   if(!gymAct){
     const day=derivedGymDay(today);
@@ -2710,6 +2710,9 @@ function renderActionBar(){
   }else if(state.type==='in-progress'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
     el.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0"><span style="${txt};color:var(--ink)">Day ${state.letter} · ${state.focus}</span><span style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em">in progress</span></div><button onclick="event.stopPropagation();toggleAbMenu()" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:18px;letter-spacing:1px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;border-radius:10px" aria-label="More options">···</button>`;
+  }else if(state.type==='rest'){
+    bar.onclick=null;bar.style.cursor='default';
+    el.innerHTML=`<span style="${txt};color:var(--ink3)">Rest day</span>`;
   }else{
     bar.onclick=null;bar.style.cursor='default';
     el.innerHTML=`<span style="${txt};color:var(--ink3)">Day done · see you tomorrow</span>`;
@@ -2833,29 +2836,7 @@ function renderSummary(){
   if(wkEl)wkEl.textContent=`Microcycle · W${dp.weekInPhase} of ${phase.weeks}`;
   const headEl=document.getElementById('sum-phase-head');
   if(headEl){headEl.textContent=phase.name;headEl.style.color=phase.color;}
-  renderSummaryToday();
   renderSummaryWeek();
-}
-function renderSummaryToday(){
-  const el=document.getElementById('sum-today-card');if(!el)return;
-  const today=td();
-  const sess=S.sessions.find(s=>s.date===today);
-  const gymAct=sess?(sess.activities||[]).find(a=>a.type==='template'):null;
-  if(gymAct){
-    const letter=DAY_LETTER[gymAct.gymDay-1];
-    const focus=DAY_FOCUS[gymAct.gymDay]||'';
-    const statusHtml=sess.completed
-      ?`<div style="font-family:var(--mono);font-size:13px;color:var(--accent)">done ✓</div>`
-      :'';
-    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>${statusHtml}</div>`;
-  } else if(sess&&!(sess.activities||[]).some(a=>a.type==='template')){
-    el.innerHTML=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2)">Rest day</div>`;
-  } else {
-    const nextDay=derivedGymDay(today);
-    const letter=DAY_LETTER[nextDay-1];
-    const focus=DAY_FOCUS[nextDay]||'';
-    el.innerHTML=`<div><div style="font-family:var(--mono);font-size:13px;color:var(--ink)">Day ${letter} <span style="color:var(--ink3)">·</span> Full Body</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:3px">${focus}</div></div>`;
-  }
 }
 function weeklyPlannedSets(){
   let total=0;
