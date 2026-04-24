@@ -463,8 +463,9 @@ select.bare{cursor:pointer}
   .settings-card .s-row{border-bottom:1px solid var(--line);padding-bottom:14px}
   .hub-only{display:none!important}
   /* Sheets: constrain to content column on desktop */
-  .tday-sheet{left:0;right:0;width:900px;max-width:100%;margin-left:auto;margin-right:auto}
-  .ex-sheet{left:0;right:0;bottom:16px;width:868px;max-width:calc(100% - 32px);margin-left:auto;margin-right:auto;border-radius:14px}
+  .tday-sheet{left:max(0px,calc(50% - 450px));right:max(0px,calc(50% - 450px))}
+  .ex-sheet{left:max(16px,calc(50% - 434px));right:max(16px,calc(50% - 434px));bottom:16px;border-radius:14px}
+  .ex-sheet-body{grid-template-columns:1fr}
 }
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
