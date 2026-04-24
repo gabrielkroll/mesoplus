@@ -558,6 +558,11 @@ select.bare{cursor:pointer}
 .rs-tier{font-family:var(--mono);font-size:12px;letter-spacing:.04em;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
 .rs-footer{flex-shrink:0;padding:12px 16px;padding-bottom:calc(max(env(safe-area-inset-bottom,0px),16px));border-top:1px solid var(--line)}
 .rs-done-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;height:48px;font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rs-outcome{background:var(--surf);border-radius:12px;padding:20px;margin-bottom:24px;display:flex;align-items:center;gap:20px;min-height:88px;transition:background .2s}
+.rs-outcome-score{font-family:var(--serif);font-style:italic;font-size:48px;line-height:1;min-width:64px;flex-shrink:0;transition:color .2s}
+.rs-outcome-right{display:flex;flex-direction:column;gap:5px;flex:1}
+.rs-outcome-tier{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;transition:color .2s}
+.rs-outcome-msg{font-family:var(--mono);font-size:12px;color:var(--ink3);line-height:1.4}
 
 /* ACTION BAR BLUR */
 .ab-blur{position:fixed;left:0;right:0;bottom:0;height:160px;backdrop-filter:blur(48px);-webkit-backdrop-filter:blur(48px);background:linear-gradient(to top,rgba(20,20,20,.8) 0%,rgba(20,20,20,.35) 55%,transparent 100%);-webkit-mask-image:linear-gradient(to top,black 25%,transparent 80%);mask-image:linear-gradient(to top,black 25%,transparent 80%);z-index:198;pointer-events:none}
@@ -2822,7 +2827,6 @@ function openReadinessSheet(){
   const sess=S.sessions.find(s=>s.date===today);
   if(sess){S.sleep=sess.sleep||S.sleep||'';S.energy=sess.energy||S.energy||'';S.soreness=sess.soreness||S.soreness||'';}
   const day=derivedGymDay(today);
-  document.getElementById('rs-eyebrow').textContent=`Day ${DAY_LETTER[day-1]} · Full Body`;
   buildChips('rs-chips-sleep',SLEEP_C,S.sleep,v=>{S.sleep=v;_updateRsSheet();});
   buildChips('rs-chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;_updateRsSheet();});
   buildChips('rs-chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;_updateRsSheet();});
@@ -2834,12 +2838,46 @@ function openReadinessSheet(){
 }
 function _updateRsSheet(){
   const r=computeReadiness();
-  const el=document.getElementById('rs-tier');if(!el)return;
-  if(r===null){el.innerHTML='';return;}
-  const tier=readinessTier(r);
-  const c={Poor:'var(--danger)',Low:'var(--ink3)',Moderate:'var(--ink2)',High:'var(--accent)',Prime:'var(--accent)'}[tier]||'var(--ink2)';
-  el.innerHTML=`<span style="color:${c}">${tier} readiness</span><span style="color:var(--ink3)"> · ${r}/100</span>`;
+  const scoreEl=document.getElementById('rs-outcome-score');
+  const tierEl=document.getElementById('rs-outcome-tier');
+  const msgEl=document.getElementById('rs-outcome-msg');
+  const btn=document.getElementById('rs-cta-btn');
+  if(!scoreEl)return;
+  const allSet=S.sleep&&S.energy&&S.soreness;
+  const someSet=S.sleep||S.energy||S.soreness;
+  if(!someSet){
+    scoreEl.textContent='—';scoreEl.style.color='var(--ink3)';
+    tierEl.textContent='';tierEl.style.color='';
+    msgEl.textContent='Sleep · Energy · Soreness';
+  }else if(!allSet){
+    scoreEl.textContent='—';scoreEl.style.color='var(--ink3)';
+    tierEl.textContent='';tierEl.style.color='';
+    msgEl.textContent='Almost there…';
+  }else{
+    const tier=readinessTier(r);
+    const c={Poor:'var(--danger)',Low:'var(--ink3)',Moderate:'var(--ink2)',High:'var(--accent)',Prime:'var(--accent)'}[tier]||'var(--ink2)';
+    const msgs={Poor:'Body needs rest',Low:'Take it easy today',Moderate:'Train smart',High:'Ready to train',Prime:'Prime — let\'s go'};
+    scoreEl.textContent=r;scoreEl.style.color='var(--ink)';
+    tierEl.textContent=tier;tierEl.style.color=c;
+    msgEl.textContent=msgs[tier]||'';
+  }
+  if(!btn)return;
+  if(!allSet){
+    btn.textContent='Done';btn.style.background='var(--surf)';btn.style.color='var(--ink3)';
+    btn.onclick=closeReadinessSheet;
+  }else if(r!==null&&r<25){
+    btn.textContent='Rest today';btn.style.background='var(--surf)';btn.style.color='var(--danger)';
+    btn.onclick=()=>{closeReadinessSheet();startRestDay();};
+  }else if(r!==null&&r>=75){
+    const day=derivedGymDay(td());const letter=DAY_LETTER[day-1];
+    btn.textContent=`Start Day ${letter}`;btn.style.background='var(--accent)';btn.style.color='#000';
+    btn.onclick=_rsStartTraining;
+  }else{
+    btn.textContent='Done';btn.style.background='var(--accent)';btn.style.color='#000';
+    btn.onclick=closeReadinessSheet;
+  }
 }
+function _rsStartTraining(){closeReadinessSheet();openTrainingSheet();}
 function closeReadinessSheet(){
   document.getElementById('rs-backdrop').classList.remove('open');
   document.getElementById('rs-sheet').classList.remove('open');
@@ -3392,20 +3430,26 @@ init();
 <div id="rs-sheet" class="rs-sheet" role="dialog" aria-modal="true" aria-label="Readiness check-in">
   <div class="rs-hdr">
     <button class="rs-close" onclick="closeReadinessSheet()" aria-label="Close">×</button>
-    <div class="rs-eyebrow" id="rs-eyebrow"></div>
+    <div class="rs-eyebrow">Check-in</div>
     <div class="rs-title">How are you feeling?</div>
   </div>
   <div class="rs-body">
+    <div class="rs-outcome" id="rs-outcome">
+      <div class="rs-outcome-score" id="rs-outcome-score" style="color:var(--ink3)">—</div>
+      <div class="rs-outcome-right">
+        <div class="rs-outcome-tier" id="rs-outcome-tier"></div>
+        <div class="rs-outcome-msg" id="rs-outcome-msg">Sleep · Energy · Soreness</div>
+      </div>
+    </div>
     <div class="rs-lbl">Sleep</div>
     <div class="chips-row" id="rs-chips-sleep"></div>
     <div class="rs-lbl" style="margin-top:20px">Energy</div>
     <div class="chips-row" id="rs-chips-energy"></div>
     <div class="rs-lbl" style="margin-top:20px">Soreness</div>
     <div class="chips-row" id="rs-chips-soreness"></div>
-    <div class="rs-tier" id="rs-tier"></div>
   </div>
   <div class="rs-footer">
-    <button class="rs-done-btn" onclick="closeReadinessSheet()">Done</button>
+    <button class="rs-done-btn" id="rs-cta-btn" onclick="closeReadinessSheet()">Done</button>
   </div>
 </div>
 
