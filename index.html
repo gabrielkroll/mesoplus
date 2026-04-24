@@ -463,10 +463,8 @@ select.bare{cursor:pointer}
   .settings-card .s-row{border-bottom:1px solid var(--line);padding-bottom:14px}
   .hub-only{display:none!important}
   /* Sheets: constrain to content column on desktop */
-  .tday-inner{max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
-  .tday-body{padding-left:0;padding-right:0}
-  .tday-body .ex-table-wrap{padding:0 16px}
-  .tday-close{right:8px}
+  .tday-inner{max-width:900px;margin:0 auto}
+  .tday-sug{margin-left:0;margin-right:0}
   .ex-sheet{left:max(16px,calc(50% - 434px));right:max(16px,calc(50% - 434px));bottom:16px;border-radius:14px}
   .ex-sheet-body{grid-template-columns:1fr}
 }
@@ -543,6 +541,7 @@ select.bare{cursor:pointer}
 .tday-backdrop.open{opacity:1;pointer-events:auto;visibility:visible}
 .tday-sheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
 .tday-sheet.open{transform:translateY(0);visibility:visible}
+.tday-inner{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;width:100%}
 .tday-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 0;border-bottom:1px solid var(--line);position:relative}
 .tday-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-close:hover{background:var(--surf)}
