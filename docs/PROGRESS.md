@@ -52,3 +52,10 @@ Status: Not started — discuss acceptance criteria before touching code.
 - Grep before reading — never load index.html whole
 - Extra sessions card (BJJ/custom count) — parked, add after S6
 - Train tab refactor (activity block → full-screen sheet, shared component) — parked as S11, depends on S6
+- ?profile= URL param is session-only — never writes to localStorage (fixed 4be72b6)
+
+## Known Debt
+
+- **Meso phase weeks not in Sheets** — weeks-per-phase config lives in localStorage only. A reset wipes it. Needs to sync to Sheets alongside session data.
+- **No Sheets → app restore path** — if localStorage is lost, session history in Sheets can't be pulled back into the app. Needed for true data resilience.
+- **Alpha tester login** — Erik currently uses ?profile=erik URL (no password). Proper solution: username + password per tester, accessed via "Alpha tester?" link on the login wall. Parked until after S8.
