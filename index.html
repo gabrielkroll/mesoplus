@@ -563,6 +563,8 @@ select.bare{cursor:pointer}
 .rs-outcome-right{display:flex;flex-direction:column;gap:5px;flex:1}
 .rs-outcome-tier{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;transition:color .2s}
 .rs-outcome-msg{font-family:var(--mono);font-size:12px;color:var(--ink3);line-height:1.4}
+.rs-outcome-wave{background:linear-gradient(115deg,var(--surf) 0%,rgba(122,173,42,.04) 20%,rgba(122,173,42,.13) 38%,rgba(122,173,42,.07) 52%,rgba(122,173,42,.15) 68%,rgba(122,173,42,.03) 84%,var(--surf) 100%) !important;background-size:350% 100% !important;animation:rs-wave 5s ease-in-out infinite}
+@keyframes rs-wave{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
 /* ACTION BAR BLUR */
 .ab-blur{position:fixed;left:0;right:0;bottom:0;height:160px;backdrop-filter:blur(48px);-webkit-backdrop-filter:blur(48px);background:linear-gradient(to top,rgba(20,20,20,.8) 0%,rgba(20,20,20,.35) 55%,transparent 100%);-webkit-mask-image:linear-gradient(to top,black 25%,transparent 80%);mask-image:linear-gradient(to top,black 25%,transparent 80%);z-index:198;pointer-events:none}
@@ -2838,32 +2840,28 @@ function openReadinessSheet(){
 }
 function _updateRsSheet(){
   const r=computeReadiness();
-  const scoreEl=document.getElementById('rs-outcome-score');
-  const tierEl=document.getElementById('rs-outcome-tier');
-  const msgEl=document.getElementById('rs-outcome-msg');
+  const card=document.getElementById('rs-outcome');
   const btn=document.getElementById('rs-cta-btn');
-  if(!scoreEl)return;
+  if(!card)return;
   const allSet=S.sleep&&S.energy&&S.soreness;
   const someSet=S.sleep||S.energy||S.soreness;
+  const dashHtml=`<div style="display:flex;align-items:center;justify-content:center;width:100%"><span style="font-family:var(--serif);font-style:italic;font-size:48px;color:var(--ink3);line-height:1">—</span></div>`;
   if(!someSet){
-    scoreEl.textContent='—';scoreEl.style.color='var(--ink3)';
-    tierEl.textContent='';tierEl.style.color='';
-    msgEl.textContent='Sleep · Energy · Soreness';
+    card.classList.remove('rs-outcome-wave');
+    card.innerHTML=dashHtml;
   }else if(!allSet){
-    scoreEl.textContent='—';scoreEl.style.color='var(--ink3)';
-    tierEl.textContent='';tierEl.style.color='';
-    msgEl.textContent='Almost there…';
+    card.classList.add('rs-outcome-wave');
+    card.innerHTML=dashHtml;
   }else{
+    card.classList.remove('rs-outcome-wave');
     const tier=readinessTier(r);
     const c={Poor:'var(--danger)',Low:'var(--ink3)',Moderate:'var(--ink2)',High:'var(--accent)',Prime:'var(--accent)'}[tier]||'var(--ink2)';
     const msgs={Poor:'Body needs rest',Low:'Take it easy today',Moderate:'Train smart',High:'Ready to train',Prime:'Prime — let\'s go'};
-    scoreEl.textContent=r;scoreEl.style.color='var(--ink)';
-    tierEl.textContent=tier;tierEl.style.color=c;
-    msgEl.textContent=msgs[tier]||'';
+    card.innerHTML=`<div class="rs-outcome-score" style="color:var(--ink)">${r}</div><div class="rs-outcome-right"><div class="rs-outcome-tier" style="color:${c}">${tier}</div><div class="rs-outcome-msg">${msgs[tier]||''}</div></div>`;
   }
   if(!btn)return;
   if(!allSet){
-    btn.textContent='Done';btn.style.background='var(--surf)';btn.style.color='var(--ink3)';
+    btn.textContent='Close';btn.style.background='var(--surf)';btn.style.color='var(--ink3)';
     btn.onclick=closeReadinessSheet;
   }else if(r!==null&&r<25){
     btn.textContent='Rest today';btn.style.background='var(--surf)';btn.style.color='var(--danger)';
@@ -3435,11 +3433,7 @@ init();
   </div>
   <div class="rs-body">
     <div class="rs-outcome" id="rs-outcome">
-      <div class="rs-outcome-score" id="rs-outcome-score" style="color:var(--ink3)">—</div>
-      <div class="rs-outcome-right">
-        <div class="rs-outcome-tier" id="rs-outcome-tier"></div>
-        <div class="rs-outcome-msg" id="rs-outcome-msg">Sleep · Energy · Soreness</div>
-      </div>
+      <div style="display:flex;align-items:center;justify-content:center;width:100%"><span style="font-family:var(--serif);font-style:italic;font-size:48px;color:var(--ink3);line-height:1">—</span></div>
     </div>
     <div class="rs-lbl">Sleep</div>
     <div class="chips-row" id="rs-chips-sleep"></div>
