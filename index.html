@@ -668,7 +668,8 @@ select.bare{cursor:pointer}
   .ss-num{font-size:18px}
   .ss-tag{font-size:10px}
   .add-ex-btn{font-size:11px;min-height:44px;padding:6px 10px}
-  .adopt-bar{font-size:11px;padding:8px 12px}
+  .adopt-bar{font-size:11px;padding:4px 12px}
+  .adopt-bar-actions .adopt-all-btn,.adopt-bar-actions .adopt-btn{min-height:44px;padding:0 14px;display:flex;align-items:center;justify-content:center}
   .sug-bar{font-size:12px;padding:10px 14px}
   /* Chips bigger tap targets — handled above */
   /* Progress tab mobile */
@@ -3036,7 +3037,7 @@ function discardTdayEntries(){
 }
 function _injectUndoBanner(actId){
   const bar=document.getElementById('adopt-bar-'+actId);if(!bar)return;
-  bar.innerHTML=`<span style="color:var(--danger)">Entries cleared</span><div class="adopt-bar-actions"><button class="adopt-all-btn" onclick="undoTdayDiscard()">↩ Undo</button><button class="adopt-btn" onclick="hideTdayUndo()" style="font-size:15px;line-height:1;padding:2px 6px">×</button></div>`;
+  bar.innerHTML=`<span style="color:var(--danger)">Entries cleared</span><div class="adopt-bar-actions"><button class="adopt-all-btn" onclick="undoTdayDiscard()">↩ Undo</button><button class="adopt-btn" onclick="hideTdayUndo()" style="font-size:15px;line-height:1">×</button></div>`;
   bar.classList.add('show');
 }
 function hideTdayUndo(){
