@@ -2995,7 +2995,7 @@ function toggleTdayMenu(){
   const r=btn.getBoundingClientRect();
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
-  menu.style.top=(r.bottom+8)+'px';menu.style.right='16px';menu.style.bottom='auto';
+  menu.style.top=(r.bottom+8)+'px';menu.style.right=(window.innerWidth-r.right)+'px';menu.style.bottom='auto';
   menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_tdayMenuOutside,true),10);
