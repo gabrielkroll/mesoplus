@@ -2912,6 +2912,9 @@ function renderActionBar(){
     el.innerHTML=left(dayName||'—');
   }
 }
+function hasMinExerciseData(){
+  return S.activities.some(a=>a.type==='template'&&(a.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg&&e.reps)));
+}
 function toggleAbMenu(){
   if(document.getElementById('ab-menu')){closeAbMenu();return;}
   const state=getActionBarState();
@@ -2923,8 +2926,12 @@ function toggleAbMenu(){
   menu.style.right='16px';
   if(state.type==='rest'){
     menu.innerHTML=`<button class="ab-menu-item" onclick="overrideRestDay()">Train today</button><button class="ab-menu-item" onclick="openAddSessionSheet()">Add custom session</button>`;
+  }else if(state.type==='done'){
+    menu.innerHTML=`<button class="ab-menu-item" onclick="startRestDay()">Rest today</button>`;
   }else{
-    menu.innerHTML=`<button class="ab-menu-item" onclick="doneForToday()">Wrap up Day ${state.letter}</button>`;
+    const canWrap=hasMinExerciseData();
+    const wrapBtn=canWrap?`<button class="ab-menu-item" onclick="doneForToday()">Wrap up Day ${state.letter}</button>`:'';
+    menu.innerHTML=`${wrapBtn}<button class="ab-menu-item" onclick="closeAbMenu();startRestDay()">Rest today</button>`;
   }
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_abMenuOutside,true),10);
