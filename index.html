@@ -549,7 +549,7 @@ select.bare{cursor:pointer}
 .tday-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-close:hover{background:var(--surf)}
 .tday-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
-.tday-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:96px;margin-bottom:0}
+.tday-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:160px;margin-bottom:0}
 .tday-sug{font-family:var(--mono);font-size:12px;color:var(--ink2);padding:8px 16px;border-top:1px solid var(--line);margin:8px -16px 0}
 .tday-menu-btn{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:52px;background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-menu-btn:hover{background:var(--surf)}
@@ -560,11 +560,8 @@ select.bare{cursor:pointer}
 .tday-footer-btn.primary{background:var(--ink);color:var(--lift)}
 .tday-footer-btn.secondary{background:none;border:1px solid var(--line2);color:var(--ink2)}
 .tday-footer-btn:hover{opacity:.85}
-.tday-confirm{padding:24px 16px 16px;display:flex;flex-direction:column;gap:16px}
-.tday-confirm-msg{font-family:var(--mono);font-size:12px;color:var(--ink2);line-height:1.8}
-.tday-confirm-actions{display:flex;gap:10px}
-.tday-confirm-cancel{flex:1;padding:14px;border-radius:8px;border:1px solid var(--line2);background:none;color:var(--ink2);font-family:var(--mono);font-size:12px;cursor:pointer;outline:none}
-.tday-confirm-ok{flex:1;padding:14px;border-radius:8px;border:none;background:var(--danger);color:#fff;font-family:var(--mono);font-size:12px;cursor:pointer;outline:none;letter-spacing:.02em}
+.tday-undo-btn{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:96px;padding:5px 12px;border-radius:20px;font-family:var(--mono);font-size:12px;color:var(--ink);background:rgba(255,255,255,.08);border:1px solid var(--line2);cursor:pointer;white-space:nowrap;outline:none}
+.tday-undo-btn:hover{background:rgba(255,255,255,.14)}
 
 /* READINESS SHEET */
 .rs-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
@@ -3030,23 +3027,35 @@ function restInstead(){
 }
 function discardTdayEntries(){
   closeTdayMenu();
-  const body=document.getElementById('tday-body');
-  _tdayConfirmHTML=body.innerHTML;
-  body.innerHTML=`<div class="tday-confirm"><div class="tday-confirm-msg">This will erase all weights, sets, reps and RIR you've entered today. Your exercise list stays — only the numbers go.</div><div class="tday-confirm-actions"><button class="tday-confirm-cancel" onclick="cancelDiscardTday()">Cancel</button><button class="tday-confirm-ok" onclick="confirmDiscardTday()">Discard entries</button></div></div>`;
-  document.getElementById('tday-footer').style.display='none';
-}
-function cancelDiscardTday(){
-  const body=document.getElementById('tday-body');
-  body.innerHTML=_tdayConfirmHTML;_tdayConfirmHTML=null;
-  if(_tdayActId)renderTable(_tdayActId);
-}
-function confirmDiscardTday(){
   const act=getAct(_tdayActId);if(!act)return;
+  // Save state for undo, then clear numbers immediately
+  _tdayUndoData=JSON.parse(JSON.stringify(act.supersets));
   (act.supersets||[]).forEach(ss=>ss.exercises.forEach(e=>{e.kg='';e.sets='';e.reps='';e.rir='';e.flagged=false;}));
-  _tdayConfirmHTML=null;markDirty();
+  markDirty();
   const body=document.getElementById('tday-body');
-  body.innerHTML='';appendActivityBlock(act,body);
-  renderTdayFooter();
+  body.innerHTML='';appendActivityBlock(act,body);renderTdayFooter();
+  showTdayUndo();
+}
+function showTdayUndo(){
+  let btn=document.getElementById('tday-undo-btn');
+  if(!btn){
+    btn=document.createElement('button');
+    btn.id='tday-undo-btn';btn.className='tday-undo-btn';
+    btn.setAttribute('aria-label','Undo discard');btn.textContent='↩ Undo';
+    btn.onclick=undoTdayDiscard;
+    document.querySelector('.tday-hdr').appendChild(btn);
+  }
+}
+function hideTdayUndo(){
+  const btn=document.getElementById('tday-undo-btn');if(btn)btn.remove();
+  _tdayUndoData=null;
+}
+function undoTdayDiscard(){
+  const act=getAct(_tdayActId);if(!act||!_tdayUndoData)return;
+  act.supersets=_tdayUndoData;
+  markDirty();hideTdayUndo();
+  const body=document.getElementById('tday-body');
+  body.innerHTML='';appendActivityBlock(act,body);renderTdayFooter();
 }
 function openAddSessionSheet(){/* S6e stub — extra session flow (BJJ / custom) */}
 
@@ -3152,7 +3161,7 @@ function overrideRestDay(){
 }
 
 /* ── TRAINING DAY SHEET ── */
-let _tdayActId=null,_tdayWasEmpty=false,_tdayConfirmHTML=null;
+let _tdayActId=null,_tdayWasEmpty=false,_tdayUndoData=null;
 
 function openTrainingSheet(){
   const today=td();
@@ -3223,6 +3232,7 @@ function closeTrainingSheet(){
     }
   }
   _tdayActId=null;
+  hideTdayUndo();
   // Clear tday-body so its IDs don't clash when Train tab re-renders
   document.getElementById('tday-body').innerHTML='';
   renderActivityList();
