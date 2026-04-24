@@ -464,7 +464,6 @@ select.bare{cursor:pointer}
   .hub-only{display:none!important}
   /* Sheets: constrain to content column on desktop */
   .tday-inner{max-width:900px;margin:0 auto}
-  .tday-sug{margin-left:0;margin-right:0}
   .ex-sheet{left:max(16px,calc(50% - 434px));right:max(16px,calc(50% - 434px));bottom:16px;border-radius:14px}
   .ex-sheet-body{grid-template-columns:1fr}
 }
@@ -542,6 +541,7 @@ select.bare{cursor:pointer}
 .tday-sheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
 .tday-sheet.open{transform:translateY(0);visibility:visible}
 .tday-inner{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;width:100%}
+#tday-body>.activity-block{border:none;border-radius:0;margin:0}
 .tday-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 0;border-bottom:1px solid var(--line);position:relative}
 .tday-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-close:hover{background:var(--surf)}
@@ -1867,8 +1867,8 @@ function renderActivityList(){
   S.activities.forEach(act=>appendActivityBlock(act));
 }
 
-function appendActivityBlock(act){
-  const list=document.getElementById('activity-list');
+function appendActivityBlock(act,_container){
+  const list=_container||document.getElementById('activity-list');
   if(!list)return;
   const div=document.createElement('div');
   div.className='activity-block';
@@ -3102,17 +3102,18 @@ function openTrainingSheet(){
 function _buildTrainingSheetUI(act){
   const letter=DAY_LETTER[act.gymDay-1];
   const focus=DAY_FOCUS[act.gymDay]||'';
-  const p=ph();
-  const _tst=profileCfg().sessionType;document.getElementById('tday-eyebrow').textContent=`Day ${letter}${_tst?' · '+_tst:''}`;
+  const _tst=profileCfg().sessionType;
+  document.getElementById('tday-eyebrow').textContent=`Day ${letter}${_tst?' · '+_tst:''}`;
   document.getElementById('tday-title').textContent=focus;
-  document.getElementById('tday-sug').textContent=`${p.name} · RIR target ${p.rir}. ${p.load}.`;
-  // Orphan any existing tbody with this id (Train tab may have rendered it)
-  const clash=document.getElementById('ex-tbody-'+act.id);
-  if(clash)clash.removeAttribute('id');
-  // Inject table — renderTable will find #ex-tbody-${actId} in the sheet body
+  // Orphan any IDs the Train tab may have rendered for this activity
+  ['act-block-','sug-text-','adopt-bar-','adopt-undo-btn-','ex-tbody-','undo-ss-'].forEach(prefix=>{
+    const el=document.getElementById(prefix+act.id);
+    if(el)el.removeAttribute('id');
+  });
+  // Render the full activity block (same component as Train tab)
   const body=document.getElementById('tday-body');
-  body.innerHTML=`<div class="ex-table-wrap"><table class="ex-table"><colgroup><col class="c-num"><col class="c-name"><col class="c-res"><col class="c-side"><col class="c-last"><col class="c-kg"><col class="c-sets"><col class="c-reps"><col class="c-rir"><col class="c-act"></colgroup><thead><tr><th></th><th>Exercise</th><th class="c-res-th">Resistance</th><th class="c-side-th">Side</th><th>Last</th><th class="c-kg-th">kg</th><th class="c-sets-th">Sets</th><th class="c-reps-th">Reps</th><th class="c-rir-th">RIR</th><th></th></tr></thead><tbody id="ex-tbody-${act.id}"></tbody></table></div>`;
-  renderTable(act.id);
+  body.innerHTML='';
+  appendActivityBlock(act,body);
 }
 
 function closeTrainingSheet(){
@@ -3129,6 +3130,9 @@ function closeTrainingSheet(){
     }
   }
   _tdayActId=null;
+  // Clear tday-body so its IDs don't clash when Train tab re-renders
+  document.getElementById('tday-body').innerHTML='';
+  renderActivityList();
   renderSummary();renderActionBar();
 }
 
@@ -3649,7 +3653,6 @@ startApp();
       <button class="tday-close" onclick="closeTrainingSheet()" aria-label="Close">×</button>
       <div class="tday-eyebrow" id="tday-eyebrow"></div>
       <div class="tday-title" id="tday-title"></div>
-      <div class="tday-sug" id="tday-sug"></div>
     </div>
     <div class="tday-body" id="tday-body"></div>
   </div>
