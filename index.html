@@ -1409,7 +1409,7 @@ const PROFILE_CFG={
   erik:{id:'erik',name:'Erik',storageKey:'mp7_erik',pinKey:'mp7_pin_erik',days:5,
     dayLetters:['A','B','C','D','E'],
     dayFocus:{1:'Legs',2:'Upper — Chest & Triceps',3:'Pull — Back & Biceps',4:'Lower — Hamstrings',5:'Isolation — Arms & Chest'},
-    templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:''}
+    templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:'',noPin:true}
 };
 let _ACTIVE_PROFILE='gabriel';
 function profileCfg(){return PROFILE_CFG[_ACTIVE_PROFILE];}
@@ -3303,6 +3303,7 @@ function lockApp(){
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
+  if(profileCfg().noPin){unlockApp();return;}
   const hasPin=!!localStorage.getItem(activePinKey());
   const isStandalone=navigator.standalone===true;
   const note=document.getElementById('pin-standalone-note');
