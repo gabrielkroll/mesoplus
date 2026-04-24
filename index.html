@@ -559,12 +559,16 @@ select.bare{cursor:pointer}
 .rs-footer{flex-shrink:0;padding:12px 16px;padding-bottom:calc(max(env(safe-area-inset-bottom,0px),16px));border-top:1px solid var(--line)}
 .rs-done-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;height:48px;font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
+/* ACTION BAR BLUR */
+.ab-blur{position:fixed;left:0;right:0;bottom:0;height:160px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(to top,black 25%,transparent 80%);mask-image:linear-gradient(to top,black 25%,transparent 80%);z-index:198;pointer-events:none}
+
 /* MOBILE */
 @media(max-width:600px){
   .nav{display:none!important}
   .bottom-nav{display:block}
   .wrap{padding:16px 16px 148px}
   .action-bar{bottom:calc(68px + env(safe-area-inset-bottom,0))}
+  .ab-blur{bottom:0;height:200px}
   body{font-size:14px}
   .extras-row{grid-template-columns:1fr}
   .readiness-row{grid-template-columns:1fr;gap:12px 0}
@@ -740,6 +744,7 @@ select.bare{cursor:pointer}
 </nav>
 
 <!-- ACTION BAR — always on, all tabs -->
+<div class="ab-blur" aria-hidden="true"></div>
 <div id="action-bar" class="action-bar" role="complementary" aria-label="Quick actions">
   <div id="ab-content" class="ab-content"></div>
 </div>
@@ -1378,9 +1383,9 @@ function init(){
   const _name=localStorage.getItem('mp7_name')||'';if(_name){document.getElementById('s-name').value=_name;}updateProfileNav();
   document.getElementById('s-meso-start').value=S.mesoStart;
   S.selectedDate=td();
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();renderActionBar();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();renderActionBar();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();renderActionBar();});
   buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
   document.getElementById('v-train').addEventListener('input',()=>markDirty());
   renderPhaseBar();renderAdvBar();renderWeekNav();
@@ -1531,9 +1536,9 @@ function loadSess(sess){
   S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
   document.getElementById('m-extra').value=sess.extra||'';
   document.getElementById('m-notes').value=sess.notes||'';
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
+  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
+  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
   buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
   renderSession();
   updateCheckinCollapse();
@@ -1541,9 +1546,9 @@ function loadSess(sess){
 function resetForm(){
   S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';
   document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
-  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();});
-  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
-  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();});
+  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
+  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
+  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
   buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
   document.getElementById('checkout-section').classList.add('hidden');
   document.getElementById('checkin-summary').classList.add('hidden');
@@ -2760,7 +2765,7 @@ function renderActionBar(){
   }else if(state.type==='not-started'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
     const t=state.tier;
-    const tierLabel=t==='High'||t==='Prime'?`<span style="color:var(--accent)">${t} readiness</span>`:t==='Low'?`<span style="color:var(--ink3)">Low readiness</span>`:'';
+    const tierLabel=t==='High'||t==='Prime'?`<span style="color:var(--accent)">${t}</span>`:t==='Low'?`<span style="color:var(--ink3)">Low</span>`:'';
     el.innerHTML=left(dayName,tierLabel)+actionBtn('Start','event.stopPropagation();openTrainingSheet()');
   }else if(state.type==='in-progress'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
