@@ -3382,20 +3382,20 @@ function showProfileGate(){
   document.getElementById('pin-gate').classList.add('hidden');
 }
 function startApp(){
-  // URL param ?profile=erik lets you share a direct beta link
+  // ?profile= is session-only — never persists to localStorage
   const urlProfile=new URLSearchParams(window.location.search).get('profile');
   if(urlProfile&&PROFILE_CFG[urlProfile]){
-    selectProfile(urlProfile);
-    return;
-  }
-  const saved=localStorage.getItem('mp7_profile');
-  if(saved&&PROFILE_CFG[saved]){
-    _applyProfile(saved);
+    _applyProfile(urlProfile);
     initPin();
     init();
-  } else {
-    showProfileGate();
+    return;
   }
+  // Default to gabriel when nothing is saved
+  const saved=localStorage.getItem('mp7_profile');
+  const id=(saved&&PROFILE_CFG[saved])?saved:'gabriel';
+  _applyProfile(id);
+  initPin();
+  init();
 }
 
 /* PASSWORD GATE */
