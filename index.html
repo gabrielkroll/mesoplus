@@ -3181,7 +3181,7 @@ function renderSummaryWeek(){
     return `<span style="font-family:var(--mono);font-size:13px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
   }).join('<span style="color:var(--line);margin:0 4px">·</span>');
   let urgencyLine='';
-  if(impossible)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--danger);margin-top:8px">Not possible this week</div>`;
+  if(impossible)urgencyLine='';
   el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}${urgencyLine}`;
   const setsEl=document.getElementById('sum-sets-card');if(!setsEl)return;
   const planned=weeklyPlannedSets();
