@@ -2778,7 +2778,8 @@ function renderActionBar(){
   }else if(state.type==='not-started'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
     const t=state.tier;
-    const tierLabel=t==='High'||t==='Prime'?`<span style="color:var(--accent)">${t}</span>`:t==='Low'?`<span style="color:var(--ink3)">Low</span>`:'';
+    const _TC={Poor:'#d44040',Low:'#d46a20',Moderate:'#e8a020',High:'#7aad2a',Prime:'#9a6fd4'};
+    const tierLabel=_TC[t]?`<span style="color:${_TC[t]}">${t}</span>`:'';
     el.innerHTML=left(dayName,tierLabel)+actionBtn('Start','event.stopPropagation();openTrainingSheet()');
   }else if(state.type==='in-progress'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
@@ -2855,12 +2856,14 @@ function _updateRsSheet(){
     card.innerHTML=dashHtml;
   }else if(!allSet){
     card.classList.add('rs-outcome-wave');
-    _nextWaveColor();
+    const _sel=[S.sleep,S.energy,S.soreness].filter(Boolean).length;
+    if(_sel>=2){const _pr=computeReadiness();_nextWaveColor(_pr!==null?readinessTier(_pr):null);}
+    else{_nextWaveColor(null);}
     card.innerHTML=dashHtml;
   }else{
     card.classList.remove('rs-outcome-wave');
     const tier=readinessTier(r);
-    const c={Poor:'var(--danger)',Low:'var(--ink3)',Moderate:'var(--ink2)',High:'var(--accent)',Prime:'var(--accent)'}[tier]||'var(--ink2)';
+    const c={Poor:'#d44040',Low:'#d46a20',Moderate:'#e8a020',High:'#7aad2a',Prime:'#9a6fd4'}[tier]||'var(--ink2)';
     const msgs={Poor:'Body needs rest',Low:'Take it easy today',Moderate:'Train smart',High:'Ready to train',Prime:'Prime — let\'s go'};
     card.innerHTML=`<div class="rs-outcome-score" style="color:var(--ink)">${r}</div><div class="rs-outcome-right"><div class="rs-outcome-tier" style="color:${c}">${tier}</div><div class="rs-outcome-msg">${msgs[tier]||''}</div></div>`;
   }
@@ -2881,12 +2884,18 @@ function _updateRsSheet(){
   }
 }
 function _rsStartTraining(){closeReadinessSheet();openTrainingSheet();}
-const _WAVE_PALETTE=[[122,173,42],[212,64,64],[74,143,212],[212,154,64]];
+const _TIER_COLORS={Poor:[212,64,64],Low:[212,106,32],Moderate:[232,160,32],High:[122,173,42],Prime:[154,111,212]};
+const _WAVE_PALETTE=[[74,159,212],[122,173,42],[232,160,32],[212,106,32],[212,64,64],[154,111,212]];
 let _waveColorIdx=0;
-function _nextWaveColor(){
+function _nextWaveColor(targetTier){
   const card=document.getElementById('rs-outcome');if(!card)return;
-  let next;do{next=Math.floor(Math.random()*_WAVE_PALETTE.length);}while(next===_waveColorIdx&&_WAVE_PALETTE.length>1);
-  _waveColorIdx=next;const[r,g,b]=_WAVE_PALETTE[_waveColorIdx];
+  let r,g,b;
+  if(targetTier&&_TIER_COLORS[targetTier]){
+    [r,g,b]=_TIER_COLORS[targetTier];
+  }else{
+    let next;do{next=Math.floor(Math.random()*_WAVE_PALETTE.length);}while(next===_waveColorIdx&&_WAVE_PALETTE.length>1);
+    _waveColorIdx=next;[r,g,b]=_WAVE_PALETTE[_waveColorIdx];
+  }
   card.style.setProperty('--wvr',''+r);card.style.setProperty('--wvg',''+g);card.style.setProperty('--wvb',''+b);
 }
 function closeReadinessSheet(){
