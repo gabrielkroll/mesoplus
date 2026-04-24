@@ -2758,7 +2758,9 @@ function renderActionBar(){
   const dayName=state.letter?`Day ${state.letter} · ${state.focus}`:'';
   if(state.type==='checkin-needed'){
     bar.onclick=openReadinessSheet;bar.style.cursor='pointer';
-    el.innerHTML=left(dayName,`<span style="color:var(--ink3)">how are you feeling?</span>`)+actionBtn('Check in','event.stopPropagation();openReadinessSheet()');
+    const _cd=new Date(td()+'T12:00:00');
+    const _todayLabel=_cd.toLocaleDateString('en-US',{weekday:'long'})+' '+_cd.getDate();
+    el.innerHTML=left(_todayLabel,`<span style="color:var(--ink3)">How are you feeling?</span>`)+actionBtn('Check in','event.stopPropagation();openReadinessSheet()');
   }else if(state.type==='rest-suggested'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
     el.innerHTML=left(dayName,`<span style="color:var(--danger)">body needs recovery</span>`)+actionBtn('Rest today','event.stopPropagation();startRestDay()');
