@@ -3005,7 +3005,8 @@ function toggleTdayMenu(){
 }
 function _tdayMenuOutside(e){
   const m=document.getElementById('tday-menu');
-  if(m&&!m.contains(e.target))closeTdayMenu();
+  const btn=document.querySelector('.tday-menu-btn');
+  if(m&&!m.contains(e.target)&&!btn?.contains(e.target))closeTdayMenu();
 }
 function closeTdayMenu(){
   const m=document.getElementById('tday-menu');if(m)m.remove();
