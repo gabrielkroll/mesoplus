@@ -25,9 +25,9 @@
   :root{--ink:#e8e8e8;--ink2:#aaa;--ink3:#666;--line:#2a2a2a;--line2:#444;--surf:#1e1e1e;--lift:#141414;--danger-bg:#2a0808;}
 }
 body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;background:var(--lift);min-height:100vh;color-scheme:dark}
-/* PASSWORD GATE */
-#pin-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center}
-#pin-gate.hidden{display:none}
+/* PASSWORD / PROFILE GATE */
+#pin-gate,#profile-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center}
+#pin-gate.hidden,#profile-gate.hidden{display:none}
 .pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px;display:flex;flex-direction:column;align-items:center}
 .pin-title{font-family:var(--serif);font-style:italic;font-size:52px;color:var(--ink);margin-bottom:0;letter-spacing:-.02em}
 .pin-title sup{font-size:22px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
@@ -687,6 +687,18 @@ select.bare{cursor:pointer}
 </head>
 <body>
 
+<!-- PROFILE GATE -->
+<div id="profile-gate" class="hidden">
+  <div class="pin-box">
+    <div class="pin-title">Meso<sup>+</sup></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em">Select profile</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:28px;width:100%">
+      <button class="btn-s" onclick="selectProfile('gabriel')" style="width:100%">Gabriel</button>
+      <button class="btn-s" onclick="selectProfile('erik')" style="width:100%;background:var(--surf);color:var(--ink2)">Erik <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-left:4px">α</span></button>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN GATE -->
 <div id="pin-gate">
   <div class="pin-box">
@@ -1115,6 +1127,11 @@ select.bare{cursor:pointer}
       <div id="cpw-msg" style="font-size:11px;margin-top:8px;min-height:16px"></div>
     </div>
     <div class="settings-nav-table hub-only">
+      <button class="settings-nav-row" onclick="showProfileGate()">
+        <div class="settings-nav-content">
+          <div class="settings-nav-label">Switch profile</div>
+        </div>
+      </button>
       <button class="settings-nav-row danger" onclick="lockApp()">
         <div class="settings-nav-content">
           <div class="settings-nav-label">Log out</div>
@@ -1231,7 +1248,7 @@ const REST_QUOTES=[
   {q:"To give anything less than your best is to sacrifice the gift. But your best tomorrow starts with recovery today.",attr:"Steve Prefontaine"},
   {q:"Sleep is the greatest legal performance-enhancing drug that most people are neglecting.",attr:"Matthew Walker"},
 ];
-const TEMPLATES={
+const GABRIEL_TEMPLATES={
   1:[
     {label:'Calves + Hamstrings',exercises:[
       {name:'Seated Calf Raises',muscle:'Calves',muscle2:'',res:'Machine',side:'Both',rf:15,rc:20,sets:3},
@@ -1305,12 +1322,108 @@ const TEMPLATES={
     ]}
   ],
 };
-const DAY_FOCUS={1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'};
-const DAY_LETTER=['A','B','C','D'];
-const EX_MUSCLE={'Seated Calf Raises':'Calves','Standing Calf Raises':'Calves','Romanian Deadlift':'Hamstrings','Face Pulls':'Delts','Incline DB Curl':'Biceps','Bayesian Cable Curl':'Biceps','EZ Bar Curl':'Biceps','Hammer Curl':'Biceps','Barbell Bench Press':'Chest','DB Bench Press':'Chest','Incline DB Bench Press':'Chest','Pec Deck Fly':'Chest','Chest Supported Row':'Back','Lat Pulldown':'Back','Towel Grip Farmer Carry':'Forearms','Plate Pinch Hold':'Forearms','Squat':'Quads','Front Squat':'Quads','Wrist Curl':'Forearms','Reverse Wrist Curl':'Forearms','Reverse Pec Deck':'Delts','Overhead Press':'Delts','Lateral Raises':'Delts','Overhead Cable Triceps Ext':'Triceps','Skull Crushers':'Triceps','Cable Fly':'Chest','Pull-ups':'Back','Dips':'Triceps','Leg Curl':'Hamstrings','Leg Press':'Quads'};
-const EX_MUSCLE2={'Romanian Deadlift':'Glutes','Squat':'Glutes','Front Squat':'Glutes','Leg Press':'Glutes','Leg Curl':'Glutes','Face Pulls':'Stability','Reverse Pec Deck':'Stability','Hammer Curl':'Forearms','EZ Bar Curl':'Forearms','Towel Grip Farmer Carry':'Grip','Plate Pinch Hold':'Grip','Wrist Curl':'Grip','Reverse Wrist Curl':'Grip'};
-const EX_RES={'Seated Calf Raises':'Machine','Romanian Deadlift':'Free Weights','Face Pulls':'Cable','Incline DB Curl':'Free Weights','Bayesian Cable Curl':'Cable','EZ Bar Curl':'Free Weights','Hammer Curl':'Free Weights','Barbell Bench Press':'Free Weights','DB Bench Press':'Free Weights','Pec Deck Fly':'Machine','Chest Supported Row':'Machine','Lat Pulldown':'Machine','Towel Grip Farmer Carry':'Free Weights','Plate Pinch Hold':'Free Weights','Squat':'Free Weights','Front Squat':'Free Weights','Wrist Curl':'Free Weights','Reverse Wrist Curl':'Free Weights','Reverse Pec Deck':'Machine','Overhead Press':'Free Weights','Lateral Raises':'Free Weights','Overhead Cable Triceps Ext':'Cable','Skull Crushers':'Free Weights','Cable Fly':'Cable','Pull-ups':'Bodyweight','Dips':'Bodyweight','Leg Curl':'Machine','Leg Press':'Machine'};
-const EX_GROUPS={'Chest':['Barbell Bench Press','DB Bench Press','Incline DB Bench Press','Pec Deck Fly','Cable Fly'],'Back':['Chest Supported Row','Lat Pulldown','Pull-ups'],'Biceps':['Incline DB Curl','Bayesian Cable Curl','EZ Bar Curl','Hammer Curl'],'Triceps':['Overhead Cable Triceps Ext','Skull Crushers','Dips'],'Delts':['Face Pulls','Reverse Pec Deck','Overhead Press','Lateral Raises'],'Forearms':['Wrist Curl','Reverse Wrist Curl','Towel Grip Farmer Carry','Plate Pinch Hold'],'Quads':['Squat','Front Squat','Leg Press'],'Hamstrings':['Romanian Deadlift','Leg Curl'],'Calves':['Seated Calf Raises','Standing Calf Raises']};
+const ERIK_TEMPLATES={
+  1:[
+    {label:'Quads',exercises:[
+      {name:'Leg Press',muscle:'Quads',muscle2:'Glutes',res:'Machine',side:'Both',rf:10,rc:12,sets:2},
+      {name:'Leg Extension',muscle:'Quads',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:2}
+    ]},
+    {label:'Hamstrings + Calves',exercises:[
+      {name:'Seated Leg Curl',muscle:'Hamstrings',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:3},
+      {name:'Calf Press on Leg Press',muscle:'Calves',muscle2:'',res:'Machine',side:'Both',rf:15,rc:20,sets:2}
+    ]},
+    {label:'Back + Core',exercises:[
+      {name:'Back Extension',muscle:'Back',muscle2:'Glutes',res:'Machine',side:'Both',rf:10,rc:15,sets:2},
+      {name:'Cable Crunch',muscle:'Abs',muscle2:'',res:'Cable',side:'Both',rf:12,rc:20,sets:2}
+    ]}
+  ],
+  2:[
+    {label:'Chest',exercises:[
+      {name:'Pec Deck Fly',muscle:'Chest',muscle2:'',res:'Machine',side:'Both',rf:12,rc:15,sets:2},
+      {name:'Incline DB Bench Press',muscle:'Chest',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:12,sets:2}
+    ]},
+    {label:'Triceps',exercises:[
+      {name:'Skull Crushers',muscle:'Triceps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:12,sets:2},
+      {name:'Triceps Pushdown',muscle:'Triceps',muscle2:'',res:'Cable',side:'Both',rf:12,rc:15,sets:2}
+    ]},
+    {label:'Traps + Back',exercises:[
+      {name:'Barbell Shrug',muscle:'Traps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:15,sets:2},
+      {name:'Lat Pulldown',muscle:'Back',muscle2:'',res:'Machine',side:'Both',rf:10,rc:12,sets:2}
+    ]},
+    {label:'Core',exercises:[
+      {name:'Hanging Leg Raise',muscle:'Abs',muscle2:'',res:'Bodyweight',side:'Both',rf:10,rc:15,sets:2}
+    ]}
+  ],
+  3:[
+    {label:'Back',exercises:[
+      {name:'Lat Pulldown',muscle:'Back',muscle2:'',res:'Machine',side:'Both',rf:10,rc:12,sets:2},
+      {name:'Bent Over DB Row',muscle:'Back',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:12,sets:2}
+    ]},
+    {label:'Shoulders + Biceps',exercises:[
+      {name:'Reverse Pec Deck',muscle:'Delts',muscle2:'Stability',res:'Machine',side:'Both',rf:12,rc:15,sets:2},
+      {name:'Preacher Curl',muscle:'Biceps',muscle2:'',res:'Machine',side:'Both',rf:10,rc:12,sets:2}
+    ]},
+    {label:'Shoulders + Forearms',exercises:[
+      {name:'Face Pulls',muscle:'Delts',muscle2:'Stability',res:'Cable',side:'Both',rf:12,rc:20,sets:2},
+      {name:'Wrist Curl',muscle:'Forearms',muscle2:'Grip',res:'Free Weights',side:'Both',rf:12,rc:20,sets:2}
+    ]}
+  ],
+  4:[
+    {label:'Quads',exercises:[
+      {name:'Leg Extension',muscle:'Quads',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:2},
+      {name:'Walking Lunges',muscle:'Quads',muscle2:'Glutes',res:'Bodyweight',side:'Both',rf:10,rc:15,sets:2}
+    ]},
+    {label:'Hamstrings + Calves',exercises:[
+      {name:'Lying Leg Curl',muscle:'Hamstrings',muscle2:'',res:'Machine',side:'Both',rf:10,rc:15,sets:3},
+      {name:'Calf Press on Leg Press',muscle:'Calves',muscle2:'',res:'Machine',side:'Both',rf:15,rc:20,sets:2}
+    ]},
+    {label:'Shoulders + Core',exercises:[
+      {name:'Lateral Raises',muscle:'Delts',muscle2:'',res:'Cable',side:'Both',rf:12,rc:15,sets:2},
+      {name:'Flat Leg Raise',muscle:'Abs',muscle2:'',res:'Bodyweight',side:'Both',rf:10,rc:15,sets:2}
+    ]}
+  ],
+  5:[
+    {label:'Chest',exercises:[
+      {name:'Incline Chest Fly',muscle:'Chest',muscle2:'',res:'Free Weights',side:'Both',rf:12,rc:15,sets:2},
+      {name:'Cable Crossover',muscle:'Chest',muscle2:'',res:'Cable',side:'Both',rf:12,rc:15,sets:2}
+    ]},
+    {label:'Arms',exercises:[
+      {name:'Skull Crushers',muscle:'Triceps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:12,sets:2},
+      {name:'Reverse Curl',muscle:'Forearms',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:15,sets:2}
+    ]},
+    {label:'Traps + Biceps',exercises:[
+      {name:'Barbell Shrug',muscle:'Traps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:15,sets:2},
+      {name:'DB Curl',muscle:'Biceps',muscle2:'',res:'Free Weights',side:'Both',rf:10,rc:12,sets:2}
+    ]},
+    {label:'Shoulders',exercises:[
+      {name:'Reverse Fly Cable',muscle:'Delts',muscle2:'',res:'Cable',side:'Both',rf:12,rc:15,sets:2}
+    ]}
+  ]
+};
+const PROFILE_CFG={
+  gabriel:{id:'gabriel',name:'Gabriel',storageKey:'mp7',pinKey:'mp7_pin',days:4,
+    dayLetters:['A','B','C','D'],
+    dayFocus:{1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'},
+    templates:GABRIEL_TEMPLATES,programLabel:'Full Body ABCD',sessionType:'Full Body'},
+  erik:{id:'erik',name:'Erik',storageKey:'mp7_erik',pinKey:'mp7_pin_erik',days:5,
+    dayLetters:['A','B','C','D','E'],
+    dayFocus:{1:'Legs',2:'Upper — Chest & Triceps',3:'Pull — Back & Biceps',4:'Lower — Hamstrings',5:'Isolation — Arms & Chest'},
+    templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:''}
+};
+let _ACTIVE_PROFILE='gabriel';
+function profileCfg(){return PROFILE_CFG[_ACTIVE_PROFILE];}
+function activeDays(){return profileCfg().days;}
+function activePinKey(){return profileCfg().pinKey;}
+function activeStorageKey(){return profileCfg().storageKey;}
+let TEMPLATES=GABRIEL_TEMPLATES;
+let DAY_FOCUS={1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'};
+let DAY_LETTER=['A','B','C','D'];
+const EX_MUSCLE={'Seated Calf Raises':'Calves','Standing Calf Raises':'Calves','Romanian Deadlift':'Hamstrings','Face Pulls':'Delts','Incline DB Curl':'Biceps','Bayesian Cable Curl':'Biceps','EZ Bar Curl':'Biceps','Hammer Curl':'Biceps','Barbell Bench Press':'Chest','DB Bench Press':'Chest','Incline DB Bench Press':'Chest','Pec Deck Fly':'Chest','Chest Supported Row':'Back','Lat Pulldown':'Back','Towel Grip Farmer Carry':'Forearms','Plate Pinch Hold':'Forearms','Squat':'Quads','Front Squat':'Quads','Wrist Curl':'Forearms','Reverse Wrist Curl':'Forearms','Reverse Pec Deck':'Delts','Overhead Press':'Delts','Lateral Raises':'Delts','Overhead Cable Triceps Ext':'Triceps','Skull Crushers':'Triceps','Cable Fly':'Chest','Pull-ups':'Back','Dips':'Triceps','Leg Curl':'Hamstrings','Leg Press':'Quads',
+  'Leg Extension':'Quads','Seated Leg Curl':'Hamstrings','Lying Leg Curl':'Hamstrings','Calf Press on Leg Press':'Calves','Back Extension':'Back','Cable Crunch':'Abs','Triceps Pushdown':'Triceps','Barbell Shrug':'Traps','Hanging Leg Raise':'Abs','Bent Over DB Row':'Back','Preacher Curl':'Biceps','Walking Lunges':'Quads','Flat Leg Raise':'Abs','Incline Chest Fly':'Chest','Cable Crossover':'Chest','Reverse Curl':'Forearms','DB Curl':'Biceps','Reverse Fly Cable':'Delts'};
+const EX_MUSCLE2={'Romanian Deadlift':'Glutes','Squat':'Glutes','Front Squat':'Glutes','Leg Press':'Glutes','Leg Curl':'Glutes','Face Pulls':'Stability','Reverse Pec Deck':'Stability','Hammer Curl':'Forearms','EZ Bar Curl':'Forearms','Towel Grip Farmer Carry':'Grip','Plate Pinch Hold':'Grip','Wrist Curl':'Grip','Reverse Wrist Curl':'Grip','Back Extension':'Glutes','Walking Lunges':'Glutes'};
+const EX_RES={'Seated Calf Raises':'Machine','Romanian Deadlift':'Free Weights','Face Pulls':'Cable','Incline DB Curl':'Free Weights','Bayesian Cable Curl':'Cable','EZ Bar Curl':'Free Weights','Hammer Curl':'Free Weights','Barbell Bench Press':'Free Weights','DB Bench Press':'Free Weights','Pec Deck Fly':'Machine','Chest Supported Row':'Machine','Lat Pulldown':'Machine','Towel Grip Farmer Carry':'Free Weights','Plate Pinch Hold':'Free Weights','Squat':'Free Weights','Front Squat':'Free Weights','Wrist Curl':'Free Weights','Reverse Wrist Curl':'Free Weights','Reverse Pec Deck':'Machine','Overhead Press':'Free Weights','Lateral Raises':'Free Weights','Overhead Cable Triceps Ext':'Cable','Skull Crushers':'Free Weights','Cable Fly':'Cable','Pull-ups':'Bodyweight','Dips':'Bodyweight','Leg Curl':'Machine','Leg Press':'Machine',
+  'Leg Extension':'Machine','Seated Leg Curl':'Machine','Lying Leg Curl':'Machine','Calf Press on Leg Press':'Machine','Back Extension':'Machine','Cable Crunch':'Cable','Triceps Pushdown':'Cable','Barbell Shrug':'Free Weights','Hanging Leg Raise':'Bodyweight','Bent Over DB Row':'Free Weights','Preacher Curl':'Machine','Walking Lunges':'Bodyweight','Flat Leg Raise':'Bodyweight','Incline Chest Fly':'Free Weights','Cable Crossover':'Cable','Reverse Curl':'Free Weights','DB Curl':'Free Weights','Reverse Fly Cable':'Cable'};
+const EX_GROUPS={'Chest':['Barbell Bench Press','DB Bench Press','Incline DB Bench Press','Pec Deck Fly','Cable Fly','Incline Chest Fly','Cable Crossover'],'Back':['Chest Supported Row','Lat Pulldown','Pull-ups','Bent Over DB Row','Back Extension'],'Biceps':['Incline DB Curl','Bayesian Cable Curl','EZ Bar Curl','Hammer Curl','Preacher Curl','DB Curl'],'Triceps':['Overhead Cable Triceps Ext','Skull Crushers','Dips','Triceps Pushdown'],'Delts':['Face Pulls','Reverse Pec Deck','Overhead Press','Lateral Raises','Reverse Fly Cable'],'Forearms':['Wrist Curl','Reverse Wrist Curl','Towel Grip Farmer Carry','Plate Pinch Hold','Reverse Curl'],'Quads':['Squat','Front Squat','Leg Press','Leg Extension','Walking Lunges'],'Hamstrings':['Romanian Deadlift','Leg Curl','Seated Leg Curl','Lying Leg Curl'],'Calves':['Seated Calf Raises','Standing Calf Raises','Calf Press on Leg Press'],'Traps':['Barbell Shrug'],'Abs':['Cable Crunch','Hanging Leg Raise','Flat Leg Raise']};
 const EX_LIST=Object.values(EX_GROUPS).flat();
 const MUSCLES=['Traps','Delts','Stability','Chest','Biceps','Triceps','Forearms','Grip','Abs','Back','Glutes','Quads','Hamstrings','Calves'];
 const MUSCLE_DISPLAY={'Stability':'Shoulder stability'};
@@ -1337,7 +1450,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',sessions:[],setGoals:{1:{},2:{},3:{},4:{}},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',sessions:[],setGoals:{},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 const uid=()=>'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 function getAct(id){return S.activities.find(a=>a.id===id);}
@@ -1348,7 +1461,7 @@ function ws(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r
 function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
-function persist(){localStorage.setItem('mp7',JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));}
+function persist(){localStorage.setItem(activeStorageKey(),JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));}
 function utcDay(s){const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);}
 function mesoWkFor(dateStr){return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(S.mesoStart)))/(7*86400000))+1);}
 function mesoWk(){return mesoWkFor(td());}
@@ -1356,8 +1469,10 @@ function derivedPhase(){let w=mesoWk(),cum=0;for(let i=0;i<S.phases.length;i++){
 function ph(){return S.phases[derivedPhase().phaseIdx];}
 
 function init(){
-  const saved=localStorage.getItem('mp7');
-  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());S.sessions=p.sessions||[];if(p.setGoals){[1,2,3,4].forEach(d=>{S.setGoals[d]={...S.setGoals[d],...(p.setGoals[d]||{})}});}
+  const days=activeDays();
+  Array.from({length:days},(_,i)=>i+1).forEach(d=>{if(!S.setGoals[d])S.setGoals[d]={};});
+  const saved=localStorage.getItem(activeStorageKey());
+  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());S.sessions=p.sessions||[];if(p.setGoals){Array.from({length:days},(_,i)=>i+1).forEach(d=>{S.setGoals[d]={...S.setGoals[d],...(p.setGoals[d]||{})}});}
     if(p.globalSetGoal!=null)S.globalSetGoal=p.globalSetGoal;
     S.sessions.forEach(s=>{
       if(s.perf)s.perf=s.perf.replace(/^[↓↑→]\s*/,'');
@@ -1636,7 +1751,7 @@ function readinessTier(r){
 }
 function sessionBrief(){
   const r=computeReadiness();
-  const dayLetter=['A','B','C','D'][(derivedGymDay(S.selectedDate)||1)-1];
+  const dayLetter=DAY_LETTER[(derivedGymDay(S.selectedDate)||1)-1];
   const tier=readinessTier(r);
   if(r===null)return{head:'How are you feeling today?',sub:'Complete check-in above.'};
   if(r<25)return{head:'Your body needs recovery.',sub:tier+' readiness'};
@@ -1752,7 +1867,7 @@ function appendActivityBlock(act){
   div.className='activity-block';
   div.id='act-block-'+act.id;
   const typeLabels={custom:'Custom Workout',bjj:'BJJ Session'};
-  const subLabel=act.type==='template'?`Day ${DAY_LETTER[act.gymDay-1]||act.gymDay} · Full Body · ${DAY_FOCUS[act.gymDay]||''}`:'';
+  const _st=profileCfg().sessionType;const subLabel=act.type==='template'?`Day ${DAY_LETTER[act.gymDay-1]||act.gymDay}${_st?' · '+_st:''} · ${DAY_FOCUS[act.gymDay]||''}`:'';
   const countOfType=S.activities.filter(a=>a.type===act.type).length;
   const actIndex=S.activities.filter(a=>a.type===act.type).indexOf(act)+1;
   const numLabel=countOfType>1?` ${actIndex}`:'';
@@ -2542,7 +2657,7 @@ function renderWeekVsLastDetail(){
 function getWeeklyMuscleGoals(){
   const totals={};
   MUSCLES.forEach(m=>totals[m]=0);
-  [1,2,3,4].forEach(day=>{
+  Array.from({length:activeDays()},(_,i)=>i+1).forEach(day=>{
     const dayGoals=S.setGoals[day]||{};
     (TEMPLATES[day]||[]).forEach(ss=>{
       ss.exercises.forEach(ex=>{
@@ -2567,7 +2682,7 @@ function setPlanGoal(day,exName,delta){
 
 function adjustAllSets(delta){
   S.globalSetGoal=Math.max(1,(S.globalSetGoal||3)+delta);
-  [1,2,3,4].forEach(day=>{
+  Array.from({length:activeDays()},(_,i)=>i+1).forEach(day=>{
     (TEMPLATES[day]||[]).forEach(ss=>ss.exercises.forEach(ex=>{
       S.setGoals[day][ex.name]=S.globalSetGoal;
     }));
@@ -2580,10 +2695,10 @@ function renderPlanTab(){
   // Update global stepper display
   const gv=document.getElementById('plan-global-val');
   if(gv)gv.textContent=S.globalSetGoal||3;
-  const dayLabels={1:'Day A',2:'Day B',3:'Day C',4:'Day D'};
+  const dayLabels=Object.fromEntries(Array.from({length:activeDays()},(_,i)=>i+1).map(d=>[d,`Day ${DAY_LETTER[d-1]}`]));
   const wrap=document.getElementById('plan-days-wrap');
   if(!wrap)return;
-  wrap.innerHTML=[1,2,3,4].map(day=>{
+  wrap.innerHTML=Array.from({length:activeDays()},(_,i)=>i+1).map(day=>{
     const goals=S.setGoals[day]||{};
     const rows=(TEMPLATES[day]||[]).flatMap(ss=>ss.exercises).map(ex=>{
       const val=parseInt(goals[ex.name])||0;
@@ -2600,7 +2715,7 @@ function renderPlanTab(){
         </div>
       </div>`;
     }).join('');
-    return `<div class="plan-day-card"><div class="plan-day-title">${dayLabels[day]}</div><div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:-6px;margin-bottom:12px">Full Body · ${DAY_FOCUS[day]||''}</div>${rows}</div>`;
+    const _pst=profileCfg().sessionType;return `<div class="plan-day-card"><div class="plan-day-title">${dayLabels[day]}</div><div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:-6px;margin-bottom:12px">${_pst?_pst+' · ':''}${DAY_FOCUS[day]||''}</div>${rows}</div>`;
   }).join('');
 
   // Weekly muscle totals
@@ -2974,7 +3089,7 @@ function _buildTrainingSheetUI(act){
   const letter=DAY_LETTER[act.gymDay-1];
   const focus=DAY_FOCUS[act.gymDay]||'';
   const p=ph();
-  document.getElementById('tday-eyebrow').textContent=`Day ${letter} · Full Body`;
+  const _tst=profileCfg().sessionType;document.getElementById('tday-eyebrow').textContent=`Day ${letter}${_tst?' · '+_tst:''}`;
   document.getElementById('tday-title').textContent=focus;
   document.getElementById('tday-sug').textContent=`${p.name} · RIR target ${p.rir}. ${p.load}.`;
   // Orphan any existing tbody with this id (Train tab may have rendered it)
@@ -3024,7 +3139,7 @@ function renderSummary(){
 }
 function weeklyPlannedSets(){
   let total=0;
-  [1,2,3,4].forEach(day=>{
+  Array.from({length:activeDays()},(_,i)=>i+1).forEach(day=>{
     const dg=S.setGoals[day]||{};
     (TEMPLATES[day]||[]).forEach(ss=>ss.exercises.forEach(ex=>{
       const n=parseInt(dg[ex.name]!=null?dg[ex.name]:ex.sets)||0;
@@ -3052,7 +3167,7 @@ function renderSummaryWeek(){
   const weekSess=S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
   const gymDone=weekSess.filter(s=>(s.activities||[]).some(a=>a.type==='template')).length;
   const extraDone=weekSess.filter(s=>!s.isRest&&(s.activities||[]).some(a=>a.type==='bjj'||a.type==='custom')).length;
-  const gymPlanned=4;
+  const gymPlanned=activeDays();
   const gymLeft=Math.max(0,gymPlanned-gymDone);
   const dayOfWeekMon=(new Date(today+'T12:00:00').getDay()+6)%7;
   const calDaysLeft=7-dayOfWeekMon;
@@ -3060,7 +3175,7 @@ function renderSummaryWeek(){
   const urgent=!impossible&&gymLeft>=calDaysLeft&&gymLeft>0;
   const extraHtml=extraDone>0?`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:4px">+ ${extraDone} extra session${extraDone!==1?'s':''}</div>`:'';
   let urgencyHtml='';
-  const dayIndicators=[1,2,3,4].map(day=>{
+  const dayIndicators=Array.from({length:gymPlanned},(_,i)=>i+1).map(day=>{
     const daySess=weekSess.find(s=>(s.activities||[]).some(a=>a.type==='template'&&a.gymDay===day));
     const color=!daySess?'var(--line)':daySess.completed?'var(--accent)':'var(--ink2)';
     return `<span style="font-family:var(--mono);font-size:13px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
@@ -3072,7 +3187,7 @@ function renderSummaryWeek(){
   const planned=weeklyPlannedSets();
   const actual=weeklyActualSets(mon,sun);
   const pct=planned>0?Math.min(100,Math.round(actual/planned*100)):0;
-  const expectedSets=gymDone>0?Math.round(planned/4*gymDone):0;
+  const expectedSets=gymDone>0?Math.round(planned/gymPlanned*gymDone):0;
   let stateLabel='',stateColor='var(--ink3)';
   if(gymDone===gymPlanned){stateLabel='complete';stateColor='var(--accent)';}
   else if(gymDone>0){stateLabel=actual>=expectedSets?'on pace':'behind';stateColor=actual>=expectedSets?'var(--accent)':'var(--ink2)';}
@@ -3097,7 +3212,7 @@ function nav(id){
 }
 function updateHubSubtitles(){
   const progEl=document.getElementById('hub-program-sub');
-  if(progEl){const w=mesoWk();progEl.textContent=`Full Body ABCD · W${w} ${ph().abbr}`;}
+  if(progEl){const w=mesoWk();progEl.textContent=`${profileCfg().programLabel} · W${w} ${ph().abbr}`;}
   const setupEl=document.getElementById('hub-setup-sub');
   if(setupEl){
     const parts=[];
@@ -3117,6 +3232,39 @@ function updateProfileNav(){
   const bn=document.getElementById('bn-profile-name');if(bn)bn.textContent=first||'Profile';
 }
 
+/* PROFILE SELECTION */
+function _applyProfile(id){
+  _ACTIVE_PROFILE=id;
+  const cfg=PROFILE_CFG[id];
+  TEMPLATES=cfg.templates;
+  DAY_LETTER=cfg.dayLetters;
+  DAY_FOCUS=cfg.dayFocus;
+  // Reset S for this profile
+  S.sessions=[];S.setGoals={};S.sleep='';S.energy='';S.soreness='';S.perf='';S.activities=[];S.isRest=null;S.selectedDate=null;
+  S.phases=PHASES.map(p=>({...p,weeks:2}));S.mesoStart='';
+}
+function selectProfile(id){
+  localStorage.setItem('mp7_profile',id);
+  _applyProfile(id);
+  document.getElementById('profile-gate').classList.add('hidden');
+  initPin();
+  init();
+}
+function showProfileGate(){
+  document.getElementById('profile-gate').classList.remove('hidden');
+  document.getElementById('pin-gate').classList.add('hidden');
+}
+function startApp(){
+  const saved=localStorage.getItem('mp7_profile');
+  if(saved&&PROFILE_CFG[saved]){
+    _applyProfile(saved);
+    initPin();
+    init();
+  } else {
+    showProfileGate();
+  }
+}
+
 /* PASSWORD GATE */
 let pinMode='unlock';
 function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
@@ -3129,10 +3277,10 @@ function submitPassword(e){
     const confirm=document.getElementById('pin-confirm-input').value;
     if(!confirm){err.textContent='Confirm your password';return;}
     if(pw!==confirm){err.textContent='Passwords don\'t match';return;}
-    localStorage.setItem('mp7_pin',hashPw(pw));
+    localStorage.setItem(activePinKey(),hashPw(pw));
     unlockApp();
   } else {
-    if(hashPw(pw)===localStorage.getItem('mp7_pin')){unlockApp();}
+    if(hashPw(pw)===localStorage.getItem(activePinKey())){unlockApp();}
     else{err.textContent='Wrong password';document.getElementById('pin-input').value='';}
   }
 }
@@ -3148,7 +3296,7 @@ function lockApp(){
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
-  const hasPin=!!localStorage.getItem('mp7_pin');
+  const hasPin=!!localStorage.getItem(activePinKey());
   const isStandalone=navigator.standalone===true;
   const note=document.getElementById('pin-standalone-note');
   if(note)note.style.display=(isStandalone&&!hasPin)?'block':'none';
@@ -3181,7 +3329,7 @@ function generateSetupToken(target){
   const err=document.getElementById('export-err');
   err.textContent='';
   if(!pw){err.textContent='Enter your password';return;}
-  if(hashPw(pw)!==localStorage.getItem('mp7_pin')){err.textContent='Wrong password';return;}
+  if(hashPw(pw)!==localStorage.getItem(activePinKey())){err.textContent='Wrong password';return;}
   const payload={
     exp:Date.now()+2*60*1000,
     n:localStorage.getItem('mp7_name')||'',
@@ -3234,9 +3382,13 @@ function checkSetupToken(){
   const params=new URLSearchParams(window.location.search);
   const token=params.get('setup');
   if(!token)return;
+  // Device transfer always goes to the active/Gabriel profile
+  const profileId=localStorage.getItem('mp7_profile')||'gabriel';
+  _applyProfile(profileId);
   window._pendingSetupToken=decodeURIComponent(token);
   document.getElementById('setup-import-gate').classList.remove('hidden');
   document.getElementById('pin-gate').classList.add('hidden');
+  document.getElementById('profile-gate').classList.add('hidden');
 }
 function importFromToken(e){
   e.preventDefault();
@@ -3259,7 +3411,7 @@ function importFromToken(e){
     localStorage.setItem('mp7_t',payload.t||'Workout_Log');
     localStorage.setItem('mp7_ck',payload.ck||'');
     localStorage.setItem('mp7_su',payload.su||'');
-    localStorage.setItem('mp7_pin',hashPw(pw));
+    localStorage.setItem(activePinKey(),hashPw(pw));
     used.push(tokenHash);
     localStorage.setItem('mp7_used_tokens',JSON.stringify(used.slice(-20)));
     window.history.replaceState({},document.title,window.location.pathname);
@@ -3415,11 +3567,11 @@ function doChangePw(){
   const newPw=document.getElementById('cpw-new').value;
   const confirm=document.getElementById('cpw-confirm').value;
   if(!oldPw){msg.textContent='Enter your current password';msg.style.color='var(--danger)';return;}
-  if(hashPw(oldPw)!==localStorage.getItem('mp7_pin')){msg.textContent='Current password is wrong';msg.style.color='var(--danger)';return;}
+  if(hashPw(oldPw)!==localStorage.getItem(activePinKey())){msg.textContent='Current password is wrong';msg.style.color='var(--danger)';return;}
   if(!newPw){msg.textContent='Enter a new password';msg.style.color='var(--danger)';return;}
   if(newPw.length<3){msg.textContent='Password too short (3+ characters)';msg.style.color='var(--danger)';return;}
   if(newPw!==confirm){msg.textContent='New passwords don\'t match';msg.style.color='var(--danger)';return;}
-  localStorage.setItem('mp7_pin',hashPw(newPw));
+  localStorage.setItem(activePinKey(),hashPw(newPw));
   msg.textContent='Password updated ✓';msg.style.color='var(--accent)';
   document.getElementById('cpw-old').value='';document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';
   setTimeout(()=>toggleChangePw(),1500);
@@ -3427,8 +3579,7 @@ function doChangePw(){
 /* ── END CHANGE PASSWORD ────────────────────────────── */
 
 checkSetupToken();
-initPin();
-init();
+startApp();
 </script>
 
 <!-- PLAN EDIT SHEET -->
