@@ -7,8 +7,8 @@
 
 ## Now
 
-**Slice 7 — Readiness Integration**
-Goal: Surface readiness data (sleep/energy/soreness) in the action bar or Summary — connect how the athlete feels to what the app suggests.
+**Slice 8 — Insights → Weekly Review Flow**
+Goal: Turn the Insights tab into a useful weekly review — surface what happened this week (volume, sessions, readiness) so the athlete can reflect before the next microcycle.
 Status: Not started — discuss acceptance criteria before touching code.
 
 ---
@@ -23,6 +23,7 @@ Status: Not started — discuss acceptance criteria before touching code.
 | 4 — Weekly Completion Loop | `d0e013c` | Pull created by ABCD indicators (S2). Summary header: phase name in phase color (serif italic 32px) + microcycle week label (mono). Deselect fix: Summary updates immediately when Train deselected. Active nudge deferred to S6. |
 | 5 — Volume Awareness | `1ec753b` | Two cards: sessions (gymDone/4 + ABCD) and sets (actual/planned + pace bar). Planned from TEMPLATES + setGoals. Actual from logged sets. Pace = actual vs (planned/4 × sessions done). Cards data-only — action layer deferred to S6. 44px serif + 13px mono across all cards. |
 | 6 — Adaptive Action Bar | `7fd8763` | Full-screen training sheet (full-screen modal, no Complete Day footer). Floating pill action bar (Apple Music pattern): whole pill = open sheet, ··· dot menu = "Wrap up Day X". State machine: not-started / in-progress / done. TODAY card owns session identity, action bar owns state. Shadow removed, 68px mobile gap. DOM ID conflict fix for ex-tbody. |
+| 7 — Readiness Integration | `9bd611b` | Full-screen readiness check-in sheet (sleep/energy/soreness chips → score → tier). Nine action bar states: checkin-needed, rest-suggested, not-started (tier label), in-progress, done, rest, + tomorrow/future variants. TODAY card removed — action bar owns today identity. Frosted glass blur behind action bar (blur 48px + rgba(20,20,20,.8)→.35 gradient). |
 
 ---
 
@@ -30,8 +31,6 @@ Status: Not started — discuss acceptance criteria before touching code.
 
 | # | Slice | Depends on |
 |---|---|---|
-| 6 | Adaptive Action Bar | 2, 3 |
-| 7 | Readiness Integration | 6 |
 | 8 | Insights → Weekly Review Flow | 4, 5 |
 | 9 | RIR → Stimulus Signal | existing data |
 | 10 | Summary Upgrade | 5, 9 |
