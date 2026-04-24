@@ -720,6 +720,7 @@ select.bare{cursor:pointer}
       <strong style="color:var(--ink2)">Option 1:</strong> Open a setup transfer link from Setup → Transfer to another device.<br>
       <strong style="color:var(--ink2)">Option 2:</strong> Create a new password below — then import your data from Sheets.
     </div>
+    <a href="?profile=erik" style="display:block;margin-top:32px;font-family:var(--mono);font-size:10px;color:var(--ink3);text-decoration:none;letter-spacing:.04em" onmouseover="this.style.color='var(--ink2)'" onmouseout="this.style.color='var(--ink3)'">Beta testing →</a>
   </div>
 </div>
 
@@ -3255,6 +3256,12 @@ function showProfileGate(){
   document.getElementById('pin-gate').classList.add('hidden');
 }
 function startApp(){
+  // URL param ?profile=erik lets you share a direct beta link
+  const urlProfile=new URLSearchParams(window.location.search).get('profile');
+  if(urlProfile&&PROFILE_CFG[urlProfile]){
+    selectProfile(urlProfile);
+    return;
+  }
   const saved=localStorage.getItem('mp7_profile');
   if(saved&&PROFILE_CFG[saved]){
     _applyProfile(saved);
