@@ -1566,6 +1566,14 @@ function shiftWeek(d){
   },{passive:true});
 })();
 
+function _readinessFromSess(sess){
+  if(!sess)return null;
+  const sl={'≤5.5h':5,'6h':20,'6.5h':35,'7h':55,'7.5h':70,'8h':85,'≥8.5h':100}[sess.sleep];
+  const en={Drained:5,Low:25,Moderate:55,Good:75,Charged:100}[sess.energy];
+  const so={Wrecked:5,Heavy:25,Moderate:55,Mild:75,Fresh:100}[sess.soreness];
+  const vals=[sl,en,so].filter(v=>v!==undefined);
+  return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+}
 function computeReadiness(){
   const sl={'≤5.5h':5,'6h':20,'6.5h':35,'7h':55,'7.5h':70,'8h':85,'≥8.5h':100}[S.sleep];
   const en={Drained:5,Low:25,Moderate:55,Good:75,Charged:100}[S.energy];
@@ -2684,17 +2692,18 @@ function getActionBarState(){
   const gymAct=todaySess?(todaySess.activities||[]).find(a=>a.type==='template'):null;
   // Priority 1.5 — rest day logged (session exists, no gym activity)
   if(todaySess&&!gymAct){return{type:'rest'};}
-  // Priority 2 — gym not started today
+  // Gym not started today
   if(!gymAct){
-    const day=derivedGymDay(today);
-    const letter=DAY_LETTER[day-1];
-    return{type:'not-started',label:`Start Day ${letter}`,day,letter};}
-  // Priority 3 — gym in progress
+    const day=derivedGymDay(today);const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
+    return{type:'not-started',day,letter,focus};}
+  // Gym in progress
   if(!todaySess.completed){
     const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
     return{type:'in-progress',day,letter,focus};}
-  // Priority 6 — nothing left (stubs 4,5 filled by 6e,6f)
-  return{type:'idle',label:`Let's check in again tomorrow`};
+  // Done — check readiness for add-session nudge
+  const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
+  const r=_readinessFromSess(todaySess);
+  return{type:'done',day,letter,focus,highReadiness:r!==null&&r>=75};
 }
 function initActionBar(){renderActionBar();}
 function renderActionBar(){
@@ -2703,19 +2712,30 @@ function renderActionBar(){
   if(!el||!bar)return;
   closeAbMenu();
   const state=getActionBarState();
-  const txt='font-family:var(--mono);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+  const nameS='font-family:var(--mono);font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+  const stateS='font-family:var(--mono);font-size:10px;letter-spacing:.04em';
+  const btnBase='background:none;border:none;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;border-radius:10px;padding:0 8px';
+  const left=(top,bottom='')=>`<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0"><span style="${nameS}">${top}</span>${bottom?`<span style="${stateS}">${bottom}</span>`:''}</div>`;
+  const actionBtn=(label,fn)=>`<button onclick="${fn}" style="${btnBase};font-family:var(--mono);font-size:12px;color:var(--ink2);letter-spacing:.04em" aria-label="${label}">${label}</button>`;
+  const menuBtn=()=>`<button onclick="event.stopPropagation();toggleAbMenu()" style="${btnBase};font-size:18px;color:var(--ink3);letter-spacing:1px" aria-label="More options">···</button>`;
+  const dayName=state.letter?`Day ${state.letter} · ${state.focus}`:'';
   if(state.type==='not-started'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
-    el.innerHTML=`<span style="${txt};color:var(--ink)">Start Day ${state.letter}</span>`;
+    el.innerHTML=left(dayName)+actionBtn('Start','event.stopPropagation();openTrainingSheet()');
   }else if(state.type==='in-progress'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
-    el.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0"><span style="${txt};color:var(--ink)">Day ${state.letter} · ${state.focus}</span><span style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.04em">in progress</span></div><button onclick="event.stopPropagation();toggleAbMenu()" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:18px;letter-spacing:1px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;border-radius:10px" aria-label="More options">···</button>`;
+    el.innerHTML=left(dayName,`<span style="color:var(--ink3)">in progress</span>`)+menuBtn();
+  }else if(state.type==='done'){
+    bar.onclick=null;bar.style.cursor='default';
+    const doneLabel=`<span style="color:var(--accent)">done ✓</span>`;
+    const right=state.highReadiness?actionBtn('Add session','openAddSessionSheet()'):'';
+    el.innerHTML=left(dayName,doneLabel)+right;
   }else if(state.type==='rest'){
     bar.onclick=null;bar.style.cursor='default';
-    el.innerHTML=`<span style="${txt};color:var(--ink3)">Rest day</span>`;
+    el.innerHTML=left('Rest day');
   }else{
     bar.onclick=null;bar.style.cursor='default';
-    el.innerHTML=`<span style="${txt};color:var(--ink3)">Day done · see you tomorrow</span>`;
+    el.innerHTML=left('See you tomorrow');
   }
 }
 function toggleAbMenu(){
@@ -2744,6 +2764,7 @@ function doneForToday(){
   closeAbMenu();
   endSession();
 }
+function openAddSessionSheet(){/* S6e stub — extra session flow (BJJ / custom) */}
 
 /* ── TRAINING DAY SHEET ── */
 let _tdayActId=null,_tdayWasEmpty=false;
@@ -2876,8 +2897,6 @@ function renderSummaryWeek(){
   const urgent=!impossible&&gymLeft>=calDaysLeft&&gymLeft>0;
   const extraHtml=extraDone>0?`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:4px">+ ${extraDone} extra session${extraDone!==1?'s':''}</div>`:'';
   let urgencyHtml='';
-  if(impossible)urgencyHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:6px">${gymLeft} sessions needed · ${calDaysLeft} day${calDaysLeft!==1?'s':''} left — not possible</div>`;
-  else if(urgent)urgencyHtml=`<div style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-top:6px">${gymLeft} sessions · ${calDaysLeft} day${calDaysLeft!==1?'s':''} — train daily to finish</div>`;
   const dayIndicators=[1,2,3,4].map(day=>{
     const daySess=weekSess.find(s=>(s.activities||[]).some(a=>a.type==='template'&&a.gymDay===day));
     const color=!daySess?'var(--line)':daySess.completed?'var(--accent)':'var(--ink2)';
@@ -2885,7 +2904,6 @@ function renderSummaryWeek(){
   }).join('<span style="color:var(--line);margin:0 4px">·</span>');
   let urgencyLine='';
   if(impossible)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--danger);margin-top:8px">Not possible this week</div>`;
-  else if(urgent)urgencyLine=`<div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-top:8px">Train daily to finish</div>`;
   el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ink);line-height:1">${gymDone}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink3)">/ ${gymPlanned}</div><div style="font-family:var(--mono);font-size:13px;color:var(--ink2);margin-left:2px">sessions</div></div><div style="display:flex;align-items:center;gap:2px">${dayIndicators}</div></div>${extraHtml}${urgencyLine}`;
   const setsEl=document.getElementById('sum-sets-card');if(!setsEl)return;
   const planned=weeklyPlannedSets();
