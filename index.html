@@ -549,7 +549,7 @@ select.bare{cursor:pointer}
 .tday-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-close:hover{background:var(--surf)}
 .tday-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
-.tday-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:160px;margin-bottom:0}
+.tday-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:96px;margin-bottom:0}
 .tday-sug{font-family:var(--mono);font-size:12px;color:var(--ink2);padding:8px 16px;border-top:1px solid var(--line);margin:8px -16px 0}
 .tday-menu-btn{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:52px;background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-menu-btn:hover{background:var(--surf)}
@@ -560,8 +560,6 @@ select.bare{cursor:pointer}
 .tday-footer-btn.primary{background:var(--ink);color:var(--lift)}
 .tday-footer-btn.secondary{background:none;border:1px solid var(--line2);color:var(--ink2)}
 .tday-footer-btn:hover{opacity:.85}
-.tday-undo-btn{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:96px;padding:5px 12px;border-radius:20px;font-family:var(--mono);font-size:12px;color:var(--ink);background:rgba(255,255,255,.08);border:1px solid var(--line2);cursor:pointer;white-space:nowrap;outline:none}
-.tday-undo-btn:hover{background:rgba(255,255,255,.14)}
 
 /* READINESS SHEET */
 .rs-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
@@ -3034,28 +3032,35 @@ function discardTdayEntries(){
   markDirty();
   const body=document.getElementById('tday-body');
   body.innerHTML='';appendActivityBlock(act,body);renderTdayFooter();
-  showTdayUndo();
+  _injectUndoBanner(_tdayActId);
 }
-function showTdayUndo(){
-  let btn=document.getElementById('tday-undo-btn');
-  if(!btn){
-    btn=document.createElement('button');
-    btn.id='tday-undo-btn';btn.className='tday-undo-btn';
-    btn.setAttribute('aria-label','Undo discard');btn.textContent='↩ Undo';
-    btn.onclick=undoTdayDiscard;
-    document.querySelector('.tday-hdr').appendChild(btn);
-  }
+function _injectUndoBanner(actId){
+  const bar=document.getElementById('adopt-bar-'+actId);if(!bar)return;
+  bar.innerHTML=`<span>Entries cleared</span><div class="adopt-bar-actions"><button class="adopt-all-btn" onclick="undoTdayDiscard()">↩ Undo</button><button class="adopt-btn" onclick="hideTdayUndo()" style="font-size:15px;line-height:1;padding:2px 6px">×</button></div>`;
+  bar.classList.add('show');
 }
 function hideTdayUndo(){
-  const btn=document.getElementById('tday-undo-btn');if(btn)btn.remove();
   _tdayUndoData=null;
+  // Restore adopt-bar to its normal state
+  if(_tdayActId){
+    const act=getAct(_tdayActId);
+    const bar=document.getElementById('adopt-bar-'+_tdayActId);
+    if(bar&&act){
+      bar.innerHTML=`<span>Baseline suggestions available — review before saving</span><div class="adopt-bar-actions"><button class="adopt-undo-btn" id="adopt-undo-btn-${_tdayActId}" onclick="undoAdopt('${_tdayActId}')">↩ undo</button><button class="adopt-all-btn" onclick="adoptAll('${_tdayActId}')">✓ Adopt all</button></div>`;
+      const anyUnadopted=(act.supersets||[]).some(ss=>ss.exercises.some(e=>e.sugKg!=null&&e.kg===''&&e.reps===''));
+      bar.classList.toggle('show',anyUnadopted);
+    }
+  }
 }
 function undoTdayDiscard(){
   const act=getAct(_tdayActId);if(!act||!_tdayUndoData)return;
   act.supersets=_tdayUndoData;
-  markDirty();hideTdayUndo();
+  _tdayUndoData=null;// clear before re-render so normal flow takes over
+  markDirty();
   const body=document.getElementById('tday-body');
   body.innerHTML='';appendActivityBlock(act,body);renderTdayFooter();
+  // renderTable re-evaluates adopt-bar visibility naturally
+  renderTable(_tdayActId);
 }
 function openAddSessionSheet(){/* S6e stub — extra session flow (BJJ / custom) */}
 
