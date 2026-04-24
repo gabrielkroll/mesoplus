@@ -1917,7 +1917,7 @@ function appendActivityBlock(act,_container){
           </table>
         </div>
         <div class="add-ss-wrap">
-          <button class="btn-t" onclick="addSuperset('${act.id}')">+ add superset</button>
+          <button class="btn-t" onclick="addSuperset('${act.id}')">+ Add superset</button>
           <button class="undo-ss-btn" id="undo-ss-${act.id}" onclick="undoSS('${act.id}')">↩ undo remove superset</button>
         </div>
       </div>`;
@@ -2024,7 +2024,7 @@ function renderTable(actId){
       tbody.appendChild(tr);
     });
     const ar=document.createElement('tr');ar.className='add-ex-row';ar.id=`add-ex-row-${actId}-${si}`;
-    ar.innerHTML=`<td colspan="10"><div class="add-ex-row-inner"><button class="add-ex-btn" onclick="addExToSS(${si},'${actId}')">+ add exercise</button><button class="ex-icon-btn undo-ex" id="undo-ex-${actId}-${si}" style="display:none" onclick="undoEx(${si},'${actId}')">↩ undo remove exercise</button></div></td>`;
+    ar.innerHTML=`<td colspan="10"><div class="add-ex-row-inner"><button class="add-ex-btn" onclick="addExToSS(${si},'${actId}')">+ Add exercise</button><button class="ex-icon-btn undo-ex" id="undo-ex-${actId}-${si}" style="display:none" onclick="undoEx(${si},'${actId}')">↩ undo remove exercise</button></div></td>`;
     tbody.appendChild(ar);
   });
   const undoSSBtn=document.getElementById('undo-ss-'+actId);
@@ -2998,7 +2998,7 @@ function toggleTdayMenu(){
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
   menu.style.top=(r.bottom+8)+'px';menu.style.right='16px';menu.style.bottom='auto';
-  menu.innerHTML=`<button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div style="height:1px;background:var(--line);margin:4px 0"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button>`;
+  menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div style="height:1px;background:var(--line);margin:4px 0"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_tdayMenuOutside,true),10);
 }
@@ -3009,6 +3009,17 @@ function _tdayMenuOutside(e){
 function closeTdayMenu(){
   const m=document.getElementById('tday-menu');if(m)m.remove();
   document.removeEventListener('click',_tdayMenuOutside,true);
+}
+function restoreProgram(){
+  closeTdayMenu();
+  const act=getAct(_tdayActId);if(!act)return;
+  act.supersets=TEMPLATES[act.gymDay].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({
+    name:e.name,muscle:e.muscle,muscle2:e.muscle2||'',res:e.res,side:e.side||'Both',
+    rf:e.rf,rc:e.rc,sets:'',kg:'',reps:'',rir:'',flagged:false
+  }))}));
+  markDirty();
+  const body=document.getElementById('tday-body');
+  body.innerHTML='';appendActivityBlock(act,body);renderTdayFooter();
 }
 function restInstead(){
   closeTdayMenu();
