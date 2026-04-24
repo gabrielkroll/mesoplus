@@ -544,6 +544,21 @@ select.bare{cursor:pointer}
 .tday-sug{font-family:var(--mono);font-size:12px;color:var(--ink2);padding:8px 16px;border-top:1px solid var(--line);margin:8px -16px 0}
 .tday-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom,0))}
 
+/* READINESS SHEET */
+.rs-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
+.rs-backdrop.open{opacity:1;pointer-events:auto;visibility:visible}
+.rs-sheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
+.rs-sheet.open{transform:translateY(0);visibility:visible}
+.rs-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 16px;border-bottom:1px solid var(--line);position:relative}
+.rs-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;-webkit-tap-highlight-color:transparent}
+.rs-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.rs-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:52px}
+.rs-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 16px}
+.rs-lbl{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px}
+.rs-tier{font-family:var(--mono);font-size:12px;letter-spacing:.04em;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+.rs-footer{flex-shrink:0;padding:12px 16px;padding-bottom:calc(max(env(safe-area-inset-bottom,0px),16px));border-top:1px solid var(--line)}
+.rs-done-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;height:48px;font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
 /* MOBILE */
 @media(max-width:600px){
   .nav{display:none!important}
@@ -1571,6 +1586,20 @@ function _readinessFromSess(sess){
   const sl={'≤5.5h':5,'6h':20,'6.5h':35,'7h':55,'7.5h':70,'8h':85,'≥8.5h':100}[sess.sleep];
   const en={Drained:5,Low:25,Moderate:55,Good:75,Charged:100}[sess.energy];
   const so={Wrecked:5,Heavy:25,Moderate:55,Mild:75,Fresh:100}[sess.soreness];
+  const vals=[sl,en,so].filter(v=>v!==undefined);
+  return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+}
+function _todayReadiness(){
+  // Merge today's saved session with S working buffer — session wins if set
+  const today=td();
+  const sess=S.sessions.find(s=>s.date===today);
+  const sleep=(sess&&sess.sleep)||S.sleep||'';
+  const energy=(sess&&sess.energy)||S.energy||'';
+  const soreness=(sess&&sess.soreness)||S.soreness||'';
+  if(!sleep&&!energy&&!soreness)return null;
+  const sl={'≤5.5h':5,'6h':20,'6.5h':35,'7h':55,'7.5h':70,'8h':85,'≥8.5h':100}[sleep];
+  const en={Drained:5,Low:25,Moderate:55,Good:75,Charged:100}[energy];
+  const so={Wrecked:5,Heavy:25,Moderate:55,Mild:75,Fresh:100}[soreness];
   const vals=[sl,en,so].filter(v=>v!==undefined);
   return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
 }
@@ -2690,20 +2719,23 @@ function getActionBarState(){
   const today=td();
   const todaySess=S.sessions.find(s=>s.date===today);
   const gymAct=todaySess?(todaySess.activities||[]).find(a=>a.type==='template'):null;
-  // Priority 1.5 — rest day logged (session exists, no gym activity)
-  if(todaySess&&!gymAct){return{type:'rest'};}
-  // Gym not started today
-  if(!gymAct){
-    const day=derivedGymDay(today);const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
-    return{type:'not-started',day,letter,focus};}
+  // Rest day explicitly logged
+  if(todaySess&&todaySess.isRest===true){return{type:'rest'};}
   // Gym in progress
-  if(!todaySess.completed){
+  if(gymAct&&!todaySess.completed){
     const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
     return{type:'in-progress',day,letter,focus};}
-  // Done — check readiness for add-session nudge
-  const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
-  const r=_readinessFromSess(todaySess);
-  return{type:'done',day,letter,focus,highReadiness:r!==null&&r>=75};
+  // Gym done
+  if(gymAct&&todaySess.completed){
+    const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
+    const r=_readinessFromSess(todaySess);
+    return{type:'done',day,letter,focus,highReadiness:r!==null&&r>=75};}
+  // Not started — check readiness for pre-session guidance
+  const day=derivedGymDay(today);const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
+  const r=_todayReadiness();
+  if(r===null)return{type:'checkin-needed',day,letter,focus};
+  if(r<25)return{type:'rest-suggested',day,letter,focus};
+  return{type:'not-started',day,letter,focus,tier:readinessTier(r)};
 }
 function initActionBar(){renderActionBar();}
 function renderActionBar(){
@@ -2719,23 +2751,30 @@ function renderActionBar(){
   const actionBtn=(label,fn)=>`<button onclick="${fn}" style="${btnBase};font-family:var(--mono);font-size:12px;color:var(--ink2);letter-spacing:.04em" aria-label="${label}">${label}</button>`;
   const menuBtn=()=>`<button onclick="event.stopPropagation();toggleAbMenu()" style="${btnBase};font-size:18px;color:var(--ink3);letter-spacing:1px" aria-label="More options">···</button>`;
   const dayName=state.letter?`Day ${state.letter} · ${state.focus}`:'';
-  if(state.type==='not-started'){
+  if(state.type==='checkin-needed'){
+    bar.onclick=openReadinessSheet;bar.style.cursor='pointer';
+    el.innerHTML=left(dayName,`<span style="color:var(--ink3)">how are you feeling?</span>`)+actionBtn('Check in','event.stopPropagation();openReadinessSheet()');
+  }else if(state.type==='rest-suggested'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
-    el.innerHTML=left(dayName)+actionBtn('Start','event.stopPropagation();openTrainingSheet()');
+    el.innerHTML=left(dayName,`<span style="color:var(--danger)">body needs recovery</span>`)+actionBtn('Rest today','event.stopPropagation();startRestDay()');
+  }else if(state.type==='not-started'){
+    bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
+    const t=state.tier;
+    const tierLabel=t==='High'||t==='Prime'?`<span style="color:var(--accent)">${t} readiness</span>`:t==='Low'?`<span style="color:var(--ink3)">Low readiness</span>`:'';
+    el.innerHTML=left(dayName,tierLabel)+actionBtn('Start','event.stopPropagation();openTrainingSheet()');
   }else if(state.type==='in-progress'){
     bar.onclick=openTrainingSheet;bar.style.cursor='pointer';
     el.innerHTML=left(dayName,`<span style="color:var(--ink3)">in progress</span>`)+menuBtn();
   }else if(state.type==='done'){
     bar.onclick=null;bar.style.cursor='default';
-    const doneLabel=`<span style="color:var(--accent)">done ✓</span>`;
     const right=state.highReadiness?actionBtn('Add session','openAddSessionSheet()'):'';
-    el.innerHTML=left(dayName,doneLabel)+right;
+    el.innerHTML=left(dayName,`<span style="color:var(--accent)">done ✓</span>`)+right;
   }else if(state.type==='rest'){
     bar.onclick=null;bar.style.cursor='default';
-    el.innerHTML=left('Rest day');
+    el.innerHTML=left('Rest day')+menuBtn();
   }else{
     bar.onclick=null;bar.style.cursor='default';
-    el.innerHTML=left('See you tomorrow');
+    el.innerHTML=left(dayName||'—');
   }
 }
 function toggleAbMenu(){
@@ -2747,7 +2786,11 @@ function toggleAbMenu(){
   menu.id='ab-menu';menu.className='ab-menu';
   menu.style.bottom=(window.innerHeight-r.top+16)+'px';
   menu.style.right='16px';
-  menu.innerHTML=`<button class="ab-menu-item" onclick="doneForToday()">Wrap up Day ${state.letter}</button>`;
+  if(state.type==='rest'){
+    menu.innerHTML=`<button class="ab-menu-item" onclick="overrideRestDay()">Train today</button><button class="ab-menu-item" onclick="openAddSessionSheet()">Add custom session</button>`;
+  }else{
+    menu.innerHTML=`<button class="ab-menu-item" onclick="doneForToday()">Wrap up Day ${state.letter}</button>`;
+  }
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_abMenuOutside,true),10);
 }
@@ -2765,6 +2808,61 @@ function doneForToday(){
   endSession();
 }
 function openAddSessionSheet(){/* S6e stub — extra session flow (BJJ / custom) */}
+
+/* ── READINESS SHEET ── */
+function openReadinessSheet(){
+  const today=td();
+  const sess=S.sessions.find(s=>s.date===today);
+  if(sess){S.sleep=sess.sleep||S.sleep||'';S.energy=sess.energy||S.energy||'';S.soreness=sess.soreness||S.soreness||'';}
+  const day=derivedGymDay(today);
+  document.getElementById('rs-eyebrow').textContent=`Day ${DAY_LETTER[day-1]} · Full Body`;
+  buildChips('rs-chips-sleep',SLEEP_C,S.sleep,v=>{S.sleep=v;_updateRsSheet();});
+  buildChips('rs-chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;_updateRsSheet();});
+  buildChips('rs-chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;_updateRsSheet();});
+  _updateRsSheet();
+  requestAnimationFrame(()=>{
+    document.getElementById('rs-backdrop').classList.add('open');
+    document.getElementById('rs-sheet').classList.add('open');
+  });
+}
+function _updateRsSheet(){
+  const r=computeReadiness();
+  const el=document.getElementById('rs-tier');if(!el)return;
+  if(r===null){el.innerHTML='';return;}
+  const tier=readinessTier(r);
+  const c={Poor:'var(--danger)',Low:'var(--ink3)',Moderate:'var(--ink2)',High:'var(--accent)',Prime:'var(--accent)'}[tier]||'var(--ink2)';
+  el.innerHTML=`<span style="color:${c}">${tier} readiness</span><span style="color:var(--ink3)"> · ${r}/100</span>`;
+}
+function closeReadinessSheet(){
+  document.getElementById('rs-backdrop').classList.remove('open');
+  document.getElementById('rs-sheet').classList.remove('open');
+  const today=td();
+  const ei=S.sessions.findIndex(s=>s.date===today);
+  if(ei>=0){
+    S.sessions[ei].sleep=S.sleep;S.sessions[ei].energy=S.energy;S.sessions[ei].soreness=S.soreness;
+    persist();
+  }else if(S.sleep||S.energy||S.soreness){
+    S.selectedDate=today;
+    S.sessions.push({date:today,isRest:null,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx});
+    persist();
+  }
+  renderActionBar();
+}
+function startRestDay(){
+  const today=td();S.selectedDate=today;
+  const ei=S.sessions.findIndex(s=>s.date===today);
+  const sess={date:today,isRest:true,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx};
+  if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+  persist();renderSummary();renderActionBar();
+}
+function overrideRestDay(){
+  closeAbMenu();
+  const today=td();
+  const ei=S.sessions.findIndex(s=>s.date===today);
+  if(ei>=0)S.sessions.splice(ei,1);
+  S.isRest=null;S.activities=[];persist();
+  openTrainingSheet();
+}
 
 /* ── TRAINING DAY SHEET ── */
 let _tdayActId=null,_tdayWasEmpty=false;
@@ -3279,6 +3377,28 @@ init();
   <div id="plan-sheet-card-slot" style="padding:16px 20px 0;overflow-y:auto;max-height:60vh"></div>
   <div class="ex-sheet-footer">
     <button class="ex-sheet-save-btn" onclick="closePlanModal()">Done</button>
+  </div>
+</div>
+
+<!-- READINESS SHEET -->
+<div id="rs-backdrop" class="rs-backdrop" onclick="closeReadinessSheet()"></div>
+<div id="rs-sheet" class="rs-sheet" role="dialog" aria-modal="true" aria-label="Readiness check-in">
+  <div class="rs-hdr">
+    <button class="rs-close" onclick="closeReadinessSheet()" aria-label="Close">×</button>
+    <div class="rs-eyebrow" id="rs-eyebrow"></div>
+    <div class="rs-title">How are you feeling?</div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-lbl">Sleep</div>
+    <div class="chips-row" id="rs-chips-sleep"></div>
+    <div class="rs-lbl" style="margin-top:20px">Energy</div>
+    <div class="chips-row" id="rs-chips-energy"></div>
+    <div class="rs-lbl" style="margin-top:20px">Soreness</div>
+    <div class="chips-row" id="rs-chips-soreness"></div>
+    <div class="rs-tier" id="rs-tier"></div>
+  </div>
+  <div class="rs-footer">
+    <button class="rs-done-btn" onclick="closeReadinessSheet()">Done</button>
   </div>
 </div>
 
