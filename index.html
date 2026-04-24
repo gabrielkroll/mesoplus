@@ -499,6 +499,7 @@ select.bare{cursor:pointer}
 .ab-menu{position:fixed;z-index:400;background:#2c2c2e;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:4px 0;min-width:180px;box-shadow:0 12px 40px rgba(0,0,0,.7),0 2px 8px rgba(0,0,0,.4)}
 .ab-menu-item{display:block;width:100%;background:none;border:none;padding:14px 18px;font-family:var(--mono);font-size:13px;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1}
 .ab-menu-item:active{background:rgba(255,255,255,.08)}
+.ab-menu-sep{height:1px;background:rgba(255,255,255,.15);margin:4px 0}
 
 /* EXERCISE SHEET */
 .ex-sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .25s;pointer-events:none;visibility:hidden}
@@ -2998,7 +2999,7 @@ function toggleTdayMenu(){
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
   menu.style.top=(r.bottom+8)+'px';menu.style.right='16px';menu.style.bottom='auto';
-  menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div style="height:1px;background:var(--line);margin:4px 0"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button>`;
+  menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_tdayMenuOutside,true),10);
 }
