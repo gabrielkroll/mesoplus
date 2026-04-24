@@ -3036,7 +3036,7 @@ function discardTdayEntries(){
 }
 function _injectUndoBanner(actId){
   const bar=document.getElementById('adopt-bar-'+actId);if(!bar)return;
-  bar.innerHTML=`<span>Entries cleared</span><div class="adopt-bar-actions"><button class="adopt-all-btn" onclick="undoTdayDiscard()">↩ Undo</button><button class="adopt-btn" onclick="hideTdayUndo()" style="font-size:15px;line-height:1;padding:2px 6px">×</button></div>`;
+  bar.innerHTML=`<span style="color:var(--danger)">Entries cleared</span><div class="adopt-bar-actions"><button class="adopt-all-btn" onclick="undoTdayDiscard()">↩ Undo</button><button class="adopt-btn" onclick="hideTdayUndo()" style="font-size:15px;line-height:1;padding:2px 6px">×</button></div>`;
   bar.classList.add('show');
 }
 function hideTdayUndo(){
