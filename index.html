@@ -1507,7 +1507,7 @@ function init(){
   if(S.apiKey&&S.sheetId){document.getElementById('s-key').value=S.apiKey;document.getElementById('s-id').value=S.sheetId;document.getElementById('s-tab').value=S.sheetTab;}
   if(S.claudeKey){document.getElementById('s-ckey').value=S.claudeKey;}
   if(S.scriptUrl){document.getElementById('s-script').value=S.scriptUrl;}
-  const _name=localStorage.getItem('mp7_name')||'';if(_name){document.getElementById('s-name').value=_name;}updateProfileNav();
+  const _name=localStorage.getItem(activeStorageKey()+'_name')||'';if(_name){document.getElementById('s-name').value=_name;}updateProfileNav();
   document.getElementById('s-meso-start').value=S.mesoStart;
   S.selectedDate=td();
   buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();renderActionBar();});
@@ -3227,7 +3227,7 @@ function closeProfileMenu(){document.getElementById('profile-menu')?.classList.a
 document.addEventListener('click',e=>{const w=document.querySelector('.profile-wrap');if(w&&!w.contains(e.target))closeProfileMenu();});
 function updateProfileNav(){
   const name=(document.getElementById('s-name')?.value||'').trim();
-  localStorage.setItem('mp7_name',name);
+  localStorage.setItem(activeStorageKey()+'_name',name);
   const first=name.split(' ')[0]||'';
   document.getElementById('profile-name').textContent=first||'Profile';
   const bn=document.getElementById('bn-profile-name');if(bn)bn.textContent=first||'Profile';
@@ -3340,7 +3340,7 @@ function generateSetupToken(target){
   if(hashPw(pw)!==localStorage.getItem(activePinKey())){err.textContent='Wrong password';return;}
   const payload={
     exp:Date.now()+2*60*1000,
-    n:localStorage.getItem('mp7_name')||'',
+    n:localStorage.getItem(activeStorageKey()+'_name')||'',
     k:S.apiKey,s:S.sheetId,t:S.sheetTab,
     ck:S.claudeKey,su:S.scriptUrl,ms:S.mesoStart
   };
@@ -3413,7 +3413,7 @@ function importFromToken(e){
     if(used.includes(tokenHash)){err.textContent='Link already used — generate a new one';return;}
     const expectedSig=hashPw(payloadStr+hashPw(pw));
     if(sig!==expectedSig){err.textContent='Wrong password';return;}
-    localStorage.setItem('mp7_name',payload.n||'');
+    localStorage.setItem(activeStorageKey()+'_name',payload.n||'');
     localStorage.setItem('mp7_k',payload.k||'');
     localStorage.setItem('mp7_s',payload.s||'');
     localStorage.setItem('mp7_t',payload.t||'Workout_Log');
