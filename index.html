@@ -463,7 +463,10 @@ select.bare{cursor:pointer}
   .settings-card .s-row{border-bottom:1px solid var(--line);padding-bottom:14px}
   .hub-only{display:none!important}
   /* Sheets: constrain to content column on desktop */
-  .tday-sheet{left:max(0px,calc(50% - 450px));right:max(0px,calc(50% - 450px))}
+  .tday-inner{max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+  .tday-body{padding-left:0;padding-right:0}
+  .tday-body .ex-table-wrap{padding:0 16px}
+  .tday-close{right:8px}
   .ex-sheet{left:max(16px,calc(50% - 434px));right:max(16px,calc(50% - 434px));bottom:16px;border-radius:14px}
   .ex-sheet-body{grid-template-columns:1fr}
 }
@@ -3642,13 +3645,15 @@ startApp();
 <!-- TRAINING DAY SHEET -->
 <div id="tday-backdrop" class="tday-backdrop" onclick="closeTrainingSheet()"></div>
 <div id="tday-sheet" class="tday-sheet" role="dialog" aria-modal="true" aria-label="Training day">
-  <div class="tday-hdr">
-    <button class="tday-close" onclick="closeTrainingSheet()" aria-label="Close">×</button>
-    <div class="tday-eyebrow" id="tday-eyebrow"></div>
-    <div class="tday-title" id="tday-title"></div>
-    <div class="tday-sug" id="tday-sug"></div>
+  <div class="tday-inner">
+    <div class="tday-hdr">
+      <button class="tday-close" onclick="closeTrainingSheet()" aria-label="Close">×</button>
+      <div class="tday-eyebrow" id="tday-eyebrow"></div>
+      <div class="tday-title" id="tday-title"></div>
+      <div class="tday-sug" id="tday-sug"></div>
+    </div>
+    <div class="tday-body" id="tday-body"></div>
   </div>
-  <div class="tday-body" id="tday-body"></div>
 </div>
 
 <!-- EXERCISE ENTRY SHEET -->
