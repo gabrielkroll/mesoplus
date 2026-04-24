@@ -2125,7 +2125,8 @@ function buildCurrentSession(){
   S.activities.filter(a=>a.type==='bjj').forEach(a=>{a.bjj=getBJJ(a.id);});
   const dp=derivedPhase();
   const allEx=S.activities.filter(a=>a.type!=='bjj').flatMap(a=>(a.supersets||[]).flatMap(ss=>ss.exercises));
-  return{date:S.selectedDate,week:mesoWk(),phase:ph().name,phaseIdx:dp.phaseIdx,isRest:S.isRest,activities:JSON.parse(JSON.stringify(S.activities)),extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:allEx.filter(e=>e.flagged).map(e=>e.name)};
+  const existing=S.sessions.find(s=>s.date===S.selectedDate);
+  return{date:S.selectedDate,week:mesoWk(),phase:ph().name,phaseIdx:dp.phaseIdx,isRest:S.isRest,activities:JSON.parse(JSON.stringify(S.activities)),extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:allEx.filter(e=>e.flagged).map(e=>e.name),completed:existing?.completed||false};
 }
 
 const _synced=new Set(JSON.parse(localStorage.getItem('mp7_synced')||'[]'));
