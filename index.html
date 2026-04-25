@@ -738,7 +738,15 @@ select.bare{cursor:pointer}
       <strong style="color:var(--ink2)">Option 1:</strong> Open a setup transfer link from Setup → Transfer to another device.<br>
       <strong style="color:var(--ink2)">Option 2:</strong> Create a new password below — then import your data from Sheets.
     </div>
-    <a href="?profile=erik" style="display:block;margin-top:32px;font-family:var(--mono);font-size:10px;color:var(--ink3);text-decoration:none;letter-spacing:.04em" onmouseover="this.style.color='var(--ink2)'" onmouseout="this.style.color='var(--ink3)'">Beta testing →</a>
+    <button type="button" id="pin-alpha-link" class="pin-toggle-btn" onclick="showAlphaGate()" style="margin-top:20px">Alpha tester? →</button>
+    <div id="pin-alpha-form" style="display:none;width:100%;margin-top:16px">
+      <form onsubmit="submitAlphaUsername(event)" autocomplete="off">
+        <input class="pin-field" type="text" id="alpha-username" placeholder="Username" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="pin-err" id="alpha-err"></div>
+        <button type="submit" class="btn-s" style="width:100%;margin-top:10px">Continue</button>
+      </form>
+      <button type="button" class="pin-toggle-btn" onclick="hideAlphaGate()" style="margin-top:16px">← Back</button>
+    </div>
   </div>
 </div>
 
@@ -1157,6 +1165,10 @@ select.bare{cursor:pointer}
         </div>
       </button>
     </div>
+    <div id="alpha-notice" style="display:none;margin-top:20px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--ink3);line-height:1.7">
+      <span style="color:var(--ink2);display:block;margin-bottom:2px">Alpha tester preview</span>
+      Data is stored locally on this device only — nothing syncs to the cloud. Insights tab and Sheets setup are disabled in this build.
+    </div>
   </div>
 
   <div id="v-program" class="hidden">
@@ -1212,6 +1224,7 @@ select.bare{cursor:pointer}
     <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Claude AI</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:12px">Required for smart analysis · console.anthropic.com → API Keys</div>
     <div class="s-row"><div class="s-lbl">Claude API key<div class="s-note">Stored locally in your browser. Never sent anywhere except Anthropic.</div></div><div><div class="field-lbl">API key</div><input class="bare" type="password" id="s-ckey" placeholder="sk-ant-..."></div></div>
+    <div id="sheets-setup-section">
     <div style="height:20px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Google Sheets</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">One-time · free Google account · ~15 min</div>
@@ -1221,6 +1234,7 @@ select.bare{cursor:pointer}
     <div class="s-row"><div class="s-lbl">4 — Tab name<div class="s-note">Exact tab name in your sheet.</div></div><div><div class="field-lbl">Tab name</div><input class="bare" id="s-tab" value="Workout_Log"></div></div>
     <div class="s-row"><div class="s-lbl">5 — Apps Script URL<div class="s-note">Extensions → Apps Script → Deploy as web app → copy URL. Required for saving sessions to Sheets.</div></div><div><div class="field-lbl">Web app URL</div><input class="bare" id="s-script" placeholder="https://script.google.com/macros/s/.../exec"></div></div>
     <div style="padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><button class="btn-o" onclick="fullResync()">↺ Re-sync to Sheets</button><button class="btn-o" onclick="importFromSheets()">↓ Import from Sheets</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
+    </div>
     <div style="height:28px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Transfer to another device</div>
     <div style="font-size:11px;color:var(--ink3);margin-bottom:14px">Generates a 2-minute password-protected link. Scan the QR or copy the link on the new device. Expires automatically — one use only.</div>
@@ -1427,7 +1441,7 @@ const PROFILE_CFG={
   erik:{id:'erik',name:'Erik',storageKey:'mp7_erik',pinKey:'mp7_pin_erik',days:5,
     dayLetters:['A','B','C','D','E'],
     dayFocus:{1:'Legs',2:'Upper — Chest & Triceps',3:'Pull — Back & Biceps',4:'Lower — Hamstrings',5:'Isolation — Arms & Chest'},
-    templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:'',noPin:true}
+    templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:'',isAlpha:true}
 };
 let _ACTIVE_PROFILE='gabriel';
 function profileCfg(){return PROFILE_CFG[_ACTIVE_PROFILE];}
@@ -1536,7 +1550,7 @@ function init(){
   renderPhaseBar();renderAdvBar();renderWeekNav();
   const _initSess=S.sessions.find(s=>s.date===S.selectedDate);
   if(_initSess)loadSess(_initSess);else renderSession();
-  renderSummary();initActionBar();
+  renderSummary();initActionBar();_applyAlphaUI();
 }
 
 function buildChips(id,opts,sel,cb){
@@ -3371,6 +3385,12 @@ function _applyProfile(id){
   S.sessions=[];S.setGoals={};S.sleep='';S.energy='';S.soreness='';S.perf='';S.activities=[];S.isRest=null;S.selectedDate=null;
   S.phases=PHASES.map(p=>({...p,weeks:2}));S.mesoStart='';
 }
+function _applyAlphaUI(){
+  const alpha=profileCfg().isAlpha;
+  ['bn-insights','nl-insights'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=alpha?'none':'';});
+  const sh=document.getElementById('sheets-setup-section');if(sh)sh.style.display=alpha?'none':'';
+  const an=document.getElementById('alpha-notice');if(an)an.style.display=alpha?'block':'none';
+}
 function selectProfile(id){
   localStorage.setItem('mp7_profile',id);
   _applyProfile(id);
@@ -3430,7 +3450,6 @@ function lockApp(){
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
-  if(profileCfg().noPin){unlockApp();return;}
   const hasPin=!!localStorage.getItem(activePinKey());
   const isStandalone=navigator.standalone===true;
   const note=document.getElementById('pin-standalone-note');
@@ -3454,6 +3473,34 @@ function applyPinMode(mode){
 }
 function togglePinMode(){
   applyPinMode(pinMode==='setup'?'unlock':'setup');
+  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+}
+function showAlphaGate(){
+  document.getElementById('pin-alpha-link').style.display='none';
+  document.getElementById('pin-form').style.display='none';
+  document.getElementById('pin-toggle').style.display='none';
+  document.getElementById('pin-alpha-form').style.display='block';
+  setTimeout(()=>document.getElementById('alpha-username').focus(),50);
+}
+function hideAlphaGate(){
+  document.getElementById('pin-alpha-form').style.display='none';
+  document.getElementById('pin-alpha-link').style.display='';
+  document.getElementById('pin-form').style.display='';
+  document.getElementById('pin-toggle').style.display='';
+  document.getElementById('alpha-err').textContent='';
+  document.getElementById('alpha-username').value='';
+}
+function submitAlphaUsername(e){
+  e.preventDefault();
+  const uname=document.getElementById('alpha-username').value.trim().toLowerCase();
+  const cfg=PROFILE_CFG[uname];
+  if(!cfg||!cfg.isAlpha){document.getElementById('alpha-err').textContent='Unknown username';return;}
+  // Persist profile choice so Erik stays logged in on his device
+  localStorage.setItem('mp7_profile',uname);
+  _applyProfile(uname);
+  hideAlphaGate();
+  const hasPin=!!localStorage.getItem(activePinKey());
+  applyPinMode(hasPin?'unlock':'setup');
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 
