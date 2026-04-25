@@ -1485,6 +1485,23 @@ const PERF_C=['Below par','On track','Exceeded'];
 
 let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',sessions:[],setGoals:{},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
+let _pendingFocusKey=null;
+const _TAB_FIELDS=['kg','sets','reps','rir'];
+function tabEx(e,si,ei,field,actId){
+  if(e.key!=='Tab')return;
+  const a=getAct(actId);if(!a)return;
+  const fi=_TAB_FIELDS.indexOf(field);
+  const ss=a.supersets;
+  if(!e.shiftKey){
+    if(fi<_TAB_FIELDS.length-1){_pendingFocusKey=`${si}-${ei}-${_TAB_FIELDS[fi+1]}`;}
+    else if(ei<ss[si].exercises.length-1){_pendingFocusKey=`${si}-${ei+1}-kg`;}
+    else if(si<ss.length-1){_pendingFocusKey=`${si+1}-0-kg`;}
+  } else {
+    if(fi>0){_pendingFocusKey=`${si}-${ei}-${_TAB_FIELDS[fi-1]}`;}
+    else if(ei>0){_pendingFocusKey=`${si}-${ei-1}-rir`;}
+    else if(si>0){_pendingFocusKey=`${si-1}-${ss[si-1].exercises.length-1}-rir`;}
+  }
+}
 const uid=()=>'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 function getAct(id){return S.activities.find(a=>a.id===id);}
 function getSets(actId){const a=getAct(actId);return a?(a.supersets||[]):[];}
@@ -2019,14 +2036,14 @@ function renderTable(actId){
       const mobileVal=hasData?`${ex.kg||'?'}×${ex.reps||'?'}`:hasSug?`${sk}×${sr}`:'·';
       tr.innerHTML=`
         <td class="ex-num-cell">${si+1}.${ei+1}</td>
-        <td><select class="ex-sel" onchange="upEx(${si},${ei},'name',this.value,'${actId}')"><option value="">— select —</option>${exO}</select><span class="ex-edit-hint">›</span></td>
-        <td class="c-res-td"><select class="ex-mini" onchange="upEx(${si},${ei},'res',this.value,'${actId}')">${rO}</select></td>
-        <td class="c-side-td"><select class="ex-mini" onchange="upEx(${si},${ei},'side',this.value,'${actId}')">${sO}</select></td>
+        <td><select class="ex-sel" tabindex="-1" onchange="upEx(${si},${ei},'name',this.value,'${actId}')"><option value="">— select —</option>${exO}</select><span class="ex-edit-hint">›</span></td>
+        <td class="c-res-td"><select class="ex-mini" tabindex="-1" onchange="upEx(${si},${ei},'res',this.value,'${actId}')">${rO}</select></td>
+        <td class="c-side-td"><select class="ex-mini" tabindex="-1" onchange="upEx(${si},${ei},'side',this.value,'${actId}')">${sO}</select></td>
         <td><div class="last-val" title="${ex.lastStr||'—'}">${ex.lastStr||'—'}</div><span class="ex-mobile-val${hasData?' has-data':''}">${mobileVal}</span></td>
-        <td class="c-kg-td"><input class="ex-in" type="number" value="${ex.kg}" placeholder="${sk}" step="2.5" min="0" onchange="upEx(${si},${ei},'kg',this.value,'${actId}')" title="kg"></td>
-        <td class="c-sets-td"><input class="ex-in" type="number" value="${ex.sets||''}" placeholder="${ex.sugSets||'—'}" min="1" max="10" onchange="upEx(${si},${ei},'sets',this.value,'${actId}')" title="sets"></td>
-        <td class="c-reps-td"><input class="ex-in" type="number" value="${ex.reps}" placeholder="${sr}" min="1" onchange="upEx(${si},${ei},'reps',this.value,'${actId}')" title="reps"></td>
-        <td class="c-rir-td"><input class="ex-in" type="number" value="${ex.rir}" placeholder="${srir}" min="0" max="6" onchange="upEx(${si},${ei},'rir',this.value,'${actId}')" title="RIR"></td>
+        <td class="c-kg-td"><input class="ex-in" type="number" value="${ex.kg}" placeholder="${sk}" step="2.5" min="0" data-focus-key="${si}-${ei}-kg" onkeydown="tabEx(event,${si},${ei},'kg','${actId}')" onchange="upEx(${si},${ei},'kg',this.value,'${actId}')" title="kg"></td>
+        <td class="c-sets-td"><input class="ex-in" type="number" value="${ex.sets||''}" placeholder="${ex.sugSets||'—'}" min="1" max="10" data-focus-key="${si}-${ei}-sets" onkeydown="tabEx(event,${si},${ei},'sets','${actId}')" onchange="upEx(${si},${ei},'sets',this.value,'${actId}')" title="sets"></td>
+        <td class="c-reps-td"><input class="ex-in" type="number" value="${ex.reps}" placeholder="${sr}" min="1" data-focus-key="${si}-${ei}-reps" onkeydown="tabEx(event,${si},${ei},'reps','${actId}')" onchange="upEx(${si},${ei},'reps',this.value,'${actId}')" title="reps"></td>
+        <td class="c-rir-td"><input class="ex-in" type="number" value="${ex.rir}" placeholder="${srir}" min="0" max="6" data-focus-key="${si}-${ei}-rir" onkeydown="tabEx(event,${si},${ei},'rir','${actId}')" onchange="upEx(${si},${ei},'rir',this.value,'${actId}')" title="RIR"></td>
         <td><div class="ex-act">
           ${hasSug?`<button class="adopt-btn" onclick="adoptRow(${si},${ei},'${actId}')" title="Adopt suggestion">✓</button>`:''}
           <button class="ex-icon-btn flag${ex.flagged?' on':''}" onclick="toggleFlag(${si},${ei},'${actId}')" title="${ex.flagged?'Flagged — click to clear':'Flag pain/discomfort'}">⚑</button>
@@ -2046,6 +2063,11 @@ function renderTable(actId){
     if(adoptBar)adoptBar.classList.toggle('show',anyUnadopted);
   }
   renderTdayFooter();
+  if(_pendingFocusKey){
+    const el=tbody.querySelector(`[data-focus-key="${_pendingFocusKey}"]`);
+    if(el){el.focus();el.select();}
+    _pendingFocusKey=null;
+  }
 }
 
 let adoptUndoStack=null;
