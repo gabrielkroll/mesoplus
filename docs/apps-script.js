@@ -34,6 +34,8 @@ function ensureHeaders(sheet) {
   const hdr = sheet.getRange(1, 1, 1, HEADERS.length);
   hdr.setFontWeight('bold');
   hdr.setBackground('#f3f3f3');
+  // Date column (A) = plain text — prevents Sheets auto-converting ISO strings to date serials
+  sheet.getRange(2, 1, 999, 1).setNumberFormat('@');
   NUM_COLS.forEach(col => sheet.getRange(2, col, 999, 1).setNumberFormat('0'));
 }
 
@@ -41,9 +43,18 @@ function formatDataRows(sheet, startRow, count) {
   NUM_COLS.forEach(col => sheet.getRange(startRow, col, count, 1).setNumberFormat('0'));
 }
 
+// Batch-reads the entire date column in one API call (was: one call per row).
+// Also handles Date objects in case Sheets auto-converted any cell despite plain-text format.
 function deleteRowsForDate(sheet, date) {
-  for (let i = sheet.getLastRow(); i >= 2; i--) {
-    if (sheet.getRange(i, 1).getDisplayValue() === date) sheet.deleteRow(i);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  const dateVals = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (let i = dateVals.length - 1; i >= 0; i--) {
+    const v = dateVals[i][0];
+    const cellDate = v instanceof Date
+      ? Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd')
+      : String(v);
+    if (cellDate === date) sheet.deleteRow(i + 2);
   }
 }
 
@@ -81,7 +92,7 @@ function doPost(e) {
       return respond({ ok: true });
     }
 
-    // ── Append workout session rows (default action) ─────────────────────────
+    // ── Upsert workout session rows (default action) ─────────────────────────
     const sheet = getSheet();
     ensureHeaders(sheet);
 
@@ -106,7 +117,10 @@ function doPost(e) {
       while (r.length < numCols) r.push('');
       return r;
     });
+
     const startRow = sheet.getLastRow() + 1;
+    // Set date column to plain text BEFORE writing — prevents auto-conversion on existing sheets
+    sheet.getRange(startRow, 1, padded.length, 1).setNumberFormat('@');
     sheet.getRange(startRow, 1, padded.length, numCols).setValues(padded);
     formatDataRows(sheet, startRow, padded.length);
 
