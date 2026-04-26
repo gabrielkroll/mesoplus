@@ -95,6 +95,10 @@ No new color tokens. No border changes. No background tints. Dot and opacity onl
 
 All cards visible all day. Done cards stay visible — they tell the day's story. The Training section is intentionally non-MECE except for the Rest rule above.
 
+## No card is required
+
+Every card is optional. The action bar guides the user through the sequence after training but does not enforce completion. A day is never blocked by an unfilled card.
+
 ---
 
 ## Action bar — role in the card world
