@@ -17,17 +17,17 @@ The week/day navigator at the top stays exactly as-is. **No changes to the navig
 
 ```
 [ CHECK-IN  ]
-  Readiness                                  ← full width
+  Readiness                      ← full width
 
-[ TRAINING  ]
-  Resistance Training  |  Custom Training    ← 2×2 grid, all equal size
-  BJJ                  |  Rest
+[ TRAINING  ]                    ← section title replaces old "SESSION"
+  Resistance  |  Custom          ← 2×2 grid, all equal size
+  BJJ         |  Rest
 
 [ REFLECT   ]
-  Performance  |  Notes                      ← 2 columns
+  Performance  |  Notes          ← 2 columns
 ```
 
-All cards equal size. No horizontal scroll — all always visible. Extra Training removed — Apple Watch covers it, no duplication needed. Historical `m-extra` data preserved in data model, field removed from UI.
+Section renamed from "Session" → "Training". Card labels are short — the section title carries the context so cards don't repeat "Training". All cards equal size. No horizontal scroll — all always visible. Extra Training removed — Apple Watch covers it, `m-extra` preserved in data model.
 
 ---
 
