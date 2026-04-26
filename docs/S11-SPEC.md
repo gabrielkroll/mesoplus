@@ -103,6 +103,25 @@ The action bar is the **persistent session guide** — visible from anywhere in 
 
 The "Wrap up Day X" item in the action bar ··· menu: **evaluate during implementation** — may become redundant if Finish button handles completion. Do not remove blindly; verify the state machine first.
 
+## Shared state architecture — cards and action bar
+
+Cards and action bar are two views of the same computed state. Neither interprets `S` independently.
+
+```
+S  (global state object — single source of truth)
+ └── computeCardStates()   ← one function, reads S once, returns state of all 7 cards
+      ├── renderCards()    ← renders the card grid on the Train tab
+      └── renderActionBar() ← renders the floating pill
+```
+
+`markDirty()` already triggers `renderActionBar()`. S11 adds `renderCards()` to the same call.
+
+`computeCardStates()` returns one object with the state of every card:
+- `state`: `'not-started'` | `'in-progress'` | `'done'` | `'disabled'`
+- Card-specific data for the done display (score, sets count, first line of text, etc.)
+
+No state duplication. No two places computing the same thing differently.
+
 ---
 
 ---
