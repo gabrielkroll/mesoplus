@@ -3013,6 +3013,8 @@ function openCardSheet(type){
   const cfg={bjj:{eyebrow:'Training',title:'BJJ Session'},custom:{eyebrow:'Training',title:'Custom Training'},performance:{eyebrow:'Reflect',title:'Performance'},notes:{eyebrow:'Reflect',title:'Notes'}}[type];
   if(!cfg)return;
   eyebrow.textContent=cfg.eyebrow;title.textContent=cfg.title;
+  const menuBtn=document.getElementById('csheet-menu-btn');
+  if(menuBtn)menuBtn.style.display=(type==='bjj'||type==='custom')?'':'none';
   body.innerHTML='';footer.innerHTML='';
 
   if(type==='bjj'||type==='custom'){
@@ -3081,6 +3083,48 @@ function finishCardSheet(type){
     const ta=document.getElementById('csheet-notes');
     if(ta){S.notes=ta.value;markDirty();}
   }
+  _closeCardSheetDOM();
+}
+
+function toggleCsheetMenu(){
+  if(document.getElementById('csheet-menu')){closeCsheetMenu();return;}
+  const btn=document.getElementById('csheet-menu-btn');
+  const r=btn.getBoundingClientRect();
+  const menu=document.createElement('div');
+  menu.id='csheet-menu';menu.className='ab-menu';
+  menu.style.top=(r.bottom+8)+'px';menu.style.right=(window.innerWidth-r.right)+'px';menu.style.bottom='auto';
+  menu.innerHTML=`<button class="ab-menu-item" onclick="clearCsheetEntries()">Clear entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeCsheetSession()">Remove session</button>`;
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',_csheetMenuOutside,true),10);
+}
+function _csheetMenuOutside(e){
+  const m=document.getElementById('csheet-menu');
+  const btn=document.getElementById('csheet-menu-btn');
+  if(m&&!m.contains(e.target)&&!btn?.contains(e.target))closeCsheetMenu();
+}
+function closeCsheetMenu(){
+  const m=document.getElementById('csheet-menu');if(m)m.remove();
+  document.removeEventListener('click',_csheetMenuOutside,true);
+}
+function clearCsheetEntries(){
+  closeCsheetMenu();
+  const act=S.activities.find(a=>a.type===_csheetType);if(!act)return;
+  if(_csheetType==='bjj'){
+    act.bjj={};act.completed=false;
+    // Rebuild the BJJ form in place
+    const body=document.getElementById('csheet-body');
+    if(body){body.innerHTML='';['act-block-'].forEach(p=>{const el=document.getElementById(p+act.id);if(el)el.removeAttribute('id');});appendActivityBlock(act,body);body.querySelectorAll('.activity-toggle-btn').forEach(b=>b.style.display='none');}
+  }else if(_csheetType==='custom'){
+    act.supersets.forEach(ss=>ss.exercises.forEach(e=>{e.kg='';e.sets='';e.reps='';e.rir='';e.flagged=false;}));
+    act.completed=false;
+    renderTable(act.id);
+  }
+  markDirty();
+}
+function removeCsheetSession(){
+  closeCsheetMenu();
+  S.activities=S.activities.filter(a=>a.type!==_csheetType);
+  markDirty();
   _closeCardSheetDOM();
 }
 
@@ -4017,6 +4061,7 @@ startApp();
 <div id="csheet" class="csheet" role="dialog" aria-modal="true" aria-label="Card sheet">
   <div class="csheet-inner">
     <div class="csheet-hdr">
+      <button class="tday-menu-btn" id="csheet-menu-btn" onclick="toggleCsheetMenu()" aria-label="Options" style="display:none">···</button>
       <button class="csheet-close" onclick="closeCardSheet()" aria-label="Close">×</button>
       <div class="csheet-eyebrow" id="csheet-eyebrow"></div>
       <div class="csheet-title" id="csheet-title"></div>
