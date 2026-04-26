@@ -17,17 +17,17 @@ The week/day navigator at the top stays exactly as-is. **No changes to the navig
 
 ```
 [ CHECK-IN  ]
-  Readiness                          ← full width
+  Readiness                                  ← full width
 
 [ TRAINING  ]
-  Resistance Training  |  Rest       ← 2×2 grid, equal cards
-  BJJ                  |  Extra Training
+  Resistance Training  |  Custom Training    ← 2×2 grid, all equal size
+  BJJ                  |  Rest
 
 [ REFLECT   ]
-  Performance  |  Notes              ← 2 columns
+  Performance  |  Notes                      ← 2 columns
 ```
 
-Cards in Training section are equal size. No horizontal scroll — all four always visible. Resistance Training is position 1 (top-left). The 2×2 layout gives full situational awareness at a glance.
+All cards equal size. No horizontal scroll — all always visible. Extra Training removed — Apple Watch covers it, no duplication needed. Historical `m-extra` data preserved in data model, field removed from UI.
 
 ---
 
@@ -52,11 +52,11 @@ No new color tokens. No border changes. No background tints. Dot and opacity onl
 |---|---|
 | Readiness | Sleep + energy + soreness chips all selected |
 | Resistance Training | All exercises have kg + sets + reps filled **and** user taps Finish |
-| BJJ | All key fields filled + user taps Finish *(stub in S11 — no sheet yet)* |
+| BJJ | All key fields filled + user taps Finish |
 | Rest | One tap — immediate, no sheet |
-| Extra Training | Any text entered |
-| Performance | Chip selected *(stub in S11)* |
-| Notes | Any text entered *(stub in S11)* |
+| Custom Training | Any exercises logged + user taps Finish |
+| Performance | Chip selected |
+| Notes | Any text entered |
 
 ---
 
@@ -66,11 +66,11 @@ No new color tokens. No border changes. No background tints. Dot and opacity onl
 |---|---|
 | Readiness | Score + tier — e.g. "7.2 · High" |
 | Resistance Training | "4 exercises · 28 sets" |
-| BJJ | Technique + "Logged ✓" *(S12)* |
+| BJJ | Technique + "Logged ✓" |
 | Rest | "Rest ✓" |
-| Extra Training | First line of what was entered |
-| Performance | Perf value — e.g. "↑ Felt great" *(S13)* |
-| Notes | First line of note *(S13)* |
+| Custom Training | "X exercises · Y sets" |
+| Performance | Perf value — e.g. "↑ Felt great" |
+| Notes | First line of note |
 
 ---
 
@@ -149,18 +149,20 @@ If something not listed here feels like it needs changing while implementing S11
 
 ## S11 scope (this slice only)
 
-All seven cards with real sheets. No stubs. Existing inline UI lifted into the full-screen sheet pattern — no new logic, no new data model, just a new frame.
+All six cards with real sheets. Existing inline UI lifted into the full-screen sheet pattern — no new logic, no new data model, just a new frame.
 
-- [ ] Card dashboard layout on Train tab — three sections, seven cards
+- [ ] Card dashboard layout — three sections, six cards, 2×2 Training grid
 - [ ] Card visual states: not started / in progress / done / disabled
 - [ ] Readiness card → existing readiness sheet (S7)
 - [ ] Resistance Training card → existing training sheet (S6)
-- [ ] Rest card → one-tap, immediate done, mutual exclusivity enforced
+- [ ] Custom Training card → existing custom activity block lifted into full-screen sheet
 - [ ] BJJ card → existing BJJ activity block lifted into full-screen sheet
-- [ ] Extra Training card → existing m-extra input lifted into full-screen sheet
+- [ ] Rest card → one-tap, immediate done, mutual exclusivity enforced
 - [ ] Performance card → existing chips-perf row lifted into full-screen sheet
 - [ ] Notes card → existing m-notes input lifted into full-screen sheet
-- [ ] Action bar updated to reflect card-based session identity
+- [ ] `m-extra` field removed from UI (data preserved in data model)
+- [ ] Session brief (`#session-brief`) removed
+- [ ] `computeCardStates()` — single state source consumed by both renderCards() and renderActionBar()
 - [ ] Done state display per card (see done criteria table above)
 
 ## Out of scope for S11
