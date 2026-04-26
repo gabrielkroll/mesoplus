@@ -7,9 +7,9 @@
 
 ## Now
 
-**Slice 8 — Insights → Weekly Review Flow**
-Goal: Turn the Insights tab into a useful weekly review — surface what happened this week (volume, sessions, readiness) so the athlete can reflect before the next microcycle.
-Status: Not started — discuss acceptance criteria before touching code.
+**Slice 11 — Train Tab: Card Shell**
+Goal: Replace the inline Train tab with a card dashboard (Check-in / Training / Reflect sections). Cards have three visual states (not started / in progress / done). Wires Readiness and Resistance Training to their existing sheets. BJJ, Performance, Notes rendered as stubs. Action bar updated to reflect card-based session identity.
+Status: Scoping complete — see docs/S11-SPEC.md. Resolve Extra Training field question, then write acceptance criteria, then code.
 
 ---
 
@@ -27,16 +27,18 @@ Status: Not started — discuss acceptance criteria before touching code.
 
 ---
 
-## Upcoming
+## Upcoming — prioritized and sequenced
 
-| # | Slice | Depends on |
-|---|---|---|
-| 8 | Insights → Weekly Review Flow | 4, 5 |
-| 9 | RIR → Stimulus Signal | existing data |
-| 10 | Summary Upgrade | 5, 9 |
-| 11 | Train tab refactor — activity block as full-screen sheet | 6 |
-| 12 | Weekly Check-in Shell | 8 |
-| 13 | AI Check-in | 12, 9 |
+| # | Slice | Goal | Depends on |
+|---|---|---|---|
+| 11 | Train Tab: Card Shell | Card dashboard layout. Readiness + Resistance Training wired. BJJ/Performance/Notes stubs. Action bar updated. | 6, 7 |
+| 12 | Train Tab: BJJ Sheet | Full-screen BJJ logging sheet. BJJ card done state. | 11 |
+| 13 | Train Tab: Reflect Cards | Performance card (chip sheet) + Notes card (textarea sheet). | 11 |
+| 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
+| 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
+| 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
+| 14 | Weekly Check-in Shell | Structured weekly reflection before new microcycle. | 8 |
+| 15 | AI Check-in | AI-driven check-in using accumulated data. | 14, 9 |
 
 ---
 
@@ -51,11 +53,12 @@ Status: Not started — discuss acceptance criteria before touching code.
 - Always discuss acceptance criteria before writing code
 - Grep before reading — never load index.html whole
 - Extra sessions card (BJJ/custom count) — parked, add after S6
-- Train tab refactor (activity block → full-screen sheet, shared component) — parked as S11, depends on S6
 - ?profile= URL param is session-only — never writes to localStorage (fixed 4be72b6)
+- **Only implement what was explicitly discussed and scoped — never change working features on the fly**
+- **S11: Train tab → card dashboard. See docs/S11-SPEC.md for full design spec.**
+- Alpha tester login shipped (2442bc4): username gate → password → isAlpha profile flag, mp7_erik storage key, UI restrictions
 
 ## Known Debt
 
 - **Meso phase weeks not in Sheets** — weeks-per-phase config lives in localStorage only. A reset wipes it. Needs to sync to Sheets alongside session data.
 - **No Sheets → app restore path** — if localStorage is lost, session history in Sheets can't be pulled back into the app. Needed for true data resilience.
-- **Alpha tester login** — Erik currently uses ?profile=erik URL (no password). Proper solution: username + password per tester, accessed via "Alpha tester?" link on the login wall. Parked until after S8.
