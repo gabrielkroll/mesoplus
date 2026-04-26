@@ -11,6 +11,9 @@
 Goal: Surface weekly volume, sessions, and readiness data in the Insights tab.
 Status: Not started — discuss acceptance criteria before touching code.
 
+**Blocked first: "Clear sessions + Import fresh" button**
+Before S8, Gabriel needs to restore his data from clean Sheets. The import skips existing dates, so bad localStorage sessions can't be fixed by import alone. Need a button that: wipes sessions array only (keeps meso config) → imports fresh from Sheets. Add this before anything else next session.
+
 ---
 
 ## Done
@@ -32,6 +35,7 @@ Status: Not started — discuss acceptance criteria before touching code.
 
 | # | Slice | Goal | Depends on |
 |---|---|---|---|
+| S11.5 | Nav + IA polish | (1) Page titles match tab labels on all tabs — large serif italic. Phase/week info moves to a card under Summary. (2) Profile button moves to top-right on mobile, inline with page title, circular dark-grey icon. (3) Extra session card (m-extra) re-added to Training section as a card. | 11 |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
@@ -54,11 +58,25 @@ Status: Not started — discuss acceptance criteria before touching code.
 - ?profile= URL param is session-only — never writes to localStorage (fixed 4be72b6)
 - **Only implement what was explicitly discussed and scoped — never change working features on the fly**
 - **S11: Train tab → card dashboard. See docs/S11-SPEC.md for full design spec.**
-- **S11: Extra Training is its own card in the Training section** — not nested inside Readiness or Notes. Simple textarea sheet. Done when any text entered.
 - **Gabriel does the testing** — do not use preview tools to click through and test features. Write code and commit; Gabriel tests on his device.
 - Alpha tester login shipped (2442bc4): username gate → password → isAlpha profile flag, mp7_erik storage key, UI restrictions
+- **Profile keys**: gabriel-main → mp7 (main), gabriel → mp7_gabriel (alpha), erik → mp7_erik (alpha). Migration runs on load: mp7_profile='gabriel' remapped to 'gabriel-main' (commit 821d32f).
+- **S11.5 scope agreed**: (1) page titles IA, (2) profile top-right mobile, (3) extra session card. Discuss AC before coding.
+- **Data roadmap**: V1=localStorage+Sheets write-only, V2=CSV download, V3=Sheets bidirectional, V4=real accounts+multi-device.
+
+## Bugs fixed this session (not slice commits)
+
+| Commit | Fix |
+|---|---|
+| `07c9a41` | iOS touch: touch-action:manipulation on cards/close buttons, safe-area wrap padding |
+| `5634688` | viewport-fit=cover — env(safe-area-inset-bottom) was always 0 without it |
+| `d0d5a3f` | Insights hidden for alpha testers — removed from _applyAlphaUI, only Sheets setup hidden |
+| `821d32f` | Profile key collision: mp7_profile='gabriel' remapped to 'gabriel-main' on load |
+| `6fadc85` | importFromSheets rebuilt to use S11 activities model (was using old top-level supersets) |
 
 ## Known Debt
 
+- **Sheets append creates duplicates** — appendRows() always appends, never overwrites. If a session is edited after being synced, it gets written again. Fix: Apps Script needs upsert logic (delete rows for date, then insert). Client-side workaround not yet implemented.
+- **No "Clear sessions + Import fresh" button** — import skips existing dates, so bad localStorage sessions can't be repaired by import alone. Need a button: clear sessions array (keep meso config) → import from Sheets. **Build next session before anything else.**
 - **Meso phase weeks not in Sheets** — weeks-per-phase config lives in localStorage only. A reset wipes it. Needs to sync to Sheets alongside session data.
-- **No Sheets → app restore path** — if localStorage is lost, session history in Sheets can't be pulled back into the app. Needed for true data resilience.
+- **No Sheets → app restore path** — V3 work. Tracked in roadmap.
