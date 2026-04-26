@@ -2302,30 +2302,54 @@ async function importFromSheets(){
     }
     const dates=Object.keys(byDate);
     if(!dates.length){if(st){st.textContent='No rows found in sheet';st.style.color='var(--ink3)';}return;}
-    let imported=0,skipped=0;
-    for(const date of dates){
-      if(S.sessions.find(s=>s.date===date)){skipped++;continue;}
-      const dateRows=byDate[date];const first=dateRows[0];
-      const dtype=first[3]||'';
-      const isBJJ=dtype==='BJJ'||dtype==='BJJ + Gym';
-      const sess={date,week:parseInt((first[1]||'').replace('W',''))||1,phase:first[2]||'',dtype,gymDay:parseInt(first[4])||1,sleep:first[15]||'',energy:first[16]||'',soreness:first[17]||'',perf:first[18]||'',extra:first[20]||'',notes:first[21]||'',supersets:[],
-        // BJJ columns W–AE (indices 22–30)
-        bjj:isBJJ?{gc:first[22]||'',desc:first[23]||'',positions:first[24]?first[24].split(', ').filter(Boolean):[],partner:first[25]||'',drilling:first[26]||'',good:first[27]||'',bad:first[28]||'',subs:first[29]||'',next:first[30]||''}:null
-      };
+    // Helper: build supersets array from exercise rows
+    function buildSupersets(rows){
       const bySS={};
-      for(const r of dateRows){
+      for(const r of rows){
         const ssNum=parseInt(r[5])||0;
         if(!ssNum||!r[6])continue;
         if(!bySS[ssNum])bySS[ssNum]=[];
         bySS[ssNum].push({name:r[6]||'',muscle:r[7]||'',res:r[8]||'',side:r[9]||'Both',kg:r[10]||'',reps:r[11]||'',rir:r[12]||'',sets:r[13]||'',flagged:r[19]==='flagged'});
       }
-      sess.supersets=Object.keys(bySS).map(Number).sort((a,b)=>a-b).map(n=>({exercises:bySS[n]}));
+      return Object.keys(bySS).map(Number).sort((a,b)=>a-b).map(n=>({exercises:bySS[n]}));
+    }
+    let imported=0,skipped=0;
+    for(const date of dates){
+      if(S.sessions.find(s=>s.date===date)){skipped++;continue;}
+      const dateRows=byDate[date];const first=dateRows[0];
+      // Partition rows by activity type (matches toRows() write format)
+      const gymRows=dateRows.filter(r=>(r[3]||'')==='Gym');
+      const customRows=dateRows.filter(r=>(r[3]||'')==='Custom');
+      const bjjRows=dateRows.filter(r=>(r[3]||'')==='BJJ');
+      const isRest=(first[3]||'')==='Rest'?true:null;
+      // Build activities array (S11 model)
+      const activities=[];
+      if(gymRows.length){
+        const ss=buildSupersets(gymRows);
+        if(ss.length)activities.push({type:'template',id:'act-imp-t-'+date,gymDay:parseInt(first[4])||1,supersets:ss,completed:true});
+      }
+      if(customRows.length){
+        const ss=buildSupersets(customRows);
+        if(ss.length)activities.push({type:'custom',id:'act-imp-c-'+date,gymDay:'',supersets:ss,completed:true});
+      }
+      if(bjjRows.length){
+        const b=bjjRows[0];
+        activities.push({type:'bjj',id:'act-imp-b-'+date,gymDay:'',completed:true,bjj:{gc:b[22]||'',desc:b[23]||'',positions:b[24]?b[24].split(', ').filter(Boolean):[],partner:b[25]||'',drilling:b[26]||'',good:b[27]||'',bad:b[28]||'',subs:b[29]||'',next:b[30]||''}});
+      }
+      const sess={
+        date,week:parseInt((first[1]||'').replace('W',''))||1,phase:first[2]||'',
+        dtype:first[3]||'',gymDay:parseInt(first[4])||1,
+        sleep:first[15]||'',energy:first[16]||'',soreness:first[17]||'',perf:first[18]||'',
+        extra:first[20]||'',notes:first[21]||'',
+        activities,isRest,completed:activities.length>0
+      };
       S.sessions.push(sess);imported++;
     }
     fixGymDays();
-    // Refresh UI if the currently viewed day was just imported
+    // Refresh UI
     const cur=S.sessions.find(s=>s.date===S.selectedDate);
     if(cur)loadSess(cur);
+    renderSummary();renderActionBar();renderWeekNav();
     if(st){
       if(!imported&&!skipped){st.textContent='Nothing to import';st.style.color='var(--ink3)';}
       else{st.textContent=`Imported ${imported} session${imported!==1?'s':''}${skipped?' · '+skipped+' already existed':''} ✓`;st.style.color='var(--accent)';}
