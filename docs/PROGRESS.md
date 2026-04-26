@@ -31,9 +31,7 @@ Status: Scoping complete — see docs/S11-SPEC.md. Resolve Extra Training field 
 
 | # | Slice | Goal | Depends on |
 |---|---|---|---|
-| 11 | Train Tab: Card Shell | Card dashboard layout. Readiness + Resistance Training wired. BJJ/Performance/Notes stubs. Action bar updated. | 6, 7 |
-| 12 | Train Tab: BJJ Sheet | Full-screen BJJ logging sheet. BJJ card done state. | 11 |
-| 13 | Train Tab: Reflect Cards | Performance card (chip sheet) + Notes card (textarea sheet). | 11 |
+| 11 | Train Tab: Card Shell | Full card dashboard. All 7 cards with real sheets — existing UI lifted into sheet pattern. No stubs. | 6, 7 |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |

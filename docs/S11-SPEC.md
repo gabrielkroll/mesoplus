@@ -17,14 +17,17 @@ The week/day navigator at the top stays exactly as-is. **No changes to the navig
 
 ```
 [ CHECK-IN  ]
-  Readiness
+  Readiness                          ← full width
 
 [ TRAINING  ]
-  Rest  |  Resistance Training  |  BJJ  |  Extra Training
+  Resistance Training  |  Rest       ← 2×2 grid, equal cards
+  BJJ                  |  Extra Training
 
 [ REFLECT   ]
-  Performance  |  Notes
+  Performance  |  Notes              ← 2 columns
 ```
+
+Cards in Training section are equal size. No horizontal scroll — all four always visible. Resistance Training is position 1 (top-left). The 2×2 layout gives full situational awareness at a glance.
 
 ---
 
@@ -34,9 +37,12 @@ Cards change face on state change only. No flip animation.
 
 | State | Visual |
 |---|---|
-| Not started | Card label + prompt text, neutral |
-| In progress | Subtle indicator (e.g. dot or different tint), partial info |
-| Done | Key stats of what was achieved |
+| Not started | Card at full opacity, label + prompt text, neutral |
+| In progress | Accent dot (lime, small) top-right corner + partial info on card face |
+| Done | Achievement stats on card face in accent color — no dot needed, stats are the signal |
+| Disabled | Full card at ~40% opacity, not tappable (pointer-events none) — stays visible in grid |
+
+No new color tokens. No border changes. No background tints. Dot and opacity only.
 
 ---
 
@@ -118,21 +124,21 @@ If something not listed here feels like it needs changing while implementing S11
 
 ## S11 scope (this slice only)
 
+All seven cards with real sheets. No stubs. Existing inline UI lifted into the full-screen sheet pattern — no new logic, no new data model, just a new frame.
+
 - [ ] Card dashboard layout on Train tab — three sections, seven cards
-- [ ] Card visual states: not started / in progress / done
-- [ ] Readiness card → opens existing readiness sheet (S7)
-- [ ] Resistance Training card → opens existing training sheet (S6)
-- [ ] Rest card → one-tap, immediate done state, mutual exclusivity enforced
-- [ ] Extra Training card → opens simple textarea sheet, done when any text entered
-- [ ] BJJ card — rendered, stub (tap does nothing or shows "coming soon")
-- [ ] Performance card — rendered, stub
-- [ ] Notes card — rendered, stub
+- [ ] Card visual states: not started / in progress / done / disabled
+- [ ] Readiness card → existing readiness sheet (S7)
+- [ ] Resistance Training card → existing training sheet (S6)
+- [ ] Rest card → one-tap, immediate done, mutual exclusivity enforced
+- [ ] BJJ card → existing BJJ activity block lifted into full-screen sheet
+- [ ] Extra Training card → existing m-extra input lifted into full-screen sheet
+- [ ] Performance card → existing chips-perf row lifted into full-screen sheet
+- [ ] Notes card → existing m-notes input lifted into full-screen sheet
 - [ ] Action bar updated to reflect card-based session identity
-- [ ] Done state display: Readiness shows score+tier, Resistance Training shows exercises+sets
+- [ ] Done state display per card (see done criteria table above)
 
-## Out of scope for S11 (do in S12/S13)
+## Out of scope for S11
 
-- BJJ full-screen sheet → S12
-- BJJ done state → S12
-- Performance card sheet → S13
-- Notes card sheet → S13
+- Visual polish and refinement of individual sheets → iterate after S11 ships
+- S12 and S13 as originally defined are absorbed — no separate sheet-building slices needed
