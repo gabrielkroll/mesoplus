@@ -7,9 +7,9 @@
 
 ## Now
 
-**Slice 11 — Train Tab: Card Shell**
-Goal: Replace the inline Train tab with a card dashboard (Check-in / Training / Reflect sections). Cards have three visual states (not started / in progress / done). Wires Readiness and Resistance Training to their existing sheets. BJJ, Performance, Notes rendered as stubs. Action bar updated to reflect card-based session identity.
-Status: Scoping complete — see docs/S11-SPEC.md. Resolve Extra Training field question, then write acceptance criteria, then code.
+**Slice 8 — Insights → Weekly Review Flow**
+Goal: Surface weekly volume, sessions, and readiness data in the Insights tab.
+Status: Not started — discuss acceptance criteria before touching code.
 
 ---
 
@@ -24,6 +24,7 @@ Status: Scoping complete — see docs/S11-SPEC.md. Resolve Extra Training field 
 | 5 — Volume Awareness | `1ec753b` | Two cards: sessions (gymDone/4 + ABCD) and sets (actual/planned + pace bar). Planned from TEMPLATES + setGoals. Actual from logged sets. Pace = actual vs (planned/4 × sessions done). Cards data-only — action layer deferred to S6. 44px serif + 13px mono across all cards. |
 | 6 — Adaptive Action Bar | `7fd8763` | Full-screen training sheet (full-screen modal, no Complete Day footer). Floating pill action bar (Apple Music pattern): whole pill = open sheet, ··· dot menu = "Wrap up Day X". State machine: not-started / in-progress / done. TODAY card owns session identity, action bar owns state. Shadow removed, 68px mobile gap. DOM ID conflict fix for ex-tbody. |
 | 7 — Readiness Integration | `9bd611b` | Full-screen readiness check-in sheet (sleep/energy/soreness chips → score → tier). Nine action bar states: checkin-needed, rest-suggested, not-started (tier label), in-progress, done, rest, + tomorrow/future variants. TODAY card removed — action bar owns today identity. Frosted glass blur behind action bar (blur 48px + rgba(20,20,20,.8)→.35 gradient). |
+| 11 — Train Tab: Card Shell | `abac535` | Card dashboard: CHECK-IN / TRAINING / REFLECT sections. 6 cards, 4 states (not-started/in-progress/done/disabled). computeCardStates() single source of truth → renderCards() + renderActionBar(). #csheet reuses appendActivityBlock for BJJ/Custom. S.notes/S.extra moved from DOM to state. Rest mutual exclusivity. Dot menu on BJJ/Custom sheets. Gabriel added as alpha tester (mp7_gabriel storage, type "gabriel"). |
 
 ---
 
@@ -31,7 +32,6 @@ Status: Scoping complete — see docs/S11-SPEC.md. Resolve Extra Training field 
 
 | # | Slice | Goal | Depends on |
 |---|---|---|---|
-| 11 | Train Tab: Card Shell | Full card dashboard. All 7 cards with real sheets — existing UI lifted into sheet pattern. No stubs. | 6, 7 |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
