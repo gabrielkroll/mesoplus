@@ -3630,7 +3630,6 @@ function _applyProfile(id){
 }
 function _applyAlphaUI(){
   const alpha=profileCfg().isAlpha;
-  ['bn-insights','nl-insights'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=alpha?'none':'';});
   const sh=document.getElementById('sheets-setup-section');if(sh)sh.style.display=alpha?'none':'';
   const an=document.getElementById('alpha-notice');if(an)an.style.display=alpha?'block':'none';
 }
