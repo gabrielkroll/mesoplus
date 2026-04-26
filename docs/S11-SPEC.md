@@ -101,7 +101,7 @@ All cards visible all day. Done cards stay visible — they tell the day's story
 
 The action bar is the **persistent session guide** — visible from anywhere in the app, in thumb reach. It reflects the current session state and guides the user through the day's sequence. It does NOT own completion. Completion lives inside each sheet via the Finish button.
 
-The "Wrap up Day X" item in the action bar ··· menu: **evaluate during implementation** — may become redundant if Finish button handles completion. Do not remove blindly; verify the state machine first.
+**Action bar logic is frozen — no changes.** The nine-state machine built in S6/S7 stays exactly as-is. S11 does not touch action bar behavior, states, or logic. The only addition: `renderCards()` is called alongside `renderActionBar()` so both stay in sync.
 
 ## Shared state architecture — cards and action bar
 
