@@ -3653,7 +3653,10 @@ function startApp(){
     init();
     return;
   }
-  // Default to gabriel when nothing is saved
+  // Migration: 'gabriel' was the old main profile key before the alpha gate rename.
+  // Remap any stored 'gabriel' → 'gabriel-main' so existing sessions don't land on the alpha profile.
+  if(localStorage.getItem('mp7_profile')==='gabriel') localStorage.setItem('mp7_profile','gabriel-main');
+  // Default to gabriel-main when nothing is saved
   const saved=localStorage.getItem('mp7_profile');
   const id=(saved&&PROFILE_CFG[saved])?saved:'gabriel-main';
   _applyProfile(id);
