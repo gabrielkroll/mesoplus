@@ -126,6 +126,12 @@ No state duplication. No two places computing the same thing differently.
 
 ---
 
+## Session brief — removed
+
+The `#session-brief` block (readiness score + coaching text shown above the Rest/Train toggle) is removed in S11. It was a bridge between two inline sections that no longer exist in the card world. The coaching text already lives in the training sheet's TODAY'S TARGET block — the right place, at the right moment.
+
+---
+
 ## What S11 explicitly does NOT change
 
 - Week/day navigator — no touch
