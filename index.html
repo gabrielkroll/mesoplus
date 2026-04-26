@@ -745,7 +745,7 @@ select.bare{cursor:pointer}
     <div class="pin-title">Meso<sup>+</sup></div>
     <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em">Select profile</div>
     <div style="display:flex;gap:12px;margin-top:28px;width:100%">
-      <button class="btn-s" onclick="selectProfile('gabriel')" style="flex:1">Gabriel</button>
+      <button class="btn-s" onclick="selectProfile('gabriel-main')" style="flex:1">Gabriel</button>
       <button class="btn-s" onclick="selectProfile('erik')" style="flex:1">Erik</button>
     </div>
   </div>
@@ -1450,11 +1450,11 @@ const ERIK_TEMPLATES={
   ]
 };
 const PROFILE_CFG={
-  gabriel:{id:'gabriel',name:'Gabriel',storageKey:'mp7',pinKey:'mp7_pin',days:4,
+  'gabriel-main':{id:'gabriel-main',name:'Gabriel',storageKey:'mp7',pinKey:'mp7_pin',days:4,
     dayLetters:['A','B','C','D'],
     dayFocus:{1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'},
     templates:GABRIEL_TEMPLATES,programLabel:'Full Body ABCD',sessionType:'Full Body'},
-  'gabriel-alpha':{id:'gabriel-alpha',name:'Gabriel',storageKey:'mp7_gabriel',pinKey:'mp7_gabriel_pin',days:4,
+  gabriel:{id:'gabriel',name:'Gabriel',storageKey:'mp7_gabriel',pinKey:'mp7_gabriel_pin',days:4,
     dayLetters:['A','B','C','D'],
     dayFocus:{1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'},
     templates:GABRIEL_TEMPLATES,programLabel:'Full Body ABCD',sessionType:'Full Body',isAlpha:true},
@@ -1463,7 +1463,7 @@ const PROFILE_CFG={
     dayFocus:{1:'Legs',2:'Upper — Chest & Triceps',3:'Pull — Back & Biceps',4:'Lower — Hamstrings',5:'Isolation — Arms & Chest'},
     templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:'',isAlpha:true}
 };
-let _ACTIVE_PROFILE='gabriel';
+let _ACTIVE_PROFILE='gabriel-main';
 function profileCfg(){return PROFILE_CFG[_ACTIVE_PROFILE];}
 function activeDays(){return profileCfg().days;}
 function activePinKey(){return profileCfg().pinKey;}
@@ -3656,7 +3656,7 @@ function startApp(){
   }
   // Default to gabriel when nothing is saved
   const saved=localStorage.getItem('mp7_profile');
-  const id=(saved&&PROFILE_CFG[saved])?saved:'gabriel';
+  const id=(saved&&PROFILE_CFG[saved])?saved:'gabriel-main';
   _applyProfile(id);
   initPin();
   init();
@@ -3808,7 +3808,7 @@ function checkSetupToken(){
   const token=params.get('setup');
   if(!token)return;
   // Device transfer always goes to the active/Gabriel profile
-  const profileId=localStorage.getItem('mp7_profile')||'gabriel';
+  const profileId=localStorage.getItem('mp7_profile')||'gabriel-main';
   _applyProfile(profileId);
   window._pendingSetupToken=decodeURIComponent(token);
   document.getElementById('setup-import-gate').classList.remove('hidden');
