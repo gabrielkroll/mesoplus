@@ -20,7 +20,7 @@ The week/day navigator at the top stays exactly as-is. **No changes to the navig
   Readiness
 
 [ TRAINING  ]
-  Rest  |  Resistance Training  |  BJJ
+  Rest  |  Resistance Training  |  BJJ  |  Extra Training
 
 [ REFLECT   ]
   Performance  |  Notes
@@ -48,6 +48,7 @@ Cards change face on state change only. No flip animation.
 | Resistance Training | All exercises have kg + sets + reps filled **and** user taps Finish |
 | BJJ | All key fields filled + user taps Finish *(stub in S11 — no sheet yet)* |
 | Rest | One tap — immediate, no sheet |
+| Extra Training | Any text entered |
 | Performance | Chip selected *(stub in S11)* |
 | Notes | Any text entered *(stub in S11)* |
 
@@ -61,6 +62,7 @@ Cards change face on state change only. No flip animation.
 | Resistance Training | "4 exercises · 28 sets" |
 | BJJ | Technique + "Logged ✓" *(S12)* |
 | Rest | "Rest ✓" |
+| Extra Training | First line of what was entered |
 | Performance | Perf value — e.g. "↑ Felt great" *(S13)* |
 | Notes | First line of note *(S13)* |
 
@@ -97,15 +99,6 @@ The "Wrap up Day X" item in the action bar ··· menu: **evaluate during implem
 
 ---
 
-## Open question — must resolve before coding S11
-
-**Where does the Extra Training field live?**
-Currently inline on the Train tab under Check-in. Two options:
-- **A** — Inside the Readiness sheet (alongside sleep/energy/soreness). Natural fit — it's activity context.
-- **B** — Inside the Notes card sheet. Also valid — supplementary info.
-
-*Decision not yet made. Resolve with Gabriel before writing any code that touches this field.*
-
 ---
 
 ## What S11 explicitly does NOT change
@@ -125,11 +118,12 @@ If something not listed here feels like it needs changing while implementing S11
 
 ## S11 scope (this slice only)
 
-- [ ] Card dashboard layout on Train tab — three sections, six cards
+- [ ] Card dashboard layout on Train tab — three sections, seven cards
 - [ ] Card visual states: not started / in progress / done
 - [ ] Readiness card → opens existing readiness sheet (S7)
 - [ ] Resistance Training card → opens existing training sheet (S6)
 - [ ] Rest card → one-tap, immediate done state, mutual exclusivity enforced
+- [ ] Extra Training card → opens simple textarea sheet, done when any text entered
 - [ ] BJJ card — rendered, stub (tap does nothing or shows "coming soon")
 - [ ] Performance card — rendered, stub
 - [ ] Notes card — rendered, stub

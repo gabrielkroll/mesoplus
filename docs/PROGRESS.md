@@ -56,6 +56,7 @@ Status: Scoping complete — see docs/S11-SPEC.md. Resolve Extra Training field 
 - ?profile= URL param is session-only — never writes to localStorage (fixed 4be72b6)
 - **Only implement what was explicitly discussed and scoped — never change working features on the fly**
 - **S11: Train tab → card dashboard. See docs/S11-SPEC.md for full design spec.**
+- **S11: Extra Training is its own card in the Training section** — not nested inside Readiness or Notes. Simple textarea sheet. Done when any text entered.
 - Alpha tester login shipped (2442bc4): username gate → password → isAlpha profile flag, mp7_erik storage key, UI restrictions
 
 ## Known Debt
