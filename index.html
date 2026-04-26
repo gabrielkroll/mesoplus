@@ -561,6 +561,38 @@ select.bare{cursor:pointer}
 .tday-footer-btn.secondary{background:none;border:1px solid var(--line2);color:var(--ink2)}
 .tday-footer-btn:hover{opacity:.85}
 
+/* CARD DASHBOARD */
+.card-section{margin-bottom:22px}
+.card-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
+.session-card:hover{border-color:var(--line2)}
+.session-card:active{opacity:.8}
+.session-card.disabled{opacity:.4;pointer-events:none}
+.session-card-dot{position:absolute;top:10px;right:10px;width:6px;height:6px;border-radius:50%;background:var(--accent);display:none}
+.session-card.in-progress .session-card-dot{display:block}
+.session-card-label{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.session-card-body{font-family:var(--mono);font-size:11px;color:var(--ink3);line-height:1.4}
+.session-card.done .session-card-body{color:var(--accent);font-size:12px}
+
+/* CARD SHEET */
+.csheet-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
+.csheet-backdrop.open{opacity:1;pointer-events:auto;visibility:visible}
+.csheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
+.csheet.open{transform:translateY(0);visibility:visible}
+.csheet-inner{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;width:100%}
+.csheet-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 16px;border-bottom:1px solid var(--line);position:relative}
+.csheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
+.csheet-close:hover{background:var(--surf)}
+.csheet-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.csheet-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:56px}
+.csheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0))}
+#csheet-body>.activity-block{border:none;border-radius:0;margin:0}
+#csheet-body .activity-block-hdr{display:none}
+.csheet-footer{flex-shrink:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--line)}
+.csheet-finish-btn{width:100%;padding:14px;border-radius:10px;border:none;font-family:var(--mono);font-size:13px;letter-spacing:.04em;cursor:pointer;transition:opacity .15s;outline:none;background:var(--ink);color:var(--lift)}
+.csheet-finish-btn:hover{opacity:.85}
+
 /* READINESS SHEET */
 .rs-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
 .rs-backdrop.open{opacity:1;pointer-events:auto;visibility:visible}
@@ -851,78 +883,60 @@ select.bare{cursor:pointer}
     </div>
     <div class="rule" style="margin-top:0"></div>
 
-    <div class="section-title">Check-in</div>
-    <div id="checkin-summary" class="checkin-summary hidden">
-      <div class="checkin-readiness">
-        <div class="checkin-score-row">
-          <span class="checkin-score" id="checkin-score"></span>
-          <span class="checkin-tier-label" id="checkin-tier-label"></span>
-        </div>
-        <div class="checkin-inputs" id="checkin-inputs"></div>
-      </div>
-      <button class="checkin-expand-btn" onclick="expandCheckin()">edit</button>
-    </div>
-    <div id="checkin-form">
-      <div class="readiness-row">
-        <div class="metrics-grid">
-          <div class="metrics-item">
-            <div class="m-lbl">Sleep</div>
-            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
-              <div class="chips-row" id="chips-sleep"></div>
-              <div class="csw" id="csw"><input class="csi" type="number" id="csi" min="3" max="12" step="0.5" title="Custom hours"><span style="font-size:10px;color:var(--ink3)">h</span></div>
-            </div>
-          </div>
-          <div class="metrics-item">
-            <div class="m-lbl">Energy</div>
-            <div class="chips-row" id="chips-energy"></div>
-          </div>
-          <div class="metrics-item">
-            <div class="m-lbl">Soreness</div>
-            <div class="chips-row" id="chips-soreness"></div>
-          </div>
-        </div>
-        <div class="extras-col">
-          <div><div class="field-lbl">Extra training</div><input class="bare" id="m-extra" placeholder="e.g. 10k walk, cycling"></div>
-        </div>
+    <!-- CHECK-IN -->
+    <div class="card-section">
+      <div class="card-section-title">Check-in</div>
+      <div class="card-grid">
+        <button class="session-card" id="card-readiness" onclick="openReadinessSheet()">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">Readiness</div>
+          <div class="session-card-body" id="card-readiness-body">Sleep · Energy · Soreness</div>
+        </button>
       </div>
     </div>
 
-    <div class="section-sep"></div>
-    <div class="section-title">Session</div>
-
-    <!-- Readiness brief — above the decision -->
-    <div id="session-brief" class="session-brief hidden">
-      <div class="session-brief-head" id="session-brief-head"></div>
-      <div class="session-brief-sub" id="session-brief-sub"></div>
+    <!-- TRAINING -->
+    <div class="card-section">
+      <div class="card-section-title">Training</div>
+      <div class="card-grid">
+        <button class="session-card" id="card-resistance" onclick="openTrainingSheet()">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">Resistance</div>
+          <div class="session-card-body" id="card-resistance-body">Tap to start</div>
+        </button>
+        <button class="session-card" id="card-custom" onclick="openCardSheet('custom')">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">Custom</div>
+          <div class="session-card-body" id="card-custom-body">Tap to start</div>
+        </button>
+        <button class="session-card" id="card-bjj" onclick="openCardSheet('bjj')">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">BJJ</div>
+          <div class="session-card-body" id="card-bjj-body">Tap to log</div>
+        </button>
+        <button class="session-card" id="card-rest" onclick="tapRestCard()">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">Rest</div>
+          <div class="session-card-body" id="card-rest-body">Tap to mark rest day</div>
+        </button>
+      </div>
     </div>
 
-    <!-- Level 1: Rest / Train -->
-    <div class="session-toggle">
-      <button class="session-btn" id="btn-rest" onclick="setSessionType('rest')">Rest</button>
-      <button class="session-btn" id="btn-train" onclick="setSessionType('train')">Train</button>
-    </div>
-
-    <!-- Rest card -->
-    <div id="rest-content" class="hidden"><div class="rest-card" id="rest-card"></div></div>
-
-    <!-- Train: stackable activity blocks -->
-    <div id="train-content" class="hidden">
-      <div id="activity-list"></div>
-      <div class="add-activity-row" id="add-activity-row">
-        <button class="add-act-btn" onclick="addActivity('template')">+ Day Template</button>
-        <button class="add-act-btn" onclick="addActivity('custom')">+ Custom</button>
-        <button class="add-act-btn" onclick="addActivity('bjj')">+ BJJ</button>
+    <!-- REFLECT -->
+    <div class="card-section">
+      <div class="card-section-title">Reflect</div>
+      <div class="card-grid">
+        <button class="session-card" id="card-performance" onclick="openCardSheet('performance')">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">Performance</div>
+          <div class="session-card-body" id="card-performance-body">How did it go?</div>
+        </button>
+        <button class="session-card" id="card-notes" onclick="openCardSheet('notes')">
+          <div class="session-card-dot"></div>
+          <div class="session-card-label">Notes</div>
+          <div class="session-card-body" id="card-notes-body">Anything notable</div>
+        </button>
       </div>
-    </div><!-- /train-content -->
-
-    <div id="checkout-section" class="checkout-section hidden">
-      <div class="section-sep"></div>
-      <div class="section-title">Check-out</div>
-      <div id="checkout-perf" class="metrics-item" style="margin-bottom:16px">
-        <div class="m-lbl">Performance</div>
-        <div class="chips-row" id="chips-perf"></div>
-      </div>
-      <div><div class="field-lbl">Notes</div><input class="bare" id="m-notes" placeholder="joints, energy, anything notable"></div>
     </div>
 
     <div class="bottom">
@@ -1483,7 +1497,7 @@ const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
 
-let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',sessions:[],setGoals:{},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
+let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',notes:'',extra:'',sessions:[],setGoals:{},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
 let _pendingFocusKey=null;
 const _TAB_FIELDS=['kg','sets','reps','rir'];
@@ -1559,19 +1573,14 @@ function init(){
   const _name=localStorage.getItem(activeStorageKey()+'_name')||'';if(_name){document.getElementById('s-name').value=_name;}updateProfileNav();
   document.getElementById('s-meso-start').value=S.mesoStart;
   S.selectedDate=td();
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
-  document.getElementById('v-train').addEventListener('input',()=>markDirty());
   renderPhaseBar();renderAdvBar();renderWeekNav();
   const _initSess=S.sessions.find(s=>s.date===S.selectedDate);
-  if(_initSess)loadSess(_initSess);else renderSession();
-  renderSummary();initActionBar();_applyAlphaUI();
+  if(_initSess)loadSess(_initSess);else resetForm();
+  renderSummary();initActionBar();renderCards();_applyAlphaUI();
 }
 
 function buildChips(id,opts,sel,cb){
-  const el=document.getElementById(id);el.innerHTML='';
+  const el=document.getElementById(id);if(!el)return;el.innerHTML='';
   opts.forEach(o=>{const b=document.createElement('button');b.className='chip'+(o===sel?' on':'');b.textContent=o;
     b.onclick=()=>{
       if(id==='chips-sleep'&&o==='Custom'){handleSleep('Custom');return;}
@@ -1582,26 +1591,13 @@ function buildChips(id,opts,sel,cb){
     el.appendChild(b);});
 }
 function handleSleep(v){S.sleep=v;}
-function updateCheckinCollapse(){
-  const filled=S.sleep&&S.energy&&S.soreness;
-  document.getElementById('checkin-summary').classList.toggle('hidden',!filled);
-  document.getElementById('checkin-form').classList.toggle('hidden',!!filled);
-  if(filled){
-    const sleepLabel=S.sleep==='Custom'?(document.getElementById('csi')?.value||'?')+'h':S.sleep;
-    const r=computeReadiness();
-    document.getElementById('checkin-score').textContent=r??'';
-    document.getElementById('checkin-tier-label').textContent=readinessTier(r);
-    document.getElementById('checkin-inputs').textContent=`Sleep ${sleepLabel} · ${S.energy} energy · ${S.soreness} soreness`;
-  }
-}
-function expandCheckin(){
-  document.getElementById('checkin-summary').classList.add('hidden');
-  document.getElementById('checkin-form').classList.remove('hidden');
-}
+function updateCheckinCollapse(){/* checkin inline form removed in S11 — readiness lives in rs-sheet */}
+function expandCheckin(){/* removed in S11 */}
 function updateCheckoutReveal(){
+  const cs=document.getElementById('checkout-section');if(!cs)return;
   const show=S.isRest===true||(S.isRest===false&&S.activities.length>0);
-  document.getElementById('checkout-section').classList.toggle('hidden',!show);
-  document.getElementById('checkout-perf').classList.toggle('hidden',S.isRest!==false);
+  cs.classList.toggle('hidden',!show);
+  const cp=document.getElementById('checkout-perf');if(cp)cp.classList.toggle('hidden',S.isRest!==false);
 }
 
 function phaseWeekRange(idx){let cum=0;for(let i=0;i<idx;i++)cum+=S.phases[i].weeks;const p=S.phases[idx],wS=cum+1,wE=cum+p.weeks;return p.weeks===1?`W${wS}`:p.weeks<=3?Array.from({length:p.weeks},(_,k)=>`W${wS+k}`).join(', '):`W${wS}–W${wE}`;}
@@ -1710,25 +1706,13 @@ function loadSess(sess){
   S.isRest='isRest' in sess?sess.isRest:null;
   S.activities=JSON.parse(JSON.stringify(sess.activities||[]));
   S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
-  document.getElementById('m-extra').value=sess.extra||'';
-  document.getElementById('m-notes').value=sess.notes||'';
-  buildChips('chips-sleep',SLEEP_C,S.sleep,v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
+  S.extra=sess.extra||'';S.notes=sess.notes||'';
   renderSession();
-  updateCheckinCollapse();
+  renderCards();
 }
 function resetForm(){
-  S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';
-  document.getElementById('m-extra').value='';document.getElementById('m-notes').value='';
-  buildChips('chips-sleep',SLEEP_C,'',v=>{handleSleep(v);updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-energy',ENERGY_C,'',v=>{S.energy=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-soreness',SORENESS_C,'',v=>{S.soreness=v;S.activities.filter(a=>a.type==='template').forEach(a=>{computeSug(a.id);renderTable(a.id);});updateNudge();updateCheckinCollapse();markDirty();renderActionBar();});
-  buildChips('chips-perf',PERF_C,'',v=>{S.perf=v;markDirty();});
-  document.getElementById('checkout-section').classList.add('hidden');
-  document.getElementById('checkin-summary').classList.add('hidden');
-  document.getElementById('checkin-form').classList.remove('hidden');
+  S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';S.extra='';S.notes='';
+  renderCards();
 }
 function shiftWeek(d){
   if(d<0&&S.viewWeekOffset<=minWeekOffset())return;
@@ -1819,23 +1803,7 @@ function updateNudge(){
   document.getElementById('session-brief-sub').textContent=brief.sub;
 }
 
-function renderSession(){
-  const unpicked=S.isRest===null;
-  document.getElementById('btn-rest').classList.toggle('on',S.isRest===true);
-  document.getElementById('btn-train').classList.toggle('on',S.isRest===false);
-  document.getElementById('rest-content').classList.toggle('hidden',S.isRest!==true);
-  document.getElementById('train-content').classList.toggle('hidden',S.isRest!==false);
-  const brief=document.getElementById('session-brief');
-  brief.classList.toggle('hidden',!unpicked);
-  if(unpicked){const b=sessionBrief();document.getElementById('session-brief-head').textContent=b.head;document.getElementById('session-brief-sub').textContent=b.sub;}
-  if(S.isRest===true){
-    const q=REST_QUOTES[Math.floor(Math.random()*REST_QUOTES.length)];
-    document.getElementById('rest-card').innerHTML=`<div class="rest-quote">"${q.q}"</div><div class="rest-attr">— ${q.attr}</div><div class="rest-sub">Rest is not a reward for hard work.<br>It is part of the work itself.</div>`;
-  } else if(S.isRest===false){
-    renderActivityList();
-  }
-  updateCheckoutReveal();
-}
+function renderSession(){/* inline session UI removed in S11 — renderCards() handles this */}
 
 function setSessionType(type){
   const tappingRest=type==='rest';
@@ -2162,7 +2130,7 @@ function buildCurrentSession(){
   const dp=derivedPhase();
   const allEx=S.activities.filter(a=>a.type!=='bjj').flatMap(a=>(a.supersets||[]).flatMap(ss=>ss.exercises));
   const existing=S.sessions.find(s=>s.date===S.selectedDate);
-  return{date:S.selectedDate,week:mesoWk(),phase:ph().name,phaseIdx:dp.phaseIdx,isRest:S.isRest,activities:JSON.parse(JSON.stringify(S.activities)),extra:document.getElementById('m-extra').value,notes:document.getElementById('m-notes').value,sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:allEx.filter(e=>e.flagged).map(e=>e.name),completed:existing?.completed||false};
+  return{date:S.selectedDate,week:mesoWk(),phase:ph().name,phaseIdx:dp.phaseIdx,isRest:S.isRest,activities:JSON.parse(JSON.stringify(S.activities)),extra:S.extra||'',notes:S.notes||'',sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:allEx.filter(e=>e.flagged).map(e=>e.name),completed:existing?.completed||false};
 }
 
 const _synced=new Set(JSON.parse(localStorage.getItem('mp7_synced')||'[]'));
@@ -2181,6 +2149,7 @@ function markDirty(){
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   persist();_lastSaveTime=Date.now();
   setSave('Auto-saved · '+fmtTime(_lastSaveTime));
+  renderCards();
   clearTimeout(_syncTimer);
   if(S.scriptUrl)_syncTimer=setTimeout(()=>syncDayToSheets(S.selectedDate),10000);
 }
@@ -2925,6 +2894,208 @@ function getActionBarState(){
   if(r<25)return{type:'rest-suggested',day,letter,focus};
   return{type:'not-started',day,letter,focus,tier:readinessTier(r)};
 }
+/* ── CARD DASHBOARD ── */
+function computeCardStates(){
+  const todaySess=S.sessions.find(s=>s.date===S.selectedDate);
+  const sessionCompleted=todaySess?.completed===true;
+
+  // Readiness
+  const rFilled=!!(S.sleep&&S.energy&&S.soreness);
+  const rPartial=!!(S.sleep||S.energy||S.soreness);
+  const readinessState=rFilled?'done':rPartial?'in-progress':'not-started';
+  let readinessDisplay='';
+  if(rFilled){const r=computeReadiness();readinessDisplay=(r??'')+' · '+readinessTier(r);}
+
+  // Activities
+  const resistAct=S.activities.find(a=>a.type==='template');
+  const customAct=S.activities.find(a=>a.type==='custom');
+  const bjjAct=S.activities.find(a=>a.type==='bjj');
+  const anyTraining=!!(resistAct||customAct||bjjAct);
+
+  // Rest
+  const restDone=S.isRest===true;
+  const trainingDisabled=restDone;
+  const restDisabled=!restDone&&anyTraining;
+  const restState=restDone?'done':restDisabled?'disabled':'not-started';
+
+  // Resistance Training
+  let resistState='not-started',resistDisplay='';
+  if(trainingDisabled){resistState='disabled';}
+  else if(resistAct){
+    if(sessionCompleted){
+      resistState='done';
+      const exs=resistAct.supersets.flatMap(ss=>ss.exercises);
+      const setTotal=exs.reduce((n,e)=>n+(parseInt(e.sets)||0),0);
+      resistDisplay=exs.length+' exercises · '+setTotal+' sets';
+    }else{resistState='in-progress';}
+  }
+
+  // Custom Training
+  let customState='not-started',customDisplay='';
+  if(trainingDisabled){customState='disabled';}
+  else if(customAct){
+    if(customAct.completed){
+      customState='done';
+      const exs=customAct.supersets.flatMap(ss=>ss.exercises);
+      const loggedEx=exs.filter(e=>e.kg).length;
+      const setTotal=exs.reduce((n,e)=>n+(parseInt(e.sets)||0),0);
+      customDisplay=loggedEx+' exercises · '+setTotal+' sets';
+    }else{customState='in-progress';}
+  }
+
+  // BJJ
+  let bjjState='not-started',bjjDisplay='';
+  if(trainingDisabled){bjjState='disabled';}
+  else if(bjjAct){
+    if(bjjAct.completed){
+      bjjState='done';
+      bjjDisplay=bjjAct.bjj?.gc||'Session logged';
+    }else{bjjState='in-progress';}
+  }
+
+  // Performance
+  const perfState=S.perf?'done':'not-started';
+  const perfDisplay=S.perf?'↑ '+S.perf:'';
+
+  // Notes
+  const notesTrimmed=(S.notes||'').trim();
+  const notesState=notesTrimmed?'done':'not-started';
+  const notesDisplay=notesTrimmed.split('\n')[0].slice(0,60);
+
+  return{
+    readiness:{state:readinessState,display:readinessDisplay},
+    resistance:{state:resistState,display:resistDisplay},
+    custom:{state:customState,display:customDisplay},
+    bjj:{state:bjjState,display:bjjDisplay},
+    rest:{state:restState,display:'Rest ✓'},
+    performance:{state:perfState,display:perfDisplay},
+    notes:{state:notesState,display:notesDisplay}
+  };
+}
+
+const _CARD_PROMPTS={readiness:'Sleep · Energy · Soreness',resistance:'Tap to start',custom:'Tap to start',bjj:'Tap to log',rest:'Tap to mark rest day',performance:'How did it go?',notes:'Anything notable'};
+
+function renderCards(){
+  const cs=computeCardStates();
+  function applyCard(id,cd){
+    const card=document.getElementById('card-'+id);if(!card)return;
+    const body=document.getElementById('card-'+id+'-body');
+    card.className='session-card'+(cd.state==='disabled'?' disabled':cd.state==='in-progress'?' in-progress':cd.state==='done'?' done':'');
+    if(!body)return;
+    if(cd.state==='done'){
+      body.textContent=cd.display||'Done ✓';
+    }else if(cd.state==='in-progress'){
+      let txt='In progress';
+      if(id==='readiness'){const parts=[S.sleep,S.energy,S.soreness].filter(Boolean);txt=parts.join(' · ')||txt;}
+      body.textContent=txt;
+    }else{
+      body.textContent=_CARD_PROMPTS[id]||'';
+    }
+  }
+  applyCard('readiness',cs.readiness);
+  applyCard('resistance',cs.resistance);
+  applyCard('custom',cs.custom);
+  applyCard('bjj',cs.bjj);
+  applyCard('rest',cs.rest);
+  applyCard('performance',cs.performance);
+  applyCard('notes',cs.notes);
+}
+
+let _csheetType=null;
+function openCardSheet(type){
+  _csheetType=type;
+  const eyebrow=document.getElementById('csheet-eyebrow');
+  const title=document.getElementById('csheet-title');
+  const body=document.getElementById('csheet-body');
+  const footer=document.getElementById('csheet-footer');
+  const cfg={bjj:{eyebrow:'Training',title:'BJJ Session'},custom:{eyebrow:'Training',title:'Custom Training'},performance:{eyebrow:'Reflect',title:'Performance'},notes:{eyebrow:'Reflect',title:'Notes'}}[type];
+  if(!cfg)return;
+  eyebrow.textContent=cfg.eyebrow;title.textContent=cfg.title;
+  body.innerHTML='';footer.innerHTML='';
+
+  if(type==='bjj'||type==='custom'){
+    let act=S.activities.find(a=>a.type===type);
+    if(!act){
+      const id=uid();
+      if(type==='bjj'){act={id,type:'bjj',supersets:[],bjj:{},completed:false};}
+      else{act={id,type:'custom',supersets:[{label:'',exercises:[_newEx()]}],bjj:{},completed:false};}
+      S.activities.push(act);markDirty();
+    }
+    // Orphan IDs so they don't clash with sheet re-render
+    ['act-block-','sug-text-','adopt-bar-','adopt-undo-btn-','ex-tbody-','undo-ss-'].forEach(prefix=>{
+      const el=document.getElementById(prefix+act.id);if(el)el.removeAttribute('id');
+    });
+    appendActivityBlock(act,body);
+    // Hide the remove button — not appropriate in a dedicated card sheet
+    body.querySelectorAll('.activity-toggle-btn').forEach(b=>b.style.display='none');
+    footer.innerHTML=`<button class="csheet-finish-btn" onclick="finishCardSheet('${type}')">Finish</button>`;
+  } else if(type==='performance'){
+    body.innerHTML=`<div class="metrics-item" style="padding-top:4px"><div class="m-lbl" style="margin-bottom:10px">How did the session feel?</div><div class="chips-row" id="csheet-chips-perf"></div></div>`;
+    buildChips('csheet-chips-perf',PERF_C,S.perf,v=>{S.perf=v;markDirty();});
+    footer.innerHTML=`<button class="csheet-finish-btn" onclick="finishCardSheet('performance')">Done</button>`;
+  } else if(type==='notes'){
+    const escaped=(S.notes||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    body.innerHTML=`<textarea id="csheet-notes" style="width:100%;min-height:220px;background:none;border:none;border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.6;outline:none;resize:vertical;padding:0 0 8px;box-sizing:border-box" placeholder="Joints, energy, anything notable...">${escaped}</textarea>`;
+    document.getElementById('csheet-notes').addEventListener('input',e=>{S.notes=e.target.value;});
+    footer.innerHTML=`<button class="csheet-finish-btn" onclick="finishCardSheet('notes')">Done</button>`;
+    setTimeout(()=>document.getElementById('csheet-notes')?.focus(),350);
+  }
+  const backdrop=document.getElementById('csheet-backdrop');
+  const sheet=document.getElementById('csheet');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{backdrop.classList.add('open');sheet.classList.add('open');}));
+}
+
+function _closeCardSheetDOM(){
+  document.getElementById('csheet-backdrop').classList.remove('open');
+  document.getElementById('csheet').classList.remove('open');
+  // Clear body after transition
+  setTimeout(()=>{const b=document.getElementById('csheet-body');if(b)b.innerHTML='';},400);
+  _csheetType=null;
+  renderCards();renderActionBar();
+}
+
+function closeCardSheet(){
+  // Persist in-progress data before closing
+  if(_csheetType==='bjj'){
+    const act=S.activities.find(a=>a.type==='bjj');
+    if(act){act.bjj=getBJJ(act.id);markDirty();}
+  }else if(_csheetType==='notes'){
+    const ta=document.getElementById('csheet-notes');
+    if(ta){S.notes=ta.value;markDirty();}
+  }
+  _closeCardSheetDOM();
+}
+
+function finishCardSheet(type){
+  if(type==='bjj'){
+    const act=S.activities.find(a=>a.type==='bjj');
+    if(act){act.bjj=getBJJ(act.id);act.completed=true;markDirty();}
+  }else if(type==='custom'){
+    const act=S.activities.find(a=>a.type==='custom');
+    if(act){act.completed=true;markDirty();}
+  }else if(type==='performance'){
+    // perf already set via chip callback — just close
+  }else if(type==='notes'){
+    const ta=document.getElementById('csheet-notes');
+    if(ta){S.notes=ta.value;markDirty();}
+  }
+  _closeCardSheetDOM();
+}
+
+function tapRestCard(){
+  if(S.isRest===true){
+    // Toggle off rest
+    S.isRest=null;
+    const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
+    if(ei>=0){S.sessions[ei].isRest=null;persist();}
+    renderSummary();renderActionBar();renderCards();
+  }else{
+    S.isRest=true;
+    startRestDay();
+    renderCards();
+  }
+}
+
 function initActionBar(){renderActionBar();}
 function renderActionBar(){
   const el=document.getElementById('ab-content');
@@ -3185,14 +3356,14 @@ function closeReadinessSheet(){
     S.sessions.push({date:today,isRest:null,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx});
     persist();
   }
-  renderActionBar();
+  renderActionBar();renderCards();
 }
 function startRestDay(){
   const today=td();S.selectedDate=today;
   const ei=S.sessions.findIndex(s=>s.date===today);
   const sess={date:today,isRest:true,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx};
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
-  persist();renderSummary();renderActionBar();
+  persist();renderSummary();renderActionBar();renderCards();
 }
 function overrideRestDay(){
   closeAbMenu();
@@ -3279,7 +3450,7 @@ function closeTrainingSheet(){
   // Clear tday-body so its IDs don't clash when Train tab re-renders
   document.getElementById('tday-body').innerHTML='';
   renderActivityList();
-  renderSummary();renderActionBar();
+  renderSummary();renderActionBar();renderCards();
 }
 
 async function endSession(){
@@ -3289,7 +3460,7 @@ async function endSession(){
   S.sessions[ei].completed=true;
   S.weekInPhase=Math.min(S.weekInPhase+1,ph().weeks);
   persist();
-  renderSummary();renderActionBar();
+  renderSummary();renderActionBar();renderCards();
   if(S.scriptUrl){const ok=await appendRows(toRows(S.sessions[ei]));if(ok)markSynced(today);}
 }
 
@@ -3836,6 +4007,20 @@ startApp();
     </div>
     <div class="tday-body" id="tday-body"></div>
     <div class="tday-footer" id="tday-footer" style="display:none"></div>
+  </div>
+</div>
+
+<!-- CARD SHEET (BJJ / Custom / Performance / Notes) -->
+<div id="csheet-backdrop" class="csheet-backdrop" onclick="closeCardSheet()"></div>
+<div id="csheet" class="csheet" role="dialog" aria-modal="true" aria-label="Card sheet">
+  <div class="csheet-inner">
+    <div class="csheet-hdr">
+      <button class="csheet-close" onclick="closeCardSheet()" aria-label="Close">×</button>
+      <div class="csheet-eyebrow" id="csheet-eyebrow"></div>
+      <div class="csheet-title" id="csheet-title"></div>
+    </div>
+    <div class="csheet-body" id="csheet-body"></div>
+    <div class="csheet-footer" id="csheet-footer"></div>
   </div>
 </div>
 
