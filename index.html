@@ -1250,6 +1250,7 @@ select.bare{cursor:pointer}
     <div class="s-row"><div class="s-lbl">4 — Tab name<div class="s-note">Exact tab name in your sheet.</div></div><div><div class="field-lbl">Tab name</div><input class="bare" id="s-tab" value="Workout_Log"></div></div>
     <div class="s-row"><div class="s-lbl">5 — Apps Script URL<div class="s-note">Extensions → Apps Script → Deploy as web app → copy URL. Required for saving sessions to Sheets.</div></div><div><div class="field-lbl">Web app URL</div><input class="bare" id="s-script" placeholder="https://script.google.com/macros/s/.../exec"></div></div>
     <div style="padding-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn-s" onclick="saveSettings()">Save + test connection</button><button class="btn-o" onclick="fullResync()">↺ Re-sync to Sheets</button><button class="btn-o" onclick="importFromSheets()">↓ Import from Sheets</button><span id="s-status" style="font-size:11px;color:var(--ink3)"></span></div>
+    <div style="padding-top:8px"><button class="btn-o" style="color:var(--danger);border-color:var(--danger)" onclick="clearAndImportFromSheets()">⚠ Clear sessions + Import fresh from Sheets</button></div>
     </div>
     <div style="height:28px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Transfer to another device</div>
@@ -2355,6 +2356,16 @@ async function importFromSheets(){
       else{st.textContent=`Imported ${imported} session${imported!==1?'s':''}${skipped?' · '+skipped+' already existed':''} ✓`;st.style.color='var(--accent)';}
     }
   }catch(e){if(st){st.textContent='Import failed: '+e.message;st.style.color='var(--danger)';}}
+}
+async function clearAndImportFromSheets(){
+  const st=document.getElementById('s-status');
+  if(!S.apiKey||!S.sheetId){if(st){st.textContent='API key and Sheet ID required';st.style.color='var(--danger)';}return;}
+  if(!confirm('This will delete all local sessions and replace them with data from Sheets.\n\nYour meso config (phases, weeks, start date) is kept.\n\nContinue?'))return;
+  S.sessions=[];
+  _synced.clear();
+  localStorage.removeItem('mp7_synced');
+  persist();
+  await importFromSheets();
 }
 async function appendRows(rows){try{if(S.scriptUrl){const date=rows[0]?.[0]||'';const res=await fetch(S.scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date,rows})});return res.ok;}else{const r=encodeURIComponent(`${S.sheetTab}!A1`);const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/${r}:append?valueInputOption=USER_ENTERED&key=${S.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});return res.ok;}}catch(e){return false;}}
 
