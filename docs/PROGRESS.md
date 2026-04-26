@@ -8,7 +8,7 @@
 ## Now
 
 **Slice 8 — Insights → Weekly Review Flow**
-Goal: Turn the Insights tab into a useful weekly review — surface what happened this week (volume, sessions, readiness) so the athlete can reflect before the next microcycle.
+Goal: Surface weekly volume, sessions, and readiness data in the Insights tab.
 Status: Not started — discuss acceptance criteria before touching code.
 
 ---
@@ -24,19 +24,19 @@ Status: Not started — discuss acceptance criteria before touching code.
 | 5 — Volume Awareness | `1ec753b` | Two cards: sessions (gymDone/4 + ABCD) and sets (actual/planned + pace bar). Planned from TEMPLATES + setGoals. Actual from logged sets. Pace = actual vs (planned/4 × sessions done). Cards data-only — action layer deferred to S6. 44px serif + 13px mono across all cards. |
 | 6 — Adaptive Action Bar | `7fd8763` | Full-screen training sheet (full-screen modal, no Complete Day footer). Floating pill action bar (Apple Music pattern): whole pill = open sheet, ··· dot menu = "Wrap up Day X". State machine: not-started / in-progress / done. TODAY card owns session identity, action bar owns state. Shadow removed, 68px mobile gap. DOM ID conflict fix for ex-tbody. |
 | 7 — Readiness Integration | `9bd611b` | Full-screen readiness check-in sheet (sleep/energy/soreness chips → score → tier). Nine action bar states: checkin-needed, rest-suggested, not-started (tier label), in-progress, done, rest, + tomorrow/future variants. TODAY card removed — action bar owns today identity. Frosted glass blur behind action bar (blur 48px + rgba(20,20,20,.8)→.35 gradient). |
+| 11 — Train Tab: Card Shell | `abac535` | Card dashboard: CHECK-IN / TRAINING / REFLECT sections. 6 cards, 4 states (not-started/in-progress/done/disabled). computeCardStates() single source of truth → renderCards() + renderActionBar(). #csheet reuses appendActivityBlock for BJJ/Custom. S.notes/S.extra moved from DOM to state. Rest mutual exclusivity. Dot menu on BJJ/Custom sheets. Gabriel added as alpha tester (mp7_gabriel storage, type "gabriel"). |
 
 ---
 
-## Upcoming
+## Upcoming — prioritized and sequenced
 
-| # | Slice | Depends on |
-|---|---|---|
-| 8 | Insights → Weekly Review Flow | 4, 5 |
-| 9 | RIR → Stimulus Signal | existing data |
-| 10 | Summary Upgrade | 5, 9 |
-| 11 | Train tab refactor — activity block as full-screen sheet | 6 |
-| 12 | Weekly Check-in Shell | 8 |
-| 13 | AI Check-in | 12, 9 |
+| # | Slice | Goal | Depends on |
+|---|---|---|---|
+| 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
+| 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
+| 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
+| 14 | Weekly Check-in Shell | Structured weekly reflection before new microcycle. | 8 |
+| 15 | AI Check-in | AI-driven check-in using accumulated data. | 14, 9 |
 
 ---
 
@@ -51,11 +51,14 @@ Status: Not started — discuss acceptance criteria before touching code.
 - Always discuss acceptance criteria before writing code
 - Grep before reading — never load index.html whole
 - Extra sessions card (BJJ/custom count) — parked, add after S6
-- Train tab refactor (activity block → full-screen sheet, shared component) — parked as S11, depends on S6
 - ?profile= URL param is session-only — never writes to localStorage (fixed 4be72b6)
+- **Only implement what was explicitly discussed and scoped — never change working features on the fly**
+- **S11: Train tab → card dashboard. See docs/S11-SPEC.md for full design spec.**
+- **S11: Extra Training is its own card in the Training section** — not nested inside Readiness or Notes. Simple textarea sheet. Done when any text entered.
+- **Gabriel does the testing** — do not use preview tools to click through and test features. Write code and commit; Gabriel tests on his device.
+- Alpha tester login shipped (2442bc4): username gate → password → isAlpha profile flag, mp7_erik storage key, UI restrictions
 
 ## Known Debt
 
 - **Meso phase weeks not in Sheets** — weeks-per-phase config lives in localStorage only. A reset wipes it. Needs to sync to Sheets alongside session data.
 - **No Sheets → app restore path** — if localStorage is lost, session history in Sheets can't be pulled back into the app. Needed for true data resilience.
-- **Alpha tester login** — Erik currently uses ?profile=erik URL (no password). Proper solution: username + password per tester, accessed via "Alpha tester?" link on the login wall. Parked until after S8.
