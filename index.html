@@ -1527,7 +1527,7 @@ const uid=()=>'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 function getAct(id){return S.activities.find(a=>a.id===id);}
 function getSets(actId){const a=getAct(actId);return a?(a.supersets||[]):[];}
 
-const td=()=>new Date().toISOString().split('T')[0];
+const td=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 function ws(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r.setDate(dt.getDate()-day+(day===0?-6:1));return r.toISOString().split('T')[0];}
 function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
@@ -1716,10 +1716,12 @@ function loadSess(sess){
   S.extra=sess.extra||'';S.notes=sess.notes||'';
   renderSession();
   renderCards();
+  renderActionBar();
 }
 function resetForm(){
   S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';S.extra='';S.notes='';
   renderCards();
+  renderActionBar();
 }
 function shiftWeek(d){
   if(d<0&&S.viewWeekOffset<=minWeekOffset())return;
@@ -2218,7 +2220,10 @@ async function completeDay(){
   else setSave('Day complete ✓','ok');
 }
 
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSaveCurrentDay();});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){autoSaveCurrentDay();}
+  else if(document.visibilityState==='visible'&&S.selectedDate&&td()!==S.selectedDate){goToday();}
+});
 window.addEventListener('beforeunload',()=>autoSaveCurrentDay());
 function sessionHasData(s){
   if(s.isRest===true||s.dtype==='Rest')return true;

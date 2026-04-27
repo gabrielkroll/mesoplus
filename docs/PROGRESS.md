@@ -7,12 +7,11 @@
 
 ## Now
 
-**Slice 8 — Insights → Weekly Review Flow**
-Goal: Surface weekly volume, sessions, and readiness data in the Insights tab.
+**Slice S11.5 — Nav + IA Polish**
+Goal: (1) Page titles on all tabs — large serif italic matching tab label. Phase/week info moves to a card under Summary. (2) Profile button top-right on mobile, circular dark-grey icon. (3) Extra session card re-added to Training section.
 Status: Not started — discuss acceptance criteria before touching code.
 
-**Blocked first: "Clear sessions + Import fresh" button**
-Before S8, Gabriel needs to restore his data from clean Sheets. The import skips existing dates, so bad localStorage sessions can't be fixed by import alone. Need a button that: wipes sessions array only (keeps meso config) → imports fresh from Sheets. Add this before anything else next session.
+**After S11.5:** S8 — Insights → Weekly Review Flow (acceptance criteria not yet discussed).
 
 ---
 
@@ -76,7 +75,7 @@ Before S8, Gabriel needs to restore his data from clean Sheets. The import skips
 
 ## Known Debt
 
-- **Sheets append creates duplicates** — appendRows() always appends, never overwrites. If a session is edited after being synced, it gets written again. Fix: Apps Script needs upsert logic (delete rows for date, then insert). Client-side workaround not yet implemented.
-- **No "Clear sessions + Import fresh" button** — import skips existing dates, so bad localStorage sessions can't be repaired by import alone. Need a button: clear sessions array (keep meso config) → import from Sheets. **Build next session before anything else.**
+- **Sheets duplication via direct API fallback** — appendRows() falls back to direct Sheets API when S.scriptUrl is empty; this path always appends (no upsert). Risk only when scriptUrl is not configured. Apps Script path is now fully safe (deleteRowsForDate fixed in bbcf88b).
 - **Meso phase weeks not in Sheets** — weeks-per-phase config lives in localStorage only. A reset wipes it. Needs to sync to Sheets alongside session data.
 - **No Sheets → app restore path** — V3 work. Tracked in roadmap.
+- **Mobile: Sheets setup cannot be configured from Safari on iPhone** — scriptUrl, apiKey, sheetId live in Profile setup which requires desktop. V3 (bidirectional sync) will address this properly.
