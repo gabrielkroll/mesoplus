@@ -733,28 +733,38 @@ select.bare{cursor:pointer}
   .bottom{padding-bottom:calc(16px + env(safe-area-inset-bottom,0));gap:8px;flex-wrap:wrap}
   .bottom>div{gap:6px}
   .save-msg{font-size:12px}
-  /* Profile trigger — top-right, mobile only */
-  .profile-btn-mobile{position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:210;-webkit-tap-highlight-color:transparent;touch-action:manipulation;line-height:1;text-transform:uppercase}
 }
 
 .hidden{display:none!important}
 
-/* === S11.5-2 PROFILE SHEET === */
-.profile-btn-mobile{display:none}
-.psheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600}
+/* === PROFILE TRIGGER (inline with page title) === */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-header .page-title{margin-bottom:0}
+.pf-trigger{width:34px;height:34px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;text-transform:uppercase;line-height:1}
+.pf-trigger:active{background:#555}
+@media(min-width:601px){.pf-trigger{display:none}}
+
+/* === PROFILE SHEET === */
+.psheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600}
 .psheet-overlay.open{display:block}
-.profile-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(100%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+.profile-sheet{position:fixed;top:56px;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(110%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
 .profile-sheet.open{transform:translateY(0)}
-.psheet-handle{width:36px;height:4px;background:var(--line);border-radius:2px;margin:12px auto 4px;flex-shrink:0}
-.psheet-header{display:flex;align-items:center;gap:14px;padding:16px 20px 14px;flex-shrink:0}
-.psheet-avatar{width:48px;height:48px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:14px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
-.psheet-uname{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ink)}
-.psheet-rule{height:1px;background:var(--line);flex-shrink:0}
-#psheet-list{flex:1;overflow-y:auto;padding-bottom:8px}
-.psheet-row{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:16px 20px;font-family:var(--serif);font-style:italic;font-size:17px;color:var(--ink);cursor:pointer;text-align:left;min-height:52px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.psheet-row:active{background:rgba(128,128,128,.08)}
-.psheet-row .psheet-chevron{color:var(--ink3);font-style:normal;font-size:18px;line-height:1;flex-shrink:0}
-.psheet-row.danger{color:var(--danger)}
+.psheet-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:12px auto 0;flex-shrink:0}
+.psheet-titlebar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 12px;flex-shrink:0}
+.psheet-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)}
+.psheet-close{width:30px;height:30px;border-radius:50%;background:var(--surf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink2);font-size:18px;line-height:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation;flex-shrink:0}
+.psheet-close:active{background:var(--line)}
+.psheet-userblock{display:flex;align-items:center;gap:14px;padding:0 20px 16px;flex-shrink:0}
+.psheet-avatar{width:52px;height:52px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:16px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
+.psheet-uname{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);line-height:1.2}
+.psheet-usub{font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.psheet-rulefull{height:1px;background:var(--line);flex-shrink:0}
+#psheet-list{flex:1;overflow-y:auto;padding:8px 0 20px}
+.psheet-row{display:flex;align-items:center;width:100%;background:none;border:none;padding:0 20px;min-height:52px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.psheet-row:active{background:rgba(128,128,128,.07)}
+.psheet-row-label{flex:1;font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.01em;text-align:left}
+.psheet-row-chevron{color:var(--line2);font-size:16px;line-height:1;flex-shrink:0}
+.psheet-row.danger .psheet-row-label{color:var(--danger)}
 .psheet-row-divider{height:1px;background:var(--line);margin:4px 20px}
 #psheet-detail{position:absolute;inset:0;background:var(--lift);border-radius:20px 20px 0 0;transform:translateX(100%);transition:transform .28s cubic-bezier(.25,.46,.45,.94);overflow:hidden;display:flex;flex-direction:column}
 #psheet-detail.open{transform:translateX(0)}
@@ -762,6 +772,7 @@ select.bare{cursor:pointer}
 .psheet-back-btn{background:none;border:none;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer;padding:0;letter-spacing:.03em;display:flex;align-items:center;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .psheet-detail-title{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink)}
 #psheet-detail-content{flex:1;overflow-y:auto;padding:0 20px 20px}
+#psheet-detail-content .page-header{display:none!important}
 #psheet-detail-content .page-title{display:none!important}
 #psheet-detail-content .detail-back{display:none!important}
 #psheet-detail-content .settings-nav-table.hub-only{display:none!important}
@@ -863,27 +874,34 @@ select.bare{cursor:pointer}
   <div id="ab-content" class="ab-content"></div>
 </div>
 
-<!-- S11.5-2: Profile mobile trigger + sheet -->
-<button class="profile-btn-mobile" id="profile-btn-mobile" onclick="openProfileSheet()" aria-label="Open profile">?</button>
+<!-- Profile sheet — mobile + desktop -->
 <div class="psheet-overlay" id="psheet-overlay" onclick="closeProfileSheet()"></div>
 <div class="profile-sheet" id="profile-sheet">
   <div class="psheet-handle"></div>
-  <div class="psheet-header">
-    <div class="psheet-avatar" id="psheet-avatar">?</div>
-    <div class="psheet-uname" id="psheet-uname">Profile</div>
+  <div class="psheet-titlebar">
+    <span class="psheet-title">Profile</span>
+    <button class="psheet-close" onclick="closeProfileSheet()" aria-label="Close">×</button>
   </div>
-  <div class="psheet-rule"></div>
+  <div class="psheet-userblock">
+    <div class="psheet-avatar" id="psheet-avatar"></div>
+    <div>
+      <div class="psheet-uname" id="psheet-uname">Profile</div>
+      <div class="psheet-usub" id="psheet-usub"></div>
+    </div>
+  </div>
+  <div class="psheet-rulefull"></div>
   <div id="psheet-list">
-    <button class="psheet-row" onclick="openProfileDetail('v-program','Plan')"><span>Plan</span><span class="psheet-chevron">›</span></button>
+    <button class="psheet-row" onclick="openProfileDetail('v-program','Plan')"><span class="psheet-row-label">Plan</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider"></div>
-    <button class="psheet-row" onclick="openProfileDetail('v-progress','Stats')"><span>Stats</span><span class="psheet-chevron">›</span></button>
+    <button class="psheet-row" onclick="openProfileDetail('v-progress','Stats')"><span class="psheet-row-label">Stats</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider"></div>
-    <button class="psheet-row" onclick="openProfileDetail('v-setup','Setup')"><span>Setup</span><span class="psheet-chevron">›</span></button>
+    <button class="psheet-row" onclick="openProfileDetail('v-setup','Setup')"><span class="psheet-row-label">Setup</span><span class="psheet-row-chevron">›</span></button>
+    <div class="psheet-row-divider" style="margin:8px 20px"></div>
+    <button class="psheet-row" onclick="openProfileDetail('v-profile','Edit profile')"><span class="psheet-row-label">Edit profile</span><span class="psheet-row-chevron">›</span></button>
+    <div class="psheet-row-divider" style="margin:8px 20px"></div>
+    <button class="psheet-row" onclick="closeProfileSheet();showProfileGate()"><span class="psheet-row-label">Switch profile</span></button>
     <div class="psheet-row-divider"></div>
-    <button class="psheet-row" onclick="openProfileDetail('v-profile','Edit profile')"><span>Edit profile</span><span class="psheet-chevron">›</span></button>
-    <div class="psheet-row-divider"></div>
-    <button class="psheet-row" onclick="closeProfileSheet();showProfileGate()"><span>Switch profile</span></button>
-    <button class="psheet-row danger" onclick="closeProfileSheet();lockApp()"><span>Log out</span></button>
+    <button class="psheet-row danger" onclick="closeProfileSheet();lockApp()"><span class="psheet-row-label">Log out</span></button>
   </div>
   <div id="psheet-detail">
     <div class="psheet-back-row">
@@ -902,20 +920,15 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-train" onclick="nav('train')">Train</button>
       <button class="nl" id="nl-insights" onclick="nav('insights')">Insights</button>
       <button class="nl" id="nl-program" onclick="nav('program')">Plan</button>
-      <div class="profile-wrap">
-        <button class="nl" id="nl-profile" onclick="toggleProfileMenu()" style="display:inline-flex;align-items:center"><span id="profile-name">Profile</span><span class="profile-avatar" id="profile-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span></button>
-        <div class="profile-menu hidden" id="profile-menu">
-          <button class="pmenu-item" onclick="nav('profile');closeProfileMenu()">Profile</button>
-          <button class="pmenu-item" onclick="nav('setup');closeProfileMenu()">Setup</button>
-          <div class="pmenu-divider"></div>
-          <button class="pmenu-item danger" onclick="lockApp();closeProfileMenu()">Log out <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="margin-left:6px;vertical-align:middle"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
-        </div>
-      </div>
+      <button class="nl" id="nl-profile" onclick="openProfileSheet()" style="display:inline-flex;align-items:center;gap:6px"><span id="profile-name">Profile</span></button>
     </div>
   </div>
 
   <div id="v-summary">
-    <div class="page-title">Summary</div>
+    <div class="page-header">
+      <div class="page-title">Summary</div>
+      <button class="pf-trigger" onclick="openProfileSheet()" aria-label="Profile"></button>
+    </div>
     <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">This week</div>
     <div id="sum-week-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px"></div>
     <div id="sum-sets-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px"></div>
@@ -923,7 +936,10 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-train" class="hidden">
-    <div class="page-title">Train</div>
+    <div class="page-header">
+      <div class="page-title">Train</div>
+      <button class="pf-trigger" onclick="openProfileSheet()" aria-label="Profile"></button>
+    </div>
     <div class="week-nav">
       <div class="week-label">
         <div class="wl-main" id="wl-main"></div>
@@ -1162,7 +1178,10 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-insights" class="hidden">
-    <div class="page-title">Insights</div>
+    <div class="page-header">
+      <div class="page-title">Insights</div>
+      <button class="pf-trigger" onclick="openProfileSheet()" aria-label="Profile"></button>
+    </div>
     <div class="analysis-selects" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div><div class="field-lbl">Scope</div><select class="bare" id="a-scope"><option value="last">Last session</option><option value="week" selected>This week</option><option value="meso">Full mesocycle</option></select></div>
       <div><div class="field-lbl">Focus</div><select class="bare" id="a-focus"><option value="next">Next session targets</option><option value="volume">Volume per muscle</option><option value="progress">Progress over time</option><option value="bjj">BJJ + training load</option><option value="goals">Goal tracking</option><option value="phase">Ready to advance phase?</option></select></div>
@@ -1181,7 +1200,10 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-profile" class="hidden">
-    <div class="page-title">Profile</div>
+    <div class="page-header">
+      <div class="page-title">Profile</div>
+      <button class="pf-trigger" onclick="openProfileSheet()" aria-label="Profile"></button>
+    </div>
     <div class="settings-card">
       <div class="settings-card-title">Profile</div>
       <div class="s-row" style="border-bottom:none;padding-bottom:0"><div class="s-lbl">Your name<div class="s-note">Shown in the nav.</div></div><div><div class="field-lbl">Name</div><input class="bare" id="s-name" placeholder="Your name" oninput="updateProfileNav()"></div></div>
@@ -1249,7 +1271,10 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-program" class="hidden">
-    <div class="meso-card-anchor page-title">Plan</div>
+    <div class="page-header">
+      <div class="meso-card-anchor page-title">Plan</div>
+      <button class="pf-trigger" onclick="openProfileSheet()" aria-label="Profile"></button>
+    </div>
     <div class="meso-card">
       <div class="card-label">Mesocycle plan</div>
       <div class="phase-bar" id="phase-bar"></div>
@@ -3728,9 +3753,9 @@ function updateProfileNav(){
   const first=name.split(' ')[0]||'';
   document.getElementById('profile-name').textContent=first||'Profile';
   const bn=document.getElementById('bn-profile-name');if(bn)bn.textContent=first||'Profile';
-  // Mobile initials button + sheet
+  // All pf-trigger buttons (one per tab) + sheet avatar/name
   const initials=getInitials(name);
-  const mb=document.getElementById('profile-btn-mobile');if(mb)mb.textContent=initials;
+  document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
   const un=document.getElementById('psheet-uname');if(un)un.textContent=name||'Profile';
 }
@@ -3738,9 +3763,10 @@ function updateProfileNav(){
 /* === PROFILE SHEET === */
 let _psheetPortal=null;
 function openProfileSheet(){
-  // Update initials + name from stored name
+  // Sync initials + name (in case updateProfileNav hasn't run yet)
   const name=(document.getElementById('s-name')?.value||'').trim();
   const initials=getInitials(name);
+  document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
   const un=document.getElementById('psheet-uname');if(un)un.textContent=name||'Profile';
   document.getElementById('psheet-overlay').classList.add('open');
