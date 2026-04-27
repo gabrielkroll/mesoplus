@@ -3619,7 +3619,10 @@ function renderSummary(){
   const dp=derivedPhase();const phase=ph();
   const phCard=document.getElementById('sum-phase-card');
   if(phCard){
-    const wkDots=Array.from({length:phase.weeks},(_,i)=>i+1).map(w=>`<span style="font-family:var(--mono);font-size:13px;color:${w===dp.weekInPhase?'var(--ink)':'var(--line)'};letter-spacing:.04em">W${w}</span>`).join('<span style="color:var(--line);margin:0 4px">·</span>');
+    // Actual meso week numbers for this phase (not relative W1/W2)
+    let phaseStartWk=1;for(let i=0;i<dp.phaseIdx;i++)phaseStartWk+=S.phases[i].weeks;
+    const curWk=mesoWk();
+    const wkDots=Array.from({length:phase.weeks},(_,i)=>{const w=phaseStartWk+i;return`<span style="font-family:var(--mono);font-size:13px;color:${w===curWk?'var(--ink)':'var(--line)'};letter-spacing:.04em">W${w}</span>`;}).join('<span style="color:var(--line);margin:0 4px">·</span>');
     phCard.innerHTML=`<div class="card-label">Microcycle</div><div style="display:flex;align-items:center;justify-content:space-between"><div style="font-family:var(--serif);font-style:italic;font-size:44px;color:${phase.color};line-height:1">${phase.name}</div><div style="display:flex;align-items:center;gap:2px">${wkDots}</div></div>`;
   }
   renderSummaryWeek();
