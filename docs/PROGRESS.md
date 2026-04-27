@@ -7,8 +7,7 @@
 
 ## Now
 
-**Slice S11.5 — Nav + IA Polish (items 2 + 3 remaining)**
-Item 2: Profile button top-right on mobile — tall sheet modal (Apple style), nav as modal detail pages. AC not yet discussed — discuss before coding.
+**Slice S11.5 — Nav + IA Polish (item 3 remaining)**
 Item 3: Extra session card re-added to Training section. AC not yet discussed — discuss before coding.
 
 **After S11.5:** S8 — Insights → Weekly Review Flow (acceptance criteria not yet discussed).
@@ -28,6 +27,7 @@ Item 3: Extra session card re-added to Training section. AC not yet discussed �
 | 7 — Readiness Integration | `9bd611b` | Full-screen readiness check-in sheet (sleep/energy/soreness chips → score → tier). Nine action bar states: checkin-needed, rest-suggested, not-started (tier label), in-progress, done, rest, + tomorrow/future variants. TODAY card removed — action bar owns today identity. Frosted glass blur behind action bar (blur 48px + rgba(20,20,20,.8)→.35 gradient). |
 | 11 — Train Tab: Card Shell | `abac535` | Card dashboard: CHECK-IN / TRAINING / REFLECT sections. 6 cards, 4 states (not-started/in-progress/done/disabled). computeCardStates() single source of truth → renderCards() + renderActionBar(). #csheet reuses appendActivityBlock for BJJ/Custom. S.notes/S.extra moved from DOM to state. Rest mutual exclusivity. Dot menu on BJJ/Custom sheets. Gabriel added as alpha tester (mp7_gabriel storage, type "gabriel"). |
 | S11.5-1 — Page Titles + Summary Cards | `67512da` | .page-title class (serif italic 32px) on all 5 tabs. Summary: old phase header removed, replaced with "Summary" title + third card (sum-phase-card). Card label-first architecture: SESSIONS / SETS / MICROCYCLE labels at top of each card. Microcycle card: 44px phase name in phase colour + W1·W2 indicators (current=ink, future=line) mirroring sessions card layout. |
+| S11.5-2 — Profile Sheet Modal | `f927bd4` | Circular initials button fixed top-right on mobile. Tap opens tall sheet from bottom (drag handle, avatar, user name, nav rows). Nav rows portal existing tab divs (Plan/Stats/Setup/Edit profile) into a slide-in detail panel within the sheet. hub-only tables hidden in detail to prevent recursive nav. nav() closes sheet + portal on tab switch. Bottom nav Profile → openProfileSheet(). |
 
 ---
 
