@@ -7,9 +7,9 @@
 
 ## Now
 
-**Slice S11.5 — Nav + IA Polish**
-Goal: (1) Page titles on all tabs — large serif italic matching tab label. Phase/week info moves to a card under Summary. (2) Profile button top-right on mobile, circular dark-grey icon. (3) Extra session card re-added to Training section.
-Status: Not started — discuss acceptance criteria before touching code.
+**Slice S11.5 — Nav + IA Polish (items 2 + 3 remaining)**
+Item 2: Profile button top-right on mobile — tall sheet modal (Apple style), nav as modal detail pages. AC not yet discussed — discuss before coding.
+Item 3: Extra session card re-added to Training section. AC not yet discussed — discuss before coding.
 
 **After S11.5:** S8 — Insights → Weekly Review Flow (acceptance criteria not yet discussed).
 
@@ -27,6 +27,7 @@ Status: Not started — discuss acceptance criteria before touching code.
 | 6 — Adaptive Action Bar | `7fd8763` | Full-screen training sheet (full-screen modal, no Complete Day footer). Floating pill action bar (Apple Music pattern): whole pill = open sheet, ··· dot menu = "Wrap up Day X". State machine: not-started / in-progress / done. TODAY card owns session identity, action bar owns state. Shadow removed, 68px mobile gap. DOM ID conflict fix for ex-tbody. |
 | 7 — Readiness Integration | `9bd611b` | Full-screen readiness check-in sheet (sleep/energy/soreness chips → score → tier). Nine action bar states: checkin-needed, rest-suggested, not-started (tier label), in-progress, done, rest, + tomorrow/future variants. TODAY card removed — action bar owns today identity. Frosted glass blur behind action bar (blur 48px + rgba(20,20,20,.8)→.35 gradient). |
 | 11 — Train Tab: Card Shell | `abac535` | Card dashboard: CHECK-IN / TRAINING / REFLECT sections. 6 cards, 4 states (not-started/in-progress/done/disabled). computeCardStates() single source of truth → renderCards() + renderActionBar(). #csheet reuses appendActivityBlock for BJJ/Custom. S.notes/S.extra moved from DOM to state. Rest mutual exclusivity. Dot menu on BJJ/Custom sheets. Gabriel added as alpha tester (mp7_gabriel storage, type "gabriel"). |
+| S11.5-1 — Page Titles + Summary Cards | `67512da` | .page-title class (serif italic 32px) on all 5 tabs. Summary: old phase header removed, replaced with "Summary" title + third card (sum-phase-card). Card label-first architecture: SESSIONS / SETS / MICROCYCLE labels at top of each card. Microcycle card: 44px phase name in phase colour + W1·W2 indicators (current=ink, future=line) mirroring sessions card layout. |
 
 ---
 
@@ -72,6 +73,8 @@ Status: Not started — discuss acceptance criteria before touching code.
 | `d0d5a3f` | Insights hidden for alpha testers — removed from _applyAlphaUI, only Sheets setup hidden |
 | `821d32f` | Profile key collision: mp7_profile='gabriel' remapped to 'gabriel-main' on load |
 | `6fadc85` | importFromSheets rebuilt to use S11 activities model (was using old top-level supersets) |
+| `bbcf88b` | Apps Script: deleteRowsForDate batch read + Date object handling — upsert now reliable |
+| `2a2fe00` | td() uses local date (not UTC); loadSess/resetForm call renderActionBar(); visibilitychange advances to today on new day |
 
 ## Known Debt
 
