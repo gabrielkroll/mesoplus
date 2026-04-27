@@ -750,7 +750,7 @@ select.bare{cursor:pointer}
 /* === PROFILE SHEET === */
 .psheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600}
 .psheet-overlay.open{display:block}
-.profile-sheet{position:fixed;top:56px;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(110%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+.profile-sheet{position:fixed;top:56px;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(110%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
 .profile-sheet.open{transform:translateY(0)}
 .psheet-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:12px auto 0;flex-shrink:0}
 .psheet-titlebar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 12px;flex-shrink:0}
@@ -759,7 +759,7 @@ select.bare{cursor:pointer}
 .psheet-close:active{background:var(--line)}
 .psheet-userblock{display:flex;align-items:center;gap:14px;padding:0 20px 16px;flex-shrink:0}
 .psheet-avatar{width:52px;height:52px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:16px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
-.psheet-uname{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);line-height:1.2}
+.psheet-uname{font-family:var(--mono);font-size:16px;color:var(--ink);line-height:1.2}
 .psheet-usub{font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .psheet-rulefull{height:1px;background:var(--line);flex-shrink:0}
 #psheet-list{flex:1;overflow-y:auto;padding:8px 0 20px}
