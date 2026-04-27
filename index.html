@@ -737,6 +737,9 @@ select.bare{cursor:pointer}
 
 .hidden{display:none!important}
 
+/* Desktop nav profile avatar */
+.nl-profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;line-height:1;flex-shrink:0}
+
 /* === PROFILE TRIGGER (inline with page title) === */
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .page-header .page-title{margin-bottom:0}
@@ -916,7 +919,7 @@ select.bare{cursor:pointer}
       <button class="nl" id="nl-train" onclick="nav('train')">Train</button>
       <button class="nl" id="nl-insights" onclick="nav('insights')">Insights</button>
       <button class="nl" id="nl-program" onclick="nav('program')">Plan</button>
-      <button class="nl" id="nl-profile" onclick="openProfileSheet()" style="display:inline-flex;align-items:center;gap:6px"><span id="profile-name">Profile</span></button>
+      <button class="nl" id="nl-profile" onclick="openProfileSheet()" style="display:inline-flex;align-items:center;gap:8px"><span id="profile-name">Profile</span><span class="nl-profile-avatar" id="nl-profile-avatar"></span></button>
     </div>
   </div>
 
@@ -3749,9 +3752,10 @@ function updateProfileNav(){
   const first=name.split(' ')[0]||'';
   document.getElementById('profile-name').textContent=first||'Profile';
   const bn=document.getElementById('bn-profile-name');if(bn)bn.textContent=first||'Profile';
-  // All pf-trigger buttons (one per tab) + sheet avatar/name
+  // All pf-trigger buttons (one per tab) + desktop nav avatar + sheet avatar/name
   const initials=getInitials(name);
   document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
+  const nla=document.getElementById('nl-profile-avatar');if(nla)nla.textContent=initials;
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
   const un=document.getElementById('psheet-uname');if(un)un.textContent=name||'Profile';
 }
@@ -3763,6 +3767,7 @@ function openProfileSheet(){
   const name=(document.getElementById('s-name')?.value||'').trim();
   const initials=getInitials(name);
   document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
+  const nla=document.getElementById('nl-profile-avatar');if(nla)nla.textContent=initials;
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
   const un=document.getElementById('psheet-uname');if(un)un.textContent=name||'Profile';
   document.getElementById('psheet-overlay').classList.add('open');
