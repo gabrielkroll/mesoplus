@@ -3553,25 +3553,16 @@ function overrideRestDay(){
 let _tdayActId=null,_tdayWasEmpty=false,_tdayUndoData=null;
 
 function openTrainingSheet(){
-  const today=td();
+  const date=S.selectedDate;  // use selected date — may be today or any past date
   autoSaveCurrentDay();
-  // Load today into S working state
-  const existSess=S.sessions.find(s=>s.date===today);
-  S.selectedDate=today;
-  if(existSess){
-    S.activities=JSON.parse(JSON.stringify(existSess.activities||[]));
-    S.sleep=existSess.sleep||'';S.energy=existSess.energy||'';
-    S.soreness=existSess.soreness||'';S.perf=existSess.perf||'';
-    S.isRest=existSess.isRest||null;
-  }else{
-    S.activities=[];S.isRest=null;
-  }
-  // Find or create template activity
+  // S working state already reflects the selected date (loaded by selectDate/loadSess)
+  const existSess=S.sessions.find(s=>s.date===date);
+  // Find or create template activity for the selected date
   let gymAct=S.activities.find(a=>a.type==='template');
   if(!gymAct){
     _tdayWasEmpty=!existSess||!sessionHasData(existSess);
     const id=uid();
-    const day=derivedGymDay(today);
+    const day=derivedGymDay(date);
     gymAct={id,type:'template',gymDay:day,
       supersets:TEMPLATES[day].map(ss=>({label:ss.label,exercises:ss.exercises.map(e=>({
         name:e.name,muscle:e.muscle,muscle2:e.muscle2||'',res:e.res,
@@ -3613,9 +3604,9 @@ function closeTrainingSheet(){
   backdrop.classList.remove('open');sheet.classList.remove('open');
   // If opened on an empty session and no data was entered, clean up
   if(_tdayWasEmpty){
-    const sess=S.sessions.find(s=>s.date===td());
+    const sess=S.sessions.find(s=>s.date===S.selectedDate);
     if(sess&&!sessionHasData(sess)){
-      const ei=S.sessions.findIndex(s=>s.date===td());
+      const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
       if(ei>=0)S.sessions.splice(ei,1);
       S.activities=[];persist();
     }
