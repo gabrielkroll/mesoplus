@@ -310,6 +310,7 @@ select.bare{cursor:pointer}
 .wvl-delta-down{color:#c98a0a;font-family:var(--mono);font-size:10px}
 /* Plan tab section titles */
 .plan-section-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin:28px 0 4px}
+.page-title{font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px}
 .plan-section-sub{font-size:11px;color:var(--ink3);margin-bottom:14px}
 .plan-adjust-all{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:14px}
 .plan-adjust-title{font-size:12px;color:var(--ink)}
@@ -854,16 +855,15 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-summary">
-    <div style="padding:24px 0 16px">
-      <div style="font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:4px" id="sum-wk-label">Microcycle · —</div>
-      <div id="sum-phase-head" style="font-family:var(--serif);font-style:italic;font-size:32px;margin-bottom:24px">—</div>
-      <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">This week</div>
-      <div id="sum-week-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px"></div>
-      <div id="sum-sets-card" style="border:1px solid var(--line);border-radius:8px;padding:16px"></div>
-    </div>
+    <div class="page-title">Summary</div>
+    <div style="font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:8px">This week</div>
+    <div id="sum-week-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px"></div>
+    <div id="sum-sets-card" style="border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px"></div>
+    <div id="sum-phase-card" style="border:1px solid var(--line);border-radius:8px;padding:16px"></div>
   </div>
 
   <div id="v-train" class="hidden">
+    <div class="page-title">Train</div>
     <div class="week-nav">
       <div class="week-label">
         <div class="wl-main" id="wl-main"></div>
@@ -1102,7 +1102,7 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-insights" class="hidden">
-    <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:14px">Insights</div>
+    <div class="page-title">Insights</div>
     <div class="analysis-selects" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div><div class="field-lbl">Scope</div><select class="bare" id="a-scope"><option value="last">Last session</option><option value="week" selected>This week</option><option value="meso">Full mesocycle</option></select></div>
       <div><div class="field-lbl">Focus</div><select class="bare" id="a-focus"><option value="next">Next session targets</option><option value="volume">Volume per muscle</option><option value="progress">Progress over time</option><option value="bjj">BJJ + training load</option><option value="goals">Goal tracking</option><option value="phase">Ready to advance phase?</option></select></div>
@@ -1121,6 +1121,7 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-profile" class="hidden">
+    <div class="page-title">Profile</div>
     <div class="settings-card">
       <div class="settings-card-title">Profile</div>
       <div class="s-row" style="border-bottom:none;padding-bottom:0"><div class="s-lbl">Your name<div class="s-note">Shown in the nav.</div></div><div><div class="field-lbl">Name</div><input class="bare" id="s-name" placeholder="Your name" oninput="updateProfileNav()"></div></div>
@@ -1188,7 +1189,7 @@ select.bare{cursor:pointer}
   </div>
 
   <div id="v-program" class="hidden">
-    <div class="meso-card-anchor" style="font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ink);margin-bottom:20px">Plan</div>
+    <div class="meso-card-anchor page-title">Plan</div>
     <div class="meso-card">
       <div class="card-label">Mesocycle plan</div>
       <div class="phase-bar" id="phase-bar"></div>
@@ -3556,10 +3557,8 @@ async function endSession(){
 
 function renderSummary(){
   const dp=derivedPhase();const phase=ph();
-  const wkEl=document.getElementById('sum-wk-label');
-  if(wkEl)wkEl.textContent=`Microcycle · W${dp.weekInPhase} of ${phase.weeks}`;
-  const headEl=document.getElementById('sum-phase-head');
-  if(headEl){headEl.textContent=phase.name;headEl.style.color=phase.color;}
+  const phCard=document.getElementById('sum-phase-card');
+  if(phCard)phCard.innerHTML=`<div style="font-family:var(--serif);font-style:italic;font-size:20px;color:${phase.color};line-height:1.2">${phase.name}</div><div style="font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-top:6px">Microcycle · W${dp.weekInPhase} of ${phase.weeks}</div>`;
   renderSummaryWeek();
 }
 function weeklyPlannedSets(){
