@@ -564,7 +564,15 @@ select.bare{cursor:pointer}
 
 /* CARD DASHBOARD */
 .card-section{margin-bottom:22px}
-.card-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.card-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:0}
+.card-section-hdr{display:flex;align-items:center;margin-bottom:8px;min-height:20px}
+.card-section-hdr .card-section-title{flex:1}
+.card-section-rest-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;letter-spacing:.05em;cursor:pointer;touch-action:manipulation;min-height:44px;padding:0 0 0 12px;-webkit-tap-highlight-color:transparent;transition:color .15s;flex-shrink:0;line-height:1}
+.card-section-rest-btn:hover{color:var(--ink)}
+#training-section-body{transition:opacity .15s ease}
+.rest-empty-state{padding:28px 0 8px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.rest-empty-placeholder{width:100%;max-width:260px;height:160px;background:var(--surf);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.rest-empty-copy{font-family:var(--mono);font-size:13px;color:var(--ink2);letter-spacing:.03em}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
@@ -974,28 +982,37 @@ select.bare{cursor:pointer}
 
     <!-- TRAINING -->
     <div class="card-section">
-      <div class="card-section-title">Training</div>
-      <div class="card-grid">
-        <button class="session-card" id="card-resistance" onclick="openTrainingSheet()">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">Resistance</div>
-          <div class="session-card-body" id="card-resistance-body">Tap to start</div>
-        </button>
-        <button class="session-card" id="card-custom" onclick="openCardSheet('custom')">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">Custom</div>
-          <div class="session-card-body" id="card-custom-body">Tap to start</div>
-        </button>
-        <button class="session-card" id="card-bjj" onclick="openCardSheet('bjj')">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">BJJ</div>
-          <div class="session-card-body" id="card-bjj-body">Tap to log</div>
-        </button>
-        <button class="session-card" id="card-rest" onclick="tapRestCard()">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">Rest</div>
-          <div class="session-card-body" id="card-rest-body">Tap to mark rest day</div>
-        </button>
+      <div class="card-section-hdr">
+        <div class="card-section-title">Training</div>
+        <button class="card-section-rest-btn" id="training-rest-btn" onclick="toggleRestFromHeader()">Rest instead</button>
+      </div>
+      <div id="training-section-body">
+        <div id="training-cards-grid" class="card-grid">
+          <button class="session-card" id="card-resistance" onclick="openTrainingSheet()">
+            <div class="session-card-dot"></div>
+            <div class="session-card-label">Resistance</div>
+            <div class="session-card-body" id="card-resistance-body">Tap to start</div>
+          </button>
+          <button class="session-card" id="card-custom" onclick="openCardSheet('custom')">
+            <div class="session-card-dot"></div>
+            <div class="session-card-label">Custom</div>
+            <div class="session-card-body" id="card-custom-body">Tap to start</div>
+          </button>
+          <button class="session-card" id="card-bjj" onclick="openCardSheet('bjj')">
+            <div class="session-card-dot"></div>
+            <div class="session-card-label">BJJ</div>
+            <div class="session-card-body" id="card-bjj-body">Tap to log</div>
+          </button>
+          <button class="session-card" id="card-rest" onclick="tapRestCard()">
+            <div class="session-card-dot"></div>
+            <div class="session-card-label">Rest</div>
+            <div class="session-card-body" id="card-rest-body">Tap to mark rest day</div>
+          </button>
+        </div>
+        <div id="training-rest-state" class="rest-empty-state" style="display:none">
+          <div class="rest-empty-placeholder">Illustration coming soon</div>
+          <div class="rest-empty-copy">Today is yours.</div>
+        </div>
       </div>
     </div>
 
@@ -3127,6 +3144,20 @@ const _CARD_PROMPTS={readiness:'Sleep · Energy · Soreness',resistance:'Tap to 
 
 function renderCards(){
   const cs=computeCardStates();
+  const isRest=S.isRest===true;
+
+  // TRAINING section — swap cards grid vs rest empty state
+  const trainingGrid=document.getElementById('training-cards-grid');
+  const restEmptyState=document.getElementById('training-rest-state');
+  const restBtn=document.getElementById('training-rest-btn');
+  if(trainingGrid)trainingGrid.style.display=isRest?'none':'';
+  if(restEmptyState)restEmptyState.style.display=isRest?'':'none';
+  if(restBtn)restBtn.textContent=isRest?'Train instead':'Rest instead';
+
+  // REFLECT — hide Performance card on rest
+  const perfCard=document.getElementById('card-performance');
+  if(perfCard)perfCard.style.display=isRest?'none':'';
+
   function applyCard(id,cd){
     const card=document.getElementById('card-'+id);if(!card)return;
     const body=document.getElementById('card-'+id+'-body');
@@ -3143,10 +3174,12 @@ function renderCards(){
     }
   }
   applyCard('readiness',cs.readiness);
-  applyCard('resistance',cs.resistance);
-  applyCard('custom',cs.custom);
-  applyCard('bjj',cs.bjj);
-  applyCard('rest',cs.rest);
+  if(!isRest){
+    applyCard('resistance',cs.resistance);
+    applyCard('custom',cs.custom);
+    applyCard('bjj',cs.bjj);
+    applyCard('rest',cs.rest);
+  }
   applyCard('performance',cs.performance);
   applyCard('notes',cs.notes);
 }
@@ -3496,7 +3529,6 @@ function openReadinessSheet(){
 function _updateRsSheet(){
   const r=computeReadiness();
   const card=document.getElementById('rs-outcome');
-  const btn=document.getElementById('rs-cta-btn');
   if(!card)return;
   const allSet=S.sleep&&S.energy&&S.soreness;
   const someSet=S.sleep||S.energy||S.soreness;
@@ -3517,20 +3549,20 @@ function _updateRsSheet(){
     const msgs={Poor:'Body needs rest',Low:'Take it easy today',Moderate:'Train smart',High:'Ready to train',Prime:'Prime — let\'s go'};
     card.innerHTML=`<div class="rs-outcome-score" style="color:var(--ink)">${r}</div><div class="rs-outcome-right"><div class="rs-outcome-tier" style="color:${c}">${tier}</div><div class="rs-outcome-msg">${msgs[tier]||''}</div></div>`;
   }
-  if(!btn)return;
+  // Footer buttons — rebuild each time so state is always current
+  const footer=document.getElementById('rs-footer');if(!footer)return;
+  // warnRest: any single worst-case selection OR computed poor tier
+  const warnRest=allSet&&((r!==null&&r<25)||S.sleep==='≤5.5h'||S.energy==='Drained'||S.soreness==='Wrecked');
   if(!allSet){
-    btn.textContent='Close';btn.style.background='var(--surf)';btn.style.color='var(--ink3)';
-    btn.onclick=closeReadinessSheet;
-  }else if(r!==null&&r<25){
-    btn.textContent='Rest today';btn.style.background='var(--surf)';btn.style.color='var(--danger)';
-    btn.onclick=()=>{closeReadinessSheet();startRestDay();};
+    footer.innerHTML=`<button class="rs-done-btn" style="background:var(--surf);color:var(--ink3)" onclick="closeReadinessSheet()">Close</button>`;
+  }else if(warnRest){
+    // Two equal-weight buttons side by side
+    footer.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="rs-done-btn" onclick="closeReadinessSheet()">Done</button><button class="rs-done-btn" style="background:var(--surf);color:var(--danger)" onclick="closeReadinessSheet();startRestDay()">Rest today</button></div>`;
   }else if(r!==null&&r>=75){
     const day=derivedGymDay(td());const letter=DAY_LETTER[day-1];
-    btn.textContent=`Start Day ${letter}`;btn.style.background='var(--accent)';btn.style.color='#000';
-    btn.onclick=_rsStartTraining;
+    footer.innerHTML=`<button class="rs-done-btn" style="background:var(--accent);color:#000" onclick="_rsStartTraining()">Start Day ${letter}</button>`;
   }else{
-    btn.textContent='Done';btn.style.background='var(--accent)';btn.style.color='#000';
-    btn.onclick=closeReadinessSheet;
+    footer.innerHTML=`<button class="rs-done-btn" style="background:var(--accent);color:#000" onclick="closeReadinessSheet()">Done</button>`;
   }
 }
 function _rsStartTraining(){closeReadinessSheet();openTrainingSheet();}
@@ -3564,11 +3596,33 @@ function closeReadinessSheet(){
   renderActionBar();renderCards();
 }
 function startRestDay(){
-  const today=td();S.selectedDate=today;
+  const today=td();S.selectedDate=today;S.isRest=true;S.activities=[];
   const ei=S.sessions.findIndex(s=>s.date===today);
   const sess={date:today,isRest:true,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx};
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   persist();renderSummary();renderActionBar();renderCards();
+}
+function toggleRestFromHeader(){
+  const body=document.getElementById('training-section-body');
+  // Fade out current content
+  if(body){body.style.transition='opacity .15s ease';body.style.opacity='0';}
+  setTimeout(()=>{
+    if(S.isRest===true){
+      // Train instead — clear rest state, preserve readiness data in session
+      S.isRest=null;S.activities=[];
+      const d=S.selectedDate||td();
+      const ei=S.sessions.findIndex(s=>s.date===d);
+      if(ei>=0){S.sessions[ei].isRest=null;S.sessions[ei].activities=[];}
+      persist();renderSummary();renderActionBar();renderCards();
+    }else{
+      // Rest instead
+      startRestDay();
+    }
+    // Fade back in after DOM update
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(body){body.style.opacity='1';setTimeout(()=>{body.style.transition='';body.style.opacity='';},150);}
+    }));
+  },150);
 }
 function overrideRestDay(){
   closeAbMenu();
@@ -4253,7 +4307,7 @@ startApp();
     <div class="rs-lbl" style="margin-top:20px">Soreness</div>
     <div class="chips-row" id="rs-chips-soreness"></div>
   </div>
-  <div class="rs-footer">
+  <div class="rs-footer" id="rs-footer">
     <button class="rs-done-btn" id="rs-cta-btn" onclick="closeReadinessSheet()">Done</button>
   </div>
 </div>
