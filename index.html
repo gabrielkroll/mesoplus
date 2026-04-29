@@ -1761,7 +1761,23 @@ function saveMesoStart(v){
 function minWeekOffset(){return Math.round((utcDay(ws(S.mesoStart))-utcDay(ws(td())))/(7*86400000));}
 function maxWeekOffset(){return S.phases.reduce((a,p)=>a+p.weeks,0)-mesoWk();}
 function phaseIdxFor(mw){let cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(mw<=cum)return i;}return S.phases.length-1;}
-function goToday(){autoSaveCurrentDay();S.viewWeekOffset=0;S.selectedDate=td();S.phaseIdx=phaseIdxFor(mesoWk());const ex=S.sessions.find(s=>s.date===S.selectedDate);if(ex)loadSess(ex);else{resetForm();renderSession();}renderWeekNav();renderPhaseBar();renderAdvBar();}
+function goToday(){
+  const today=td();
+  // Clean up empty past sessions; auto-complete past sessions that have real data
+  let mutated=false;
+  S.sessions=S.sessions.filter(s=>{
+    if(s.date>=today)return true;      // keep today + future untouched
+    if(!sessionHasData(s)){mutated=true;return false;}  // drop empty incomplete past sessions
+    if(!s.completed){s.completed=true;mutated=true;}    // auto-wrap sessions that have data
+    return true;
+  });
+  if(mutated)persist();
+  autoSaveCurrentDay();
+  S.viewWeekOffset=0;S.selectedDate=today;S.phaseIdx=phaseIdxFor(mesoWk());
+  const ex=S.sessions.find(s=>s.date===today);
+  if(ex)loadSess(ex);else{resetForm();renderSession();}
+  renderWeekNav();renderPhaseBar();renderAdvBar();
+}
 
 function renderWeekNav(){
   const t=td(),wss=ws(t),vs=addD(wss,S.viewWeekOffset*7),ve=addD(vs,6);
@@ -1938,7 +1954,7 @@ function derivedGymDayForNew(){
 
 function derivedGymDay(date){
   const mon=ws(date);
-  const count=S.sessions.filter(s=>s.date>=mon&&s.date<date&&(s.activities||[]).some(a=>a.type==='template')).length;
+  const count=S.sessions.filter(s=>s.date>=mon&&s.date<date&&(s.activities||[]).some(a=>a.type==='template')&&sessionHasData(s)).length;
   return(count%Object.keys(TEMPLATES).length)+1;
 }
 
@@ -1949,6 +1965,7 @@ function fixGymDays(){
   sorted.forEach(sess=>{
     const mon=ws(sess.date);
     if(!counter[mon])counter[mon]=0;
+    if(!sessionHasData(sess))return; // skip empty sessions — don't count or renumber
     (sess.activities||[]).filter(a=>a.type==='template').forEach(a=>{
       a.gymDay=(counter[mon]%maxDay)+1;
       counter[mon]++;
@@ -3009,8 +3026,8 @@ function getActionBarState(){
   const gymAct=todaySess?(todaySess.activities||[]).find(a=>a.type==='template'):null;
   // Rest day explicitly logged
   if(todaySess&&todaySess.isRest===true){return{type:'rest'};}
-  // Gym in progress
-  if(gymAct&&!todaySess.completed){
+  // Gym in progress — only when template activity has real data
+  if(gymAct&&!todaySess.completed&&(gymAct.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir))){
     const day=gymAct.gymDay;const letter=DAY_LETTER[day-1];const focus=DAY_FOCUS[day]||'';
     return{type:'in-progress',day,letter,focus};}
   // Gym done
@@ -3053,12 +3070,14 @@ function computeCardStates(){
   let resistState='not-started',resistDisplay='';
   if(trainingDisabled){resistState='disabled';}
   else if(resistAct){
+    const templateHasData=(resistAct.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
     if(sessionCompleted){
       resistState='done';
       const exs=resistAct.supersets.flatMap(ss=>ss.exercises);
       const setTotal=exs.reduce((n,e)=>n+(parseInt(e.sets)||0),0);
       resistDisplay=exs.length+' exercises · '+setTotal+' sets';
-    }else{resistState='in-progress';}
+    }else if(templateHasData){resistState='in-progress';}
+    // else: template activity exists but no data entered → stays 'not-started'
   }
 
   // Custom Training
@@ -3378,7 +3397,7 @@ function toggleTdayMenu(){
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
   menu.style.top=(r.bottom+8)+'px';menu.style.right=(window.innerWidth-r.right)+'px';menu.style.bottom='auto';
-  menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button>`;
+  menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeTdaySession()">Remove session</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_tdayMenuOutside,true),10);
 }
@@ -3417,6 +3436,17 @@ function discardTdayEntries(){
   const body=document.getElementById('tday-body');
   body.innerHTML='';appendActivityBlock(act,body);renderTdayFooter();
   _injectUndoBanner(_tdayActId);
+}
+function removeTdaySession(){
+  closeTdayMenu();
+  closeTrainingSheet();
+  // Remove session record entirely and reset working state for this date
+  S.sessions=S.sessions.filter(s=>s.date!==S.selectedDate);
+  persist();
+  resetForm();
+  renderSession();
+  renderCards();
+  renderActionBar();
 }
 function _injectUndoBanner(actId){
   const bar=document.getElementById('adopt-bar-'+actId);if(!bar)return;
