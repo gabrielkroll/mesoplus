@@ -994,7 +994,7 @@ select.bare{cursor:pointer}
 
     <!-- TRAINING -->
     <div class="card-section">
-      <div class="card-section-hdr">
+      <div class="card-section-hdr" id="training-section-hdr">
         <div class="card-section-title" id="training-section-title">Training</div>
         <button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">Rest instead</button>
       </div>
@@ -1861,6 +1861,7 @@ function selectDate(date){
   renderWeekNav();
 }
 function loadSess(sess){
+  _restConfirmPending=false;
   S.isRest='isRest' in sess?sess.isRest:null;
   S.activities=JSON.parse(JSON.stringify(sess.activities||[]));
   S.sleep=sess.sleep||'';S.energy=sess.energy||'';S.soreness=sess.soreness||'';S.perf=sess.perf||'';
@@ -1870,6 +1871,7 @@ function loadSess(sess){
   renderActionBar();
 }
 function resetForm(){
+  _restConfirmPending=false;
   S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';S.extra='';S.notes='';
   renderCards();
   renderActionBar();
@@ -3182,13 +3184,23 @@ function renderCards(){
   // TRAINING section — swap cards grid vs rest empty state
   const trainingGrid=document.getElementById('training-cards-grid');
   const restEmptyState=document.getElementById('training-rest-state');
-  const restBtn=document.getElementById('training-rest-btn');
-  const sectionTitle=document.getElementById('training-section-title');
   if(trainingGrid)trainingGrid.style.display=isRest?'none':'';
   if(restEmptyState)restEmptyState.style.display=isRest?'':'none';
-  if(restBtn)restBtn.textContent=isRest?'Train instead':'Rest instead';
-  if(sectionTitle)sectionTitle.textContent=isRest?'Resting':'Training';
   if(isRest){_initPortalTilt();_startOrbRaf();}else{_stopOrbRaf();}
+  // Section header: normal | confirm | resting states
+  const hdr=document.getElementById('training-section-hdr');
+  if(hdr){
+    if(_restConfirmPending&&!isRest){
+      hdr.innerHTML='<div class="card-section-title">Rest today?</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn-t" style="color:var(--danger)" onclick="confirmRestToggle()">Mark as rest</button>'
+        +'<button class="btn-t" onclick="cancelRestToggle()">Keep training</button>'
+        +'</div>';
+    }else{
+      hdr.innerHTML='<div class="card-section-title" id="training-section-title">'+(isRest?'Resting':'Training')+'</div>'
+        +'<button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">'+(isRest?'Train instead':'Rest instead')+'</button>';
+    }
+  }
 
   // REFLECT — hide Performance card on rest
   const perfCard=document.getElementById('card-performance');
@@ -3346,17 +3358,7 @@ function removeCsheetSession(){
 }
 
 function tapRestCard(){
-  if(S.isRest===true){
-    // Toggle off rest
-    S.isRest=null;
-    const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
-    if(ei>=0){S.sessions[ei].isRest=null;persist();}
-    renderSummary();renderActionBar();renderCards();
-  }else{
-    S.isRest=true;
-    startRestDay();
-    renderCards();
-  }
+  _applyRestFlag(S.isRest===true?null:true);
 }
 
 function initActionBar(){renderActionBar();}
@@ -3493,7 +3495,13 @@ function restoreProgram(){
 function restInstead(){
   closeTdayMenu();
   closeTrainingSheet();
-  startRestDay();
+  // Same gate as the header button — confirm if training data exists
+  if(_sessionHasTrainingData()){
+    _restConfirmPending=true;
+    renderCards();
+  }else{
+    _applyRestFlag(true);
+  }
 }
 function discardTdayEntries(){
   closeTdayMenu();
@@ -3631,15 +3639,60 @@ function closeReadinessSheet(){
   }
   renderActionBar();renderCards();
 }
-function startRestDay(){
-  const today=td();S.selectedDate=today;S.isRest=true;S.activities=[];
-  const ei=S.sessions.findIndex(s=>s.date===today);
-  const sess={date:today,isRest:true,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx};
-  if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
+// ── REST STATE — single source of truth ──────────────────────────────────────
+// isRest is just a flag. activities are NEVER wiped by a rest toggle.
+let _restConfirmPending=false;
+
+function _sessionHasTrainingData(){
+  // True if any set in the current session has meaningful data entered
+  return S.activities.some(a=>
+    (a.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir))
+  );
+}
+
+function _applyRestFlag(value){
+  // The only place that writes isRest. Never touches activities.
+  _restConfirmPending=false;
+  S.isRest=value;
+  const d=S.selectedDate||td();
+  const ei=S.sessions.findIndex(s=>s.date===d);
+  if(ei>=0){
+    S.sessions[ei].isRest=value;
+    // activities intentionally untouched — data is preserved in both directions
+  } else if(value===true){
+    // First time marking this day as rest — create session record
+    S.sessions.push({date:d,isRest:true,
+      activities:JSON.parse(JSON.stringify(S.activities)),
+      sleep:S.sleep,energy:S.energy,soreness:S.soreness,
+      perf:'',notes:S.notes||'',extra:S.extra||'',
+      week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx});
+  }
   persist();renderSummary();renderActionBar();renderCards();
 }
+
+function confirmRestToggle(){
+  // User confirmed "Mark as rest" from the inline confirm row
+  const body=document.getElementById('training-section-body');
+  if(body){body.style.opacity='0';}
+  setTimeout(()=>{
+    _applyRestFlag(true);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(body){body.style.opacity='1';setTimeout(()=>{body.style.transition='';body.style.opacity='';},150);}
+    }));
+  },150);
+}
+
+function cancelRestToggle(){
+  _restConfirmPending=false;
+  renderCards();
+}
+
+function startRestDay(){
+  // Kept for backward compat — delegates to _applyRestFlag
+  _applyRestFlag(true);
+}
 function toggleRestFromHeader(){
-  // Force-close breath sheet instantly if open (rest state being torn down)
+  // Force-close breath sheet instantly if open
   const bsheet=document.getElementById('breath-sheet');
   if(bsheet&&bsheet.style.display!=='none'){
     _stopGuidedBreath();
@@ -3652,25 +3705,32 @@ function toggleRestFromHeader(){
     if(orbCard)orbCard.style.opacity='';
   }
   const body=document.getElementById('training-section-body');
-  // Fade out current content
-  if(body){body.style.transition='opacity .15s ease';body.style.opacity='0';}
-  setTimeout(()=>{
-    if(S.isRest===true){
-      // Train instead — clear rest state, preserve readiness data in session
-      S.isRest=null;S.activities=[];
-      const d=S.selectedDate||td();
-      const ei=S.sessions.findIndex(s=>s.date===d);
-      if(ei>=0){S.sessions[ei].isRest=null;S.sessions[ei].activities=[];}
-      persist();renderSummary();renderActionBar();renderCards();
-    }else{
-      // Rest instead
-      startRestDay();
-    }
-    // Fade back in after DOM update
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      if(body){body.style.opacity='1';setTimeout(()=>{body.style.transition='';body.style.opacity='';},150);}
-    }));
-  },150);
+  if(S.isRest===true){
+    // Train instead — flag flip only, activities are preserved
+    if(body){body.style.opacity='0';}
+    setTimeout(()=>{
+      _applyRestFlag(null);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(body){body.style.opacity='1';setTimeout(()=>{body.style.transition='';body.style.opacity='';},150);}
+      }));
+    },150);
+  } else if(_restConfirmPending){
+    // Second tap on "Rest instead" while confirm is visible — cancel
+    cancelRestToggle();
+  } else if(_sessionHasTrainingData()){
+    // Training data exists — show inline confirm instead of acting immediately
+    _restConfirmPending=true;
+    renderCards();
+  } else {
+    // No training data — apply immediately with fade
+    if(body){body.style.opacity='0';}
+    setTimeout(()=>{
+      _applyRestFlag(true);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(body){body.style.opacity='1';setTimeout(()=>{body.style.transition='';body.style.opacity='';},150);}
+      }));
+    },150);
+  }
 }
 // ── BREATH SHEET: two-layer open/close ──────────────────────────────────────
 // bg layer (#breath-sheet-bg) gets the non-uniform inverse-FLIP spring.
@@ -3895,10 +3955,8 @@ function _initPortalTilt(){
 }
 function overrideRestDay(){
   closeAbMenu();
-  const today=td();
-  const ei=S.sessions.findIndex(s=>s.date===today);
-  if(ei>=0)S.sessions.splice(ei,1);
-  S.isRest=null;S.activities=[];persist();
+  // Flip flag only — activities preserved if any existed under the rest day
+  _applyRestFlag(null);
   openTrainingSheet();
 }
 
