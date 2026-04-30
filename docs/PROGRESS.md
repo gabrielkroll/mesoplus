@@ -39,6 +39,7 @@ Item 3: Extra session card re-added to Training section. AC not yet discussed �
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
+| S-Summary-Detail | Summary Card Drill-downs | Two distinct tap zones per card: **title tap** → historical data view for that metric; **data tap** → today's detail / filter. AC not yet discussed. | S10 |
 | 14 | Weekly Check-in Shell | Structured weekly reflection before new microcycle. | 8 |
 | 15 | AI Check-in | AI-driven check-in using accumulated data. | 14, 9 |
 
@@ -75,6 +76,7 @@ Item 3: Extra session card re-added to Training section. AC not yet discussed �
 | `6fadc85` | importFromSheets rebuilt to use S11 activities model (was using old top-level supersets) |
 | `bbcf88b` | Apps Script: deleteRowsForDate batch read + Date object handling — upsert now reliable |
 | `2a2fe00` | td() uses local date (not UTC); loadSess/resetForm call renderActionBar(); visibilitychange advances to today on new day |
+| `ea97157` | Empty session bug: derivedGymDay/fixGymDays guard against empty template sessions; goToday() cleans up empty past sessions; action bar + resistance card no longer show in-progress for empty template; "Remove session" added to resistance sheet dot menu |
 
 ## Known Debt
 
