@@ -581,7 +581,7 @@ select.bare{cursor:pointer}
 #breath-sheet-bg{position:absolute;inset:0;background:#141414;border-radius:0;will-change:transform;transform-origin:center center;z-index:0}
 .bsheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px) + 8px);right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;z-index:2;opacity:0;transition:background .1s,opacity .2s}
 .bsheet-close:hover{background:rgba(255,255,255,.07)}
-#orb-sheet-svg{display:block;width:min(80vw,55vh);height:auto;flex-shrink:0;position:relative;z-index:1}
+#orb-sheet-svg{display:block;width:min(80vw,55vh);height:min(80vw,55vh);flex-shrink:0;position:relative;z-index:1;transform-origin:50% 50%}
 #breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px;position:relative;z-index:1}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
@@ -3645,7 +3645,7 @@ function toggleRestFromHeader(){
     _stopGuidedBreath();
     bsheet.style.display='none';
     const bsheetBg=document.getElementById('breath-sheet-bg');
-    if(bsheetBg){bsheetBg.style.transition='none';bsheetBg.style.transform='none';bsheetBg.style.borderRadius='0px';bsheetBg.style.backgroundColor='#141414';}
+    if(bsheetBg){bsheetBg.style.transition='none';bsheetBg.style.transform='';bsheetBg.style.borderRadius='';bsheetBg.style.backgroundColor='';}
     const orbSvgF=document.getElementById('orb-sheet-svg');
     if(orbSvgF){orbSvgF.style.transition='none';orbSvgF.style.opacity='';orbSvgF.style.transform='';}
     const orbCard=document.getElementById('rest-orb-card');
@@ -3707,7 +3707,7 @@ function openBreathSheet(){
   // Background springs to full-screen (iOS deceleration: fast start, soft landing)
   const bgEase='cubic-bezier(0.25,0.46,0.45,0.94)';
   bg.style.transition=`transform 0.35s ${bgEase},background-color 0.35s ${bgEase},border-radius 0.35s ${bgEase}`;
-  bg.style.transform='none';
+  bg.style.transform='translate(0px,0px) scale(1,1)';
   bg.style.borderRadius='0px';
   bg.style.backgroundColor='#141414';
   // Orb springs in with natural overshoot — slight delay so bg leads
@@ -3751,9 +3751,9 @@ function closeBreathSheet(){
   setTimeout(()=>{
     sheet.style.display='none';
     bg.style.transition='none';
-    bg.style.transform='none';
-    bg.style.borderRadius='0px';
-    bg.style.backgroundColor='#141414';
+    bg.style.transform='';
+    bg.style.borderRadius='';
+    bg.style.backgroundColor='';
     if(orbSvg){orbSvg.style.transition='none';orbSvg.style.opacity='';orbSvg.style.transform='';}
     if(card)card.style.opacity='';
   },280);
