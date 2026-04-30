@@ -3764,15 +3764,15 @@ function _initPortalTilt(){
   _portalTiltInit=true;
   function _restVisible(){const w=document.getElementById('training-rest-state');return w&&w.style.display!=='none';}
   function _sheetOpen(){const s=document.getElementById('breath-sheet');return s&&s.style.display!=='none';}
-  function _setCardEdge(tx){
+  function _setCardEdge(tx,ty){
     const e=document.querySelector('.c-tilt-edge');if(!e)return;
-    e.style.transform=`translateX(${tx.toFixed(1)}px)`;
-    e.style.opacity=Math.abs(tx)>1?'0.4':'0.22';
+    e.style.transform=`translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
+    e.style.opacity=Math.hypot(tx,ty)>1?'0.4':'0.22';
   }
-  function _setSheetEdge(tx){
+  function _setSheetEdge(tx,ty){
     const e=document.getElementById('sheet-tilt-edge');if(!e)return;
-    e.style.transform=`translateX(${tx.toFixed(1)}px)`;
-    e.style.opacity=Math.abs(tx)>1?'0.4':'0.22';
+    e.style.transform=`translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
+    e.style.opacity=Math.hypot(tx,ty)>1?'0.4':'0.22';
   }
   document.addEventListener('mousemove',e=>{
     if(!_restVisible())return;
@@ -3780,20 +3780,24 @@ function _initPortalTilt(){
       const svg=document.getElementById('orb-sheet-svg');if(!svg)return;
       const r=svg.getBoundingClientRect();
       const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
-      _setSheetEdge(-dx*5);
+      const dy=(e.clientY-(r.top+r.height/2))/(r.height/2);
+      _setSheetEdge(-dx*5,-dy*5);
     }else{
       const card=document.getElementById('rest-orb-card');if(!card)return;
       const r=card.getBoundingClientRect();
       const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
-      _setCardEdge(-dx*5);
+      const dy=(e.clientY-(r.top+r.height/2))/(r.height/2);
+      _setCardEdge(-dx*5,-dy*5);
     }
   },{passive:true});
   if(typeof DeviceOrientationEvent!=='undefined'){
     window.addEventListener('deviceorientation',e=>{
       if(!_restVisible())return;
-      const gamma=Math.max(-30,Math.min(30,e.gamma||0));
+      const gamma=Math.max(-30,Math.min(30,e.gamma||0));          // left/right → X
+      const beta=Math.max(-30,Math.min(30,(e.beta||90)-90));      // front/back from upright → Y
       const tx=-gamma*0.17; // ±5px at ±30°
-      if(_sheetOpen())_setSheetEdge(tx);else _setCardEdge(tx);
+      const ty=-beta*0.17;
+      if(_sheetOpen())_setSheetEdge(tx,ty);else _setCardEdge(tx,ty);
     },{passive:true});
   }
 }
