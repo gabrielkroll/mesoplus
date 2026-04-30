@@ -567,13 +567,11 @@ select.bare{cursor:pointer}
 .card-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:0}
 .card-section-hdr{display:flex;align-items:center;margin-bottom:8px;min-height:20px}
 .card-section-hdr .card-section-title{flex:1}
-.card-section-rest-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;letter-spacing:.05em;cursor:pointer;touch-action:manipulation;min-height:44px;padding:0 0 0 12px;-webkit-tap-highlight-color:transparent;transition:color .15s;flex-shrink:0;line-height:1}
-.card-section-rest-btn:hover{color:var(--ink)}
+.card-section-hdr .btn-t{flex-shrink:0}
 #training-section-body{transition:opacity .15s ease}
-.rest-empty-state{padding:0 0 8px;display:flex;flex-direction:column;gap:14px;text-align:center}
-.rest-illus-wrap{border-radius:14px;overflow:hidden;width:100%}
+.rest-empty-state{padding:0 0 8px;display:flex;flex-direction:column}
+.rest-illus-wrap{border-radius:14px;overflow:hidden;width:100%;max-height:160px}
 .portal-illustration{display:block;width:100%}
-.rest-empty-copy{font-family:var(--mono);font-size:13px;color:var(--ink2);letter-spacing:.03em}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
@@ -653,6 +651,7 @@ select.bare{cursor:pointer}
   .ps-rir{font-size:11px}
   .adv-btns{gap:3px}
   .btn-t{font-size:11px;padding:6px 10px;min-height:44px;display:inline-flex;align-items:center}
+  .card-section-hdr .btn-t{min-height:44px;display:inline-flex;align-items:center}
   .btn-o{font-size:12px;padding:10px 16px;min-height:44px}
   .btn-s{font-size:12px;padding:10px 18px;min-height:44px}
   /* Week nav: arrow | centered label | arrow, then pills full width below */
@@ -971,7 +970,7 @@ select.bare{cursor:pointer}
 
     <!-- CHECK-IN -->
     <div class="card-section">
-      <div class="card-section-title">Check-in</div>
+      <div class="card-section-hdr"><div class="card-section-title">Check-in</div></div>
       <div class="card-grid">
         <button class="session-card" id="card-readiness" onclick="openReadinessSheet()">
           <div class="session-card-dot"></div>
@@ -985,7 +984,7 @@ select.bare{cursor:pointer}
     <div class="card-section">
       <div class="card-section-hdr">
         <div class="card-section-title">Training</div>
-        <button class="card-section-rest-btn" id="training-rest-btn" onclick="toggleRestFromHeader()">Rest instead</button>
+        <button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">Rest instead</button>
       </div>
       <div id="training-section-body">
         <div id="training-cards-grid" class="card-grid">
@@ -1012,7 +1011,7 @@ select.bare{cursor:pointer}
         </div>
         <div id="training-rest-state" class="rest-empty-state" style="display:none">
           <div class="rest-illus-wrap">
-            <svg class="portal-illustration" viewBox="0 180 800 720" xmlns="http://www.w3.org/2000/svg">
+            <svg class="portal-illustration" viewBox="0 150 800 520" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="lightGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#FFE8A0"/>
@@ -1020,7 +1019,7 @@ select.bare{cursor:pointer}
                   <stop offset="100%" stop-color="#F5EDD5"/>
                 </linearGradient>
                 <linearGradient id="fadeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+                  <stop offset="0%" stop-color="#141414" stop-opacity="0"/>
                   <stop offset="100%" stop-color="#141414" stop-opacity="1"/>
                 </linearGradient>
                 <linearGradient id="rimLight" x1="0" y1="0" x2="1" y2="0">
@@ -1028,35 +1027,34 @@ select.bare{cursor:pointer}
                   <stop offset="100%" stop-color="#C8F04A" stop-opacity="0"/>
                 </linearGradient>
               </defs>
-              <style>
-                .tilt-edge{transform-origin:400px 560px;transition:transform 300ms ease,opacity 300ms ease}
-              </style>
+              <style>.tilt-edge{transform-origin:400px 420px;transition:transform 300ms ease,opacity 300ms ease}</style>
               <!-- Background -->
               <rect width="800" height="1200" fill="#141414"/>
-              <!-- Arched opening -->
-              <path d="M300 1000V300C300 244.77 344.77 200 400 200C455.23 200 500 244.77 500 300V1000H300Z" fill="url(#lightGradient)"/>
+              <!-- Arched opening — wider: x=240…560 -->
+              <path d="M240 1000V300C240 244.77 311.63 200 400 200C488.37 200 560 244.77 560 300V1000H240Z" fill="url(#lightGradient)"/>
               <!-- Light spill on floor -->
-              <polygon points="300,1000 500,1000 620,1200 180,1200" fill="url(#lightGradient)" opacity="0.35"/>
-              <!-- Fade into darkness -->
-              <rect x="0" y="700" width="800" height="500" fill="url(#fadeGradient)"/>
+              <polygon points="240,1000 560,1000 700,1200 100,1200" fill="url(#lightGradient)" opacity="0.35"/>
+              <!-- Fade toward bottom of visible crop -->
+              <rect x="0" y="450" width="800" height="220" fill="url(#fadeGradient)"/>
               <!-- Door frame -->
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H800V1200H500V300C500 244.77 455.23 200 400 200C344.77 200 300 244.77 300 300V1200H0V0Z" fill="#1E1E1E"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H800V1200H560V300C560 244.77 488.37 200 400 200C311.63 200 240 244.77 240 300V1200H0V0Z" fill="#1E1E1E"/>
               <!-- Static subtle rim -->
-              <path d="M300 1000V300C300 244.77 344.77 200 400 200C455.23 200 500 244.77 500 300V1000" stroke="url(#rimLight)" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <path d="M240 1000V300C240 244.77 311.63 200 400 200C488.37 200 560 244.77 560 300V1000" stroke="url(#rimLight)" stroke-width="6" stroke-linecap="round" fill="none"/>
               <!-- Motion edge — JS-driven tilt -->
               <g class="tilt-edge" opacity="0.18">
-                <path d="M492 1000V305C492 254 451 213 400 213" stroke="#C8F04A" stroke-width="4" stroke-linecap="round" fill="none"/>
+                <path d="M552 670V305C552 254 488 213 400 213" stroke="#C8F04A" stroke-width="4" stroke-linecap="round" fill="none"/>
               </g>
+              <!-- Text centred inside the arch -->
+              <text x="400" y="370" text-anchor="middle" font-family="'DM Mono',monospace" font-size="30" fill="#141414" opacity="0.55" letter-spacing="1">Today is yours.</text>
             </svg>
           </div>
-          <div class="rest-empty-copy">Today is yours.</div>
         </div>
       </div>
     </div>
 
     <!-- REFLECT -->
     <div class="card-section">
-      <div class="card-section-title">Reflect</div>
+      <div class="card-section-hdr"><div class="card-section-title">Reflect</div></div>
       <div class="card-grid">
         <button class="session-card" id="card-performance" onclick="openCardSheet('performance')">
           <div class="session-card-dot"></div>
