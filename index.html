@@ -1034,11 +1034,9 @@ select.bare{cursor:pointer}
                 </radialGradient>
               </defs>
               <style>
-                .c-orb-glow{transform-box:fill-box;transform-origin:center;animation:cGlowPulse 12s ease-in-out infinite}
-                .c-orb-body{transform-box:fill-box;transform-origin:center;animation:cOrbBreathe 12s ease-in-out infinite}
-                .c-tilt-edge{transform-origin:200px 100px;transition:transform 300ms ease,opacity 300ms ease}
-                @keyframes cOrbBreathe{0%{transform:scale(1)}33%{transform:scale(1.1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
-                @keyframes cGlowPulse{0%{opacity:.12}33%{opacity:.4}50%{opacity:.4}100%{opacity:.12}}
+                .c-orb-glow{transform-box:fill-box;transform-origin:center}
+                .c-orb-body{transform-box:fill-box;transform-origin:center}
+                .c-tilt-edge{will-change:transform}
               </style>
               <circle class="c-orb-glow" cx="200" cy="100" r="95" fill="url(#cOrbGlow)"/>
               <circle class="c-orb-body" cx="200" cy="100" r="62" fill="url(#cOrbFill)"/>
@@ -3188,7 +3186,7 @@ function renderCards(){
   if(restEmptyState)restEmptyState.style.display=isRest?'':'none';
   if(restBtn)restBtn.textContent=isRest?'Train instead':'Rest instead';
   if(sectionTitle)sectionTitle.textContent=isRest?'Resting':'Training';
-  if(isRest)_initPortalTilt();
+  if(isRest){_initPortalTilt();_startOrbRaf();}else{_stopOrbRaf();}
 
   // REFLECT — hide Performance card on rest
   const perfCard=document.getElementById('card-performance');
@@ -3729,7 +3727,8 @@ function _startGuidedBreath(){
   const glow=document.querySelector('#orb-sheet-svg .s-orb-glow');
   if(!orb||!glow)return;
   _breathPhase=0;
-  orb.style.animation='none';glow.style.animation='none';
+  // Clear any RAF-driven inline transform so CSS transition takes over cleanly
+  orb.style.transform='';glow.style.opacity='';
   _runBreathPhase();
 }
 function _runBreathPhase(){
@@ -3739,12 +3738,11 @@ function _runBreathPhase(){
   if(!orb||!glow)return;
   orb.style.transition='transform '+_BDUR+'s ease-in-out';
   orb.style.transform='scale('+_BSCALE[_breathPhase]+')';
-  orb.style.transformOrigin='200px 200px';
   glow.style.transition='opacity '+_BDUR+'s ease-in-out';
   glow.style.opacity=_BGLOW[_breathPhase];
   if(label){label.textContent=_BPHASES[_breathPhase];label.style.opacity='1';}
   _breathTimer=setTimeout(()=>{
-    _breathPhase=(_breathPhase+1)%4; // loops forever until user closes
+    _breathPhase=(_breathPhase+1)%4;
     _runBreathPhase();
   },_BDUR*1000);
 }
@@ -3753,51 +3751,84 @@ function _stopGuidedBreath(){
   const orb=document.getElementById('sheet-orb-circle');
   const glow=document.querySelector('#orb-sheet-svg .s-orb-glow');
   const label=document.getElementById('breath-phase-label');
-  if(orb){orb.style.animation='';orb.style.transform='';orb.style.transition='';orb.style.transformOrigin='';}
-  if(glow){glow.style.animation='';glow.style.opacity='';glow.style.transition='';}
+  // Clear CSS transitions — RAF ambient loop takes over on next tick
+  if(orb){orb.style.transition='';orb.style.transform='';}
+  if(glow){glow.style.transition='';glow.style.opacity='';}
   if(label)label.style.opacity='0';
 }
-// Tilt / cursor parallax on both card and sheet orbs
+// ── SHARED ORB RAF: parallax lerp + sine-wave ambient breathing ──────────────
+let _tiltTarget={x:0,y:0};
+let _tiltCurrent={x:0,y:0};
+let _ambT=0;          // ambient breath phase (seconds, 0–12)
+let _orbRafId=null;
+let _orbLastTs=null;
+
+function _orbTick(ts){
+  _orbRafId=requestAnimationFrame(_orbTick);
+  const dt=_orbLastTs?Math.min((ts-_orbLastTs)/1000,0.05):0.016;
+  _orbLastTs=ts;
+
+  // — Parallax lerp (always) —
+  _tiltCurrent.x+=(_tiltTarget.x-_tiltCurrent.x)*0.10;
+  _tiltCurrent.y+=(_tiltTarget.y-_tiltCurrent.y)*0.10;
+  const sheetVis=document.getElementById('breath-sheet')?.style.display!=='none';
+  const te=sheetVis
+    ?document.getElementById('sheet-tilt-edge')
+    :document.querySelector('.c-tilt-edge');
+  if(te){
+    te.style.transform=`translate(${_tiltCurrent.x.toFixed(2)}px,${_tiltCurrent.y.toFixed(2)}px)`;
+    te.style.opacity=Math.hypot(_tiltCurrent.x,_tiltCurrent.y)>0.5?'0.4':'0.22';
+  }
+
+  // — Ambient sine breathing (only when guided is not running) —
+  if(!_breathTimer){
+    _ambT=(_ambT+dt)%12;
+    const phase=2*Math.PI*_ambT/12-Math.PI/2;
+    const s=(1.075+0.075*Math.sin(phase)).toFixed(4);
+    const g=(0.325+0.175*Math.sin(phase)).toFixed(4);
+    // Card orb
+    const co=document.querySelector('#orb-card-svg .c-orb-body');
+    if(co)co.style.transform=`scale(${s})`;
+    const cg=document.querySelector('#orb-card-svg .c-orb-glow');
+    if(cg)cg.style.opacity=g;
+    // Sheet orb (ambient glow between guided sessions)
+    const so=document.getElementById('sheet-orb-circle');
+    if(so)so.style.transform=`scale(${s})`;
+    const sg=document.querySelector('#orb-sheet-svg .s-orb-glow');
+    if(sg)sg.style.opacity=g;
+  }
+}
+
+function _startOrbRaf(){
+  if(_orbRafId)return;
+  _orbLastTs=null;
+  _orbRafId=requestAnimationFrame(_orbTick);
+}
+function _stopOrbRaf(){
+  if(_orbRafId){cancelAnimationFrame(_orbRafId);_orbRafId=null;_orbLastTs=null;}
+}
+
+// Tilt input — events only write to _tiltTarget; RAF loop does the DOM work
 let _portalTiltInit=false;
 function _initPortalTilt(){
   if(_portalTiltInit)return;
   _portalTiltInit=true;
-  function _restVisible(){const w=document.getElementById('training-rest-state');return w&&w.style.display!=='none';}
-  function _sheetOpen(){const s=document.getElementById('breath-sheet');return s&&s.style.display!=='none';}
-  function _setCardEdge(tx,ty){
-    const e=document.querySelector('.c-tilt-edge');if(!e)return;
-    e.style.transform=`translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
-    e.style.opacity=Math.hypot(tx,ty)>1?'0.4':'0.22';
-  }
-  function _setSheetEdge(tx,ty){
-    const e=document.getElementById('sheet-tilt-edge');if(!e)return;
-    e.style.transform=`translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
-    e.style.opacity=Math.hypot(tx,ty)>1?'0.4':'0.22';
-  }
   document.addEventListener('mousemove',e=>{
-    if(!_restVisible())return;
-    if(_sheetOpen()){
-      const svg=document.getElementById('orb-sheet-svg');if(!svg)return;
-      const r=svg.getBoundingClientRect();
-      const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
-      const dy=(e.clientY-(r.top+r.height/2))/(r.height/2);
-      _setSheetEdge(-dx*5,-dy*5);
-    }else{
-      const card=document.getElementById('rest-orb-card');if(!card)return;
-      const r=card.getBoundingClientRect();
-      const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
-      const dy=(e.clientY-(r.top+r.height/2))/(r.height/2);
-      _setCardEdge(-dx*5,-dy*5);
-    }
+    const sheetVis=document.getElementById('breath-sheet')?.style.display!=='none';
+    const ref=sheetVis?document.getElementById('orb-sheet-svg'):document.getElementById('rest-orb-card');
+    if(!ref)return;
+    const r=ref.getBoundingClientRect();
+    const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
+    const dy=(e.clientY-(r.top+r.height/2))/(r.height/2);
+    _tiltTarget.x=-dx*5;
+    _tiltTarget.y=-dy*5;
   },{passive:true});
   if(typeof DeviceOrientationEvent!=='undefined'){
     window.addEventListener('deviceorientation',e=>{
-      if(!_restVisible())return;
-      const gamma=Math.max(-30,Math.min(30,e.gamma||0));          // left/right → X
-      const beta=Math.max(-30,Math.min(30,(e.beta||90)-90));      // front/back from upright → Y
-      const tx=-gamma*0.17; // ±5px at ±30°
-      const ty=-beta*0.17;
-      if(_sheetOpen())_setSheetEdge(tx,ty);else _setCardEdge(tx,ty);
+      const gamma=Math.max(-30,Math.min(30,e.gamma||0));
+      const beta=Math.max(-30,Math.min(30,(e.beta||90)-90));
+      _tiltTarget.x=-gamma*0.17;
+      _tiltTarget.y=-beta*0.17;
     },{passive:true});
   }
 }
@@ -4565,11 +4596,9 @@ startApp();
       </radialGradient>
     </defs>
     <style>
-      .s-orb-glow{transform-box:fill-box;transform-origin:center;animation:sGlowPulse 12s ease-in-out infinite}
-      .s-orb-body{transform-box:fill-box;transform-origin:center;animation:sOrbBreathe 12s ease-in-out infinite}
-      .s-tilt-edge{transform-origin:200px 200px;transition:transform 300ms ease,opacity 300ms ease}
-      @keyframes sOrbBreathe{0%{transform:scale(1)}33%{transform:scale(1.15)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
-      @keyframes sGlowPulse{0%{opacity:0.15}33%{opacity:0.5}50%{opacity:0.5}100%{opacity:0.15}}
+      .s-orb-glow{transform-box:fill-box;transform-origin:center}
+      .s-orb-body{transform-box:fill-box;transform-origin:center}
+      .s-tilt-edge{will-change:transform}
     </style>
     <circle class="s-orb-glow" cx="200" cy="200" r="165" fill="url(#sOrbGlow)"/>
     <circle class="s-orb-body" id="sheet-orb-circle" cx="200" cy="200" r="120" fill="url(#sOrbFill)"/>
