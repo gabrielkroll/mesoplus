@@ -3822,7 +3822,7 @@ function renderSummaryWeek(){
   const mon=ws(today);
   const sun=addD(mon,6);
   const weekSess=S.sessions.filter(s=>s.date>=mon&&s.date<=sun);
-  const gymDone=weekSess.filter(s=>(s.activities||[]).some(a=>a.type==='template')).length;
+  const gymDone=weekSess.filter(s=>(s.activities||[]).some(a=>a.type==='template')&&sessionHasData(s)).length;
   const extraDone=weekSess.filter(s=>!s.isRest&&(s.activities||[]).some(a=>a.type==='bjj'||a.type==='custom')).length;
   const gymPlanned=activeDays();
   const gymLeft=Math.max(0,gymPlanned-gymDone);
@@ -3833,7 +3833,7 @@ function renderSummaryWeek(){
   const extraHtml=extraDone>0?`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:4px">+ ${extraDone} extra session${extraDone!==1?'s':''}</div>`:'';
   let urgencyHtml='';
   const dayIndicators=Array.from({length:gymPlanned},(_,i)=>i+1).map(day=>{
-    const daySess=weekSess.find(s=>(s.activities||[]).some(a=>a.type==='template'&&a.gymDay===day));
+    const daySess=weekSess.find(s=>(s.activities||[]).some(a=>a.type==='template'&&a.gymDay===day)&&sessionHasData(s));
     const color=!daySess?'var(--line)':daySess.completed?'var(--accent)':'var(--ink2)';
     return `<span style="font-family:var(--mono);font-size:13px;color:${color};letter-spacing:.04em">${DAY_LETTER[day-1]}</span>`;
   }).join('<span style="color:var(--line);margin:0 4px">·</span>');
