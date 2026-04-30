@@ -570,7 +570,7 @@ select.bare{cursor:pointer}
 .card-section-hdr .btn-t{flex-shrink:0}
 #training-section-body{transition:opacity .15s ease}
 .rest-empty-state{padding:0 0 8px;display:flex;flex-direction:column}
-.rest-illus-wrap{border-radius:14px;overflow:hidden;width:100%;max-height:160px}
+.rest-illus-wrap{border-radius:14px;overflow:hidden;width:100%}
 .portal-illustration{display:block;width:100%}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
@@ -1011,41 +1011,37 @@ select.bare{cursor:pointer}
         </div>
         <div id="training-rest-state" class="rest-empty-state" style="display:none">
           <div class="rest-illus-wrap">
-            <svg class="portal-illustration" viewBox="0 150 800 520" xmlns="http://www.w3.org/2000/svg">
+            <svg class="portal-illustration" id="orb-svg" viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="lightGradient" x1="0" y1="0" x2="0" y2="1">
+                <radialGradient id="orbFill" cx="38%" cy="38%" r="65%">
                   <stop offset="0%" stop-color="#FFE8A0"/>
-                  <stop offset="60%" stop-color="#F5C842"/>
-                  <stop offset="100%" stop-color="#F5EDD5"/>
-                </linearGradient>
-                <linearGradient id="fadeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#141414" stop-opacity="0"/>
-                  <stop offset="100%" stop-color="#141414" stop-opacity="1"/>
-                </linearGradient>
-                <linearGradient id="rimLight" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#C8F04A" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#C8F04A" stop-opacity="0"/>
-                </linearGradient>
+                  <stop offset="100%" stop-color="#F5C842"/>
+                </radialGradient>
+                <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#F5C842" stop-opacity="0.5"/>
+                  <stop offset="100%" stop-color="#F5C842" stop-opacity="0"/>
+                </radialGradient>
               </defs>
-              <style>.tilt-edge{transform-origin:400px 420px;transition:transform 300ms ease,opacity 300ms ease}</style>
+              <style>
+                .orb-glow{transform-box:fill-box;transform-origin:center;animation:glowPulse 12s ease-in-out infinite}
+                .orb-body{transform-box:fill-box;transform-origin:center;animation:orbBreathe 12s ease-in-out infinite;cursor:pointer}
+                .tilt-edge{transform-origin:200px 140px;transition:transform 300ms ease,opacity 300ms ease}
+                #breath-label{opacity:0;transition:opacity 0.4s ease;font-family:'DM Mono',monospace;font-size:11px;fill:#C8C2A8;letter-spacing:2px}
+                @keyframes orbBreathe{0%{transform:scale(1)}33%{transform:scale(1.15)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+                @keyframes glowPulse{0%{opacity:0.15}33%{opacity:0.5}50%{opacity:0.5}100%{opacity:0.15}}
+              </style>
               <!-- Background -->
-              <rect width="800" height="1200" fill="#141414"/>
-              <!-- Arched opening — wider: x=240…560 -->
-              <path d="M240 1000V300C240 244.77 311.63 200 400 200C488.37 200 560 244.77 560 300V1000H240Z" fill="url(#lightGradient)"/>
-              <!-- Light spill on floor -->
-              <polygon points="240,1000 560,1000 700,1200 100,1200" fill="url(#lightGradient)" opacity="0.35"/>
-              <!-- Fade toward bottom of visible crop -->
-              <rect x="0" y="450" width="800" height="220" fill="url(#fadeGradient)"/>
-              <!-- Door frame -->
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H800V1200H560V300C560 244.77 488.37 200 400 200C311.63 200 240 244.77 240 300V1200H0V0Z" fill="#1E1E1E"/>
-              <!-- Static subtle rim -->
-              <path d="M240 1000V300C240 244.77 311.63 200 400 200C488.37 200 560 244.77 560 300V1000" stroke="url(#rimLight)" stroke-width="6" stroke-linecap="round" fill="none"/>
-              <!-- Motion edge — JS-driven tilt -->
-              <g class="tilt-edge" opacity="0.18">
-                <path d="M552 670V305C552 254 488 213 400 213" stroke="#C8F04A" stroke-width="4" stroke-linecap="round" fill="none"/>
+              <rect width="400" height="280" fill="#141414"/>
+              <!-- Ambient glow — breathes with orb -->
+              <circle class="orb-glow" cx="200" cy="140" r="130" fill="url(#orbGlow)"/>
+              <!-- Orb body — tap to enter guided breathing -->
+              <circle class="orb-body" id="orb-circle" cx="200" cy="140" r="90" fill="url(#orbFill)"/>
+              <!-- Tilt-reactive rim arc — upper-right quadrant -->
+              <g class="tilt-edge" opacity="0.22">
+                <path d="M258 71A90 90 0 0 1 290 140" stroke="#C8F04A" stroke-width="3" stroke-linecap="round" fill="none"/>
               </g>
-              <!-- Text centred inside the arch -->
-              <text x="400" y="370" text-anchor="middle" font-family="'DM Mono',monospace" font-size="30" fill="#141414" opacity="0.55" letter-spacing="1">Today is yours.</text>
+              <!-- Guided phase label — fades in during guided mode -->
+              <text id="breath-label" x="200" y="252" text-anchor="middle">inhale</text>
             </svg>
           </div>
         </div>
@@ -3640,6 +3636,7 @@ function startRestDay(){
   persist();renderSummary();renderActionBar();renderCards();
 }
 function toggleRestFromHeader(){
+  _stopGuidedBreath();
   const body=document.getElementById('training-section-body');
   // Fade out current content
   if(body){body.style.transition='opacity .15s ease';body.style.opacity='0';}
@@ -3661,7 +3658,49 @@ function toggleRestFromHeader(){
     }));
   },150);
 }
-// ── PORTAL TILT ────────────────────────────────────────────────────────────
+// ── ORB TILT + GUIDED BREATHING ─────────────────────────────────────────────
+// Guided breath state machine
+const _BPHASES=['inhale','hold','exhale','hold'];
+const _BSCALE=[1.15,1.15,1.0,1.0];
+const _BGLOW=[0.5,0.5,0.15,0.15];
+const _BDUR=4; // seconds per phase
+let _breathTimer=null,_breathRound=0,_breathPhase=0;
+function _startGuidedBreath(){
+  if(_breathTimer)return; // already running
+  const orb=document.getElementById('orb-circle');
+  const glow=document.querySelector('#orb-svg .orb-glow');
+  if(!orb||!glow)return;
+  _breathRound=0;_breathPhase=0;
+  orb.style.animation='none';glow.style.animation='none';
+  _runBreathPhase();
+}
+function _runBreathPhase(){
+  const orb=document.getElementById('orb-circle');
+  const glow=document.querySelector('#orb-svg .orb-glow');
+  const label=document.getElementById('breath-label');
+  if(!orb||!glow)return;
+  orb.style.transition='transform '+_BDUR+'s ease-in-out';
+  orb.style.transform='scale('+_BSCALE[_breathPhase]+')';
+  orb.style.transformOrigin='200px 140px';
+  glow.style.transition='opacity '+_BDUR+'s ease-in-out';
+  glow.style.opacity=_BGLOW[_breathPhase];
+  if(label){label.textContent=_BPHASES[_breathPhase];label.style.opacity='1';}
+  _breathTimer=setTimeout(()=>{
+    _breathPhase++;
+    if(_breathPhase>=4){_breathPhase=0;_breathRound++;}
+    if(_breathRound>=4){_stopGuidedBreath();}else{_runBreathPhase();}
+  },_BDUR*1000);
+}
+function _stopGuidedBreath(){
+  if(_breathTimer){clearTimeout(_breathTimer);_breathTimer=null;}
+  const orb=document.getElementById('orb-circle');
+  const glow=document.querySelector('#orb-svg .orb-glow');
+  const label=document.getElementById('breath-label');
+  if(orb){orb.style.animation='';orb.style.transform='';orb.style.transition='';orb.style.transformOrigin='';}
+  if(glow){glow.style.animation='';glow.style.opacity='';glow.style.transition='';}
+  if(label)label.style.opacity='0';
+}
+// Tilt / cursor parallax + tap-to-breathe init
 let _portalTiltInit=false;
 function _initPortalTilt(){
   if(_portalTiltInit)return;
@@ -3671,7 +3710,7 @@ function _initPortalTilt(){
     const edge=document.querySelector('.tilt-edge');
     if(!edge)return;
     edge.style.transform=`translateX(${tx.toFixed(1)}px)`;
-    edge.style.opacity=Math.abs(tx)>1?'0.55':'0.18';
+    edge.style.opacity=Math.abs(tx)>1?'0.55':'0.22';
   }
   // Desktop — inverted cursor parallax
   document.addEventListener('mousemove',e=>{
@@ -3689,6 +3728,9 @@ function _initPortalTilt(){
       _setEdge(-gamma*0.4); // inverted, ±12px
     },{passive:true});
   }
+  // Tap orb → guided box breathing
+  const orbEl=document.getElementById('orb-circle');
+  if(orbEl)orbEl.addEventListener('click',_startGuidedBreath,{passive:true});
 }
 function overrideRestDay(){
   closeAbMenu();
