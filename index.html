@@ -2407,14 +2407,14 @@ function toRows(s){
       (act.supersets||[]).forEach((ss,si)=>{
         ss.exercises.forEach(ex=>{
           if(!ex.name||(!ex.kg&&!ex.reps&&!ex.rir))return;
-          rows.push([s.date,wk,s.phase,typeLabel,act.gymDay||'',si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||'',vol(ex)||'',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'',ex.flagged?'flagged':'',s.extra||'',s.notes||'']);
+          rows.push([s.date,wk,s.phase,typeLabel,act.gymDay||'',si+1,ex.name,ex.muscle,ex.res||'',ex.side||'',ex.kg||'',ex.reps||'',ex.rir||'',ex.sets||'',vol(ex)||'',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'',ex.flagged?'flagged':'',s.extra||'',s.notes||'',s.isRest===true?'1':'']);
         });
       });
     }
   });
   if(!rows.length&&sessionHasData(s)){
     const typeLabel=s.isRest===true||s.dtype==='Rest'?'Rest':'';
-    rows.push([s.date,wk,s.phase,typeLabel,'','','','','','','','','','','',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'','',s.extra||'',s.notes||'']);
+    rows.push([s.date,wk,s.phase,typeLabel,'','','','','','','','','','','',s.sleep||'',s.energy||'',s.soreness||'',s.perf||'','',s.extra||'',s.notes||'',s.isRest===true?'1':'']);
   }
   return rows;
 }
@@ -2481,7 +2481,11 @@ async function importFromSheets(){
       const gymRows=dateRows.filter(r=>(r[3]||'')==='Gym');
       const customRows=dateRows.filter(r=>(r[3]||'')==='Custom');
       const bjjRows=dateRows.filter(r=>(r[3]||'')==='BJJ');
-      const isRest=(first[3]||'')==='Rest'?true:null;
+      // col 22 (column W) carries isRest flag — backward compat: 'Rest' row type also signals it
+      // BJJ rows use col 22 for bjj.gc, so isRest is not tracked there (rare edge case)
+      const isRest=(first[3]||'')==='Rest'?true
+                  :(first[3]||'')==='BJJ'?null
+                  :(first[22]==='1'?true:null);
       // Build activities array (S11 model)
       const activities=[];
       if(gymRows.length){
@@ -3655,6 +3659,7 @@ function _applyRestFlag(value){
   _restConfirmPending=false;
   S.isRest=value;
   const d=S.selectedDate||td();
+  _synced.delete(d); // invalidate so next autoSave re-syncs rest flag change to Sheets
   const ei=S.sessions.findIndex(s=>s.date===d);
   if(ei>=0){
     S.sessions[ei].isRest=value;
