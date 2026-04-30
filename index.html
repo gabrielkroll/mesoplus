@@ -3580,10 +3580,10 @@ function openAddSessionSheet(){/* S6e stub — extra session flow (BJJ / custom)
 
 /* ── READINESS SHEET ── */
 function openReadinessSheet(){
-  const today=td();
-  const sess=S.sessions.find(s=>s.date===today);
+  const d=S.selectedDate||td();
+  const sess=S.sessions.find(s=>s.date===d);
   if(sess){S.sleep=sess.sleep||S.sleep||'';S.energy=sess.energy||S.energy||'';S.soreness=sess.soreness||S.soreness||'';}
-  const day=derivedGymDay(today);
+  const day=derivedGymDay(d);
   buildChips('rs-chips-sleep',SLEEP_C,S.sleep,v=>{S.sleep=v;_updateRsSheet();});
   buildChips('rs-chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;_updateRsSheet();});
   buildChips('rs-chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;_updateRsSheet();});
@@ -3620,8 +3620,12 @@ function _updateRsSheet(){
   const footer=document.getElementById('rs-footer');if(!footer)return;
   // warnRest: any single worst-case selection OR computed poor tier
   const warnRest=allSet&&((r!==null&&r<25)||S.sleep==='≤5.5h'||S.energy==='Drained'||S.soreness==='Wrecked');
+  const isPast=(S.selectedDate||td())<td();
   if(!allSet){
     footer.innerHTML=`<button class="rs-done-btn" style="background:var(--surf);color:var(--ink3)" onclick="closeReadinessSheet()">Close</button>`;
+  }else if(isPast){
+    // Retroactive log — no "Start Day X", just save
+    footer.innerHTML=`<button class="rs-done-btn" style="background:var(--accent);color:#000" onclick="closeReadinessSheet()">Save</button>`;
   }else if(warnRest){
     // Two equal-weight buttons side by side
     footer.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="rs-done-btn" onclick="closeReadinessSheet()">Done</button><button class="rs-done-btn" style="background:var(--surf);color:var(--danger)" onclick="closeReadinessSheet();startRestDay()">Rest today</button></div>`;
@@ -3650,15 +3654,15 @@ function _nextWaveColor(targetTier){
 function closeReadinessSheet(){
   document.getElementById('rs-backdrop').classList.remove('open');
   document.getElementById('rs-sheet').classList.remove('open');
-  const today=td();
-  const ei=S.sessions.findIndex(s=>s.date===today);
+  const d=S.selectedDate||td();
+  const ei=S.sessions.findIndex(s=>s.date===d);
   if(ei>=0){
     S.sessions[ei].sleep=S.sleep;S.sessions[ei].energy=S.energy;S.sessions[ei].soreness=S.soreness;
-    persist();
+    _synced.delete(d);persist();
   }else if(S.sleep||S.energy||S.soreness){
-    S.selectedDate=today;
-    S.sessions.push({date:today,isRest:null,activities:[],sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:'',week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx});
-    persist();
+    // Never overwrite S.selectedDate — push session for the day being viewed
+    S.sessions.push({date:d,isRest:null,activities:JSON.parse(JSON.stringify(S.activities)),sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf||'',notes:S.notes||'',extra:S.extra||'',week:mesoWkFor(d),phase:ph().name,phaseIdx:derivedPhase().phaseIdx});
+    _synced.delete(d);persist();
   }
   renderActionBar();renderCards();
 }
