@@ -3690,35 +3690,45 @@ function openBreathSheet(){
   const orbSvg=document.getElementById('orb-sheet-svg');
   if(!card||!sheet||!bg)return;
   const rect=card.getBoundingClientRect();
-  const{tx,ty,sx,sy}=_cardSpringTransform(rect);
   sheet._cardRect=rect;
   const closeBtn=document.getElementById('bsheet-close-btn');
   if(closeBtn)closeBtn.style.opacity='0';
-  card.style.opacity='0';
-  // Background layer: start at card position
+  // Card orb geometry: viewBox 400×200, orb at cx=200 cy=100 r=62
+  const cardOrbCX=rect.left+rect.width/2;
+  const cardOrbCY=rect.top+rect.height/2;
+  const cardOrbVisR=62*Math.min(rect.width/400,rect.height/200);
+  // Background: start at card position
+  const{tx,ty,sx,sy}=_cardSpringTransform(rect);
   bg.style.transition='none';
   bg.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
   bg.style.borderRadius='10px';
   bg.style.backgroundColor='#1e1e1e';
-  // Orb: start hidden + slightly small
-  if(orbSvg){orbSvg.style.transition='none';orbSvg.style.opacity='0';orbSvg.style.transform='scale(0.8)';}
+  // Sheet orb: reset to natural position so we can measure it
+  if(orbSvg){orbSvg.style.transition='none';orbSvg.style.transform='';orbSvg.style.opacity='1';}
   sheet.style.display='flex';
-  sheet.getBoundingClientRect(); // force reflow
-  // Background springs to full-screen (iOS deceleration: fast start, soft landing)
-  const bgEase='cubic-bezier(0.25,0.46,0.45,0.94)';
-  bg.style.transition=`transform 0.35s ${bgEase},background-color 0.35s ${bgEase},border-radius 0.35s ${bgEase}`;
+  sheet.getBoundingClientRect(); // reflow #1 — layout orb at natural position
+  // Measure where the sheet orb actually sits in the flex container
+  if(orbSvg){
+    const or=orbSvg.getBoundingClientRect();
+    const sheetOrbVisR=120*(or.width/400); // viewBox 400×400, r=120
+    const orbTx=cardOrbCX-(or.left+or.width/2);
+    const orbTy=cardOrbCY-(or.top+or.height/2);
+    const orbS=(cardOrbVisR/sheetOrbVisR).toFixed(4);
+    // Jump sheet orb to card orb's exact position and size
+    orbSvg.style.transform=`translate(${orbTx.toFixed(2)}px,${orbTy.toFixed(2)}px) scale(${orbS})`;
+  }
+  card.style.opacity='0'; // hand off — sheet orb now covers card orb
+  sheet.getBoundingClientRect(); // reflow #2 — commit orb start state
+  // Both layers animate to final state together
+  const ease='cubic-bezier(0.25,0.46,0.45,0.94)';
+  bg.style.transition=`transform 0.35s ${ease},background-color 0.35s ${ease},border-radius 0.35s ${ease}`;
   bg.style.transform='translate(0px,0px) scale(1,1)';
   bg.style.borderRadius='0px';
   bg.style.backgroundColor='#141414';
-  // Orb springs in with natural overshoot — slight delay so bg leads
-  setTimeout(()=>{
-    if(orbSvg){
-      orbSvg.style.transition='opacity 0.3s ease,transform 0.36s cubic-bezier(0.34,1.56,0.64,1)';
-      orbSvg.style.opacity='1';
-      orbSvg.style.transform='scale(1)';
-    }
-  },70);
-  // Reveal close button + start breathing once bg has settled
+  if(orbSvg){
+    orbSvg.style.transition=`transform 0.38s ${ease}`;
+    orbSvg.style.transform='translate(0px,0px) scale(1)';
+  }
   setTimeout(()=>{
     if(closeBtn)closeBtn.style.opacity='1';
     _startGuidedBreath();
@@ -3733,27 +3743,35 @@ function closeBreathSheet(){
   const bg=document.getElementById('breath-sheet-bg');
   const orbSvg=document.getElementById('orb-sheet-svg');
   const card=document.getElementById('rest-orb-card');
-  // Orb fades out quickly
-  if(orbSvg){
-    orbSvg.style.transition='opacity 0.15s ease,transform 0.15s ease';
-    orbSvg.style.opacity='0';
-    orbSvg.style.transform='scale(0.8)';
-  }
-  // Background snaps back to card (ease-in = feels like it's being pulled away)
   const rect=sheet._cardRect||(card?card.getBoundingClientRect():null);
   if(!bg||!rect){sheet.style.display='none';if(card)card.style.opacity='';return;}
-  const{tx,ty,sx,sy}=_cardSpringTransform(rect);
+  // Card orb target geometry
+  const cardOrbCX=rect.left+rect.width/2;
+  const cardOrbCY=rect.top+rect.height/2;
+  const cardOrbVisR=62*Math.min(rect.width/400,rect.height/200);
+  // Sheet orb current center (at natural position after open)
+  let orbTx=0,orbTy=0,orbS='1';
+  if(orbSvg){
+    const or=orbSvg.getBoundingClientRect();
+    const sheetOrbVisR=120*(or.width/400);
+    orbTx=cardOrbCX-(or.left+or.width/2);
+    orbTy=cardOrbCY-(or.top+or.height/2);
+    orbS=(cardOrbVisR/sheetOrbVisR).toFixed(4);
+  }
   const ease='cubic-bezier(0.4,0,1,1)';
+  // Both layers animate back to card together
+  const{tx,ty,sx,sy}=_cardSpringTransform(rect);
   bg.style.transition=`transform 0.28s ${ease},background-color 0.28s ${ease},border-radius 0.28s ${ease}`;
   bg.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
   bg.style.borderRadius='10px';
   bg.style.backgroundColor='#1e1e1e';
+  if(orbSvg){
+    orbSvg.style.transition=`transform 0.28s ${ease}`;
+    orbSvg.style.transform=`translate(${orbTx.toFixed(2)}px,${orbTy.toFixed(2)}px) scale(${orbS})`;
+  }
   setTimeout(()=>{
     sheet.style.display='none';
-    bg.style.transition='none';
-    bg.style.transform='';
-    bg.style.borderRadius='';
-    bg.style.backgroundColor='';
+    bg.style.transition='none';bg.style.transform='';bg.style.borderRadius='';bg.style.backgroundColor='';
     if(orbSvg){orbSvg.style.transition='none';orbSvg.style.opacity='';orbSvg.style.transform='';}
     if(card)card.style.opacity='';
   },280);
