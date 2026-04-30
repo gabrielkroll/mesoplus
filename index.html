@@ -570,8 +570,17 @@ select.bare{cursor:pointer}
 .card-section-hdr .btn-t{flex-shrink:0}
 #training-section-body{transition:opacity .15s ease}
 .rest-empty-state{padding:0 0 8px;display:flex;flex-direction:column}
-.rest-illus-wrap{border-radius:14px;overflow:hidden;width:100%}
-.portal-illustration{display:block;width:100%}
+/* Rest orb card — single card in rest mode, same footprint as the 2×2 grid */
+.rest-orb-card{background:var(--surf);border:1px solid var(--line);border-radius:10px;height:184px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-color .12s;position:relative;width:100%;box-sizing:border-box}
+.rest-orb-card:hover{border-color:var(--line2)}
+.rest-orb-card:active{opacity:.85}
+.rest-orb-card svg{display:block;width:100%;height:100%}
+/* Breath sheet — full-screen, animated via clip-path */
+#breath-sheet{position:fixed;inset:0;z-index:260;background:#141414;display:none;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.bsheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px) + 8px);right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s;z-index:1;opacity:0;transition:background .1s,opacity .2s}
+.bsheet-close:hover{background:rgba(255,255,255,.07)}
+#orb-sheet-svg{display:block;width:min(80vw,55vh);height:auto;flex-shrink:0}
+#breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
@@ -1011,38 +1020,29 @@ select.bare{cursor:pointer}
           </button>
         </div>
         <div id="training-rest-state" class="rest-empty-state" style="display:none">
-          <div class="rest-illus-wrap">
-            <svg class="portal-illustration" id="orb-svg" viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Single orb card — whole card tappable, same height as card grid -->
+          <div id="rest-orb-card" class="rest-orb-card" onclick="openBreathSheet()">
+            <svg id="orb-card-svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <radialGradient id="orbFill" cx="38%" cy="38%" r="65%">
+                <radialGradient id="cOrbFill" cx="38%" cy="38%" r="65%">
                   <stop offset="0%" stop-color="#FFE8A0"/>
                   <stop offset="100%" stop-color="#F5C842"/>
                 </radialGradient>
-                <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#F5C842" stop-opacity="0.5"/>
+                <radialGradient id="cOrbGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#F5C842" stop-opacity="0.4"/>
                   <stop offset="100%" stop-color="#F5C842" stop-opacity="0"/>
                 </radialGradient>
               </defs>
               <style>
-                .orb-glow{transform-box:fill-box;transform-origin:center;animation:glowPulse 12s ease-in-out infinite}
-                .orb-body{transform-box:fill-box;transform-origin:center;animation:orbBreathe 12s ease-in-out infinite;cursor:pointer}
-                .tilt-edge{transform-origin:200px 140px;transition:transform 300ms ease,opacity 300ms ease}
-                #breath-label{opacity:0;transition:opacity 0.4s ease;font-family:'DM Mono',monospace;font-size:11px;fill:#C8C2A8;letter-spacing:2px}
-                @keyframes orbBreathe{0%{transform:scale(1)}33%{transform:scale(1.15)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
-                @keyframes glowPulse{0%{opacity:0.15}33%{opacity:0.5}50%{opacity:0.5}100%{opacity:0.15}}
+                .c-orb-glow{transform-box:fill-box;transform-origin:center;animation:cGlowPulse 12s ease-in-out infinite}
+                .c-orb-body{transform-box:fill-box;transform-origin:center;animation:cOrbBreathe 12s ease-in-out infinite}
+                .c-tilt-edge{transform-origin:200px 100px;transition:transform 300ms ease,opacity 300ms ease}
+                @keyframes cOrbBreathe{0%{transform:scale(1)}33%{transform:scale(1.1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+                @keyframes cGlowPulse{0%{opacity:.12}33%{opacity:.4}50%{opacity:.4}100%{opacity:.12}}
               </style>
-              <!-- Background -->
-              <rect width="400" height="280" fill="#141414"/>
-              <!-- Ambient glow — breathes with orb -->
-              <circle class="orb-glow" cx="200" cy="140" r="130" fill="url(#orbGlow)"/>
-              <!-- Orb body — tap to enter guided breathing -->
-              <circle class="orb-body" id="orb-circle" cx="200" cy="140" r="90" fill="url(#orbFill)"/>
-              <!-- Tilt-reactive rim arc — upper-right quadrant -->
-              <g class="tilt-edge" opacity="0.22">
-                <path d="M258 71A90 90 0 0 1 290 140" stroke="#C8F04A" stroke-width="3" stroke-linecap="round" fill="none"/>
-              </g>
-              <!-- Guided phase label — fades in during guided mode -->
-              <text id="breath-label" x="200" y="252" text-anchor="middle">inhale</text>
+              <circle class="c-orb-glow" cx="200" cy="100" r="95" fill="url(#cOrbGlow)"/>
+              <circle class="c-orb-body" cx="200" cy="100" r="62" fill="url(#cOrbFill)"/>
+              <circle class="c-tilt-edge" cx="200" cy="100" r="63" stroke="#C8F04A" stroke-width="1.8" fill="none" opacity="0.22"/>
             </svg>
           </div>
         </div>
@@ -3639,7 +3639,14 @@ function startRestDay(){
   persist();renderSummary();renderActionBar();renderCards();
 }
 function toggleRestFromHeader(){
-  _stopGuidedBreath();
+  // Force-close breath sheet instantly if open (rest state being torn down)
+  const bsheet=document.getElementById('breath-sheet');
+  if(bsheet&&bsheet.style.display!=='none'){
+    _stopGuidedBreath();
+    bsheet.style.display='none';bsheet.style.clipPath='';bsheet.style.transition='none';
+    const orbCard=document.getElementById('rest-orb-card');
+    if(orbCard)orbCard.style.opacity='';
+  }
   const body=document.getElementById('training-section-body');
   // Fade out current content
   if(body){body.style.transition='opacity .15s ease';body.style.opacity='0';}
@@ -3661,79 +3668,134 @@ function toggleRestFromHeader(){
     }));
   },150);
 }
+// ── BREATH SHEET: open / close via clip-path expansion ───────────────────────
+function openBreathSheet(){
+  const card=document.getElementById('rest-orb-card');
+  const sheet=document.getElementById('breath-sheet');
+  if(!card||!sheet)return;
+  const rect=card.getBoundingClientRect();
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const iT=rect.top,iR=vw-rect.right,iB=vh-rect.bottom,iL=rect.left;
+  sheet._cr={t:iT,r:iR,b:iB,l:iL}; // store for close
+  // Show clipped to card rect
+  sheet.style.display='flex';
+  sheet.style.transition='none';
+  sheet.style.clipPath=`inset(${iT}px ${iR}px ${iB}px ${iL}px round 10px)`;
+  card.style.opacity='0';
+  const closeBtn=document.getElementById('bsheet-close-btn');
+  if(closeBtn)closeBtn.style.opacity='0';
+  // Force reflow, then animate to full screen
+  sheet.getBoundingClientRect();
+  sheet.style.transition='clip-path 0.45s cubic-bezier(0.4,0,0.2,1)';
+  sheet.style.clipPath='inset(0px 0px 0px 0px round 0px)';
+  // Reveal close button and start breathing after expansion
+  setTimeout(()=>{
+    if(closeBtn)closeBtn.style.opacity='1';
+    _startGuidedBreath();
+  },450);
+}
+function closeBreathSheet(){
+  const sheet=document.getElementById('breath-sheet');
+  if(!sheet||sheet.style.display==='none')return;
+  _stopGuidedBreath();
+  const closeBtn=document.getElementById('bsheet-close-btn');
+  if(closeBtn)closeBtn.style.opacity='0';
+  // Get fresh card rect for close target
+  const card=document.getElementById('rest-orb-card');
+  if(card){
+    const rect=card.getBoundingClientRect();
+    const vw=window.innerWidth,vh=window.innerHeight;
+    sheet._cr={t:rect.top,r:vw-rect.right,b:vh-rect.bottom,l:rect.left};
+  }
+  const r=sheet._cr||{t:0,r:0,b:0,l:0};
+  sheet.style.transition='clip-path 0.4s cubic-bezier(0.4,0,0.2,1)';
+  sheet.style.clipPath=`inset(${r.t}px ${r.r}px ${r.b}px ${r.l}px round 10px)`;
+  setTimeout(()=>{
+    sheet.style.display='none';
+    sheet.style.clipPath='';
+    sheet.style.transition='none';
+    if(card)card.style.opacity='';
+  },400);
+}
 // ── ORB TILT + GUIDED BREATHING ─────────────────────────────────────────────
-// Guided breath state machine
 const _BPHASES=['inhale','hold','exhale','hold'];
 const _BSCALE=[1.15,1.15,1.0,1.0];
 const _BGLOW=[0.5,0.5,0.15,0.15];
-const _BDUR=4; // seconds per phase
-let _breathTimer=null,_breathRound=0,_breathPhase=0;
+const _BDUR=4;
+let _breathTimer=null,_breathPhase=0;
 function _startGuidedBreath(){
-  if(_breathTimer)return; // already running
-  const orb=document.getElementById('orb-circle');
-  const glow=document.querySelector('#orb-svg .orb-glow');
+  if(_breathTimer)return;
+  const orb=document.getElementById('sheet-orb-circle');
+  const glow=document.querySelector('#orb-sheet-svg .s-orb-glow');
   if(!orb||!glow)return;
-  _breathRound=0;_breathPhase=0;
+  _breathPhase=0;
   orb.style.animation='none';glow.style.animation='none';
   _runBreathPhase();
 }
 function _runBreathPhase(){
-  const orb=document.getElementById('orb-circle');
-  const glow=document.querySelector('#orb-svg .orb-glow');
-  const label=document.getElementById('breath-label');
+  const orb=document.getElementById('sheet-orb-circle');
+  const glow=document.querySelector('#orb-sheet-svg .s-orb-glow');
+  const label=document.getElementById('breath-phase-label');
   if(!orb||!glow)return;
   orb.style.transition='transform '+_BDUR+'s ease-in-out';
   orb.style.transform='scale('+_BSCALE[_breathPhase]+')';
-  orb.style.transformOrigin='200px 140px';
+  orb.style.transformOrigin='200px 200px';
   glow.style.transition='opacity '+_BDUR+'s ease-in-out';
   glow.style.opacity=_BGLOW[_breathPhase];
   if(label){label.textContent=_BPHASES[_breathPhase];label.style.opacity='1';}
   _breathTimer=setTimeout(()=>{
-    _breathPhase++;
-    if(_breathPhase>=4){_breathPhase=0;_breathRound++;}
-    if(_breathRound>=4){_stopGuidedBreath();}else{_runBreathPhase();}
+    _breathPhase=(_breathPhase+1)%4; // loops forever until user closes
+    _runBreathPhase();
   },_BDUR*1000);
 }
 function _stopGuidedBreath(){
   if(_breathTimer){clearTimeout(_breathTimer);_breathTimer=null;}
-  const orb=document.getElementById('orb-circle');
-  const glow=document.querySelector('#orb-svg .orb-glow');
-  const label=document.getElementById('breath-label');
+  const orb=document.getElementById('sheet-orb-circle');
+  const glow=document.querySelector('#orb-sheet-svg .s-orb-glow');
+  const label=document.getElementById('breath-phase-label');
   if(orb){orb.style.animation='';orb.style.transform='';orb.style.transition='';orb.style.transformOrigin='';}
   if(glow){glow.style.animation='';glow.style.opacity='';glow.style.transition='';}
   if(label)label.style.opacity='0';
 }
-// Tilt / cursor parallax + tap-to-breathe init
+// Tilt / cursor parallax on both card and sheet orbs
 let _portalTiltInit=false;
 function _initPortalTilt(){
   if(_portalTiltInit)return;
   _portalTiltInit=true;
   function _restVisible(){const w=document.getElementById('training-rest-state');return w&&w.style.display!=='none';}
-  function _setEdge(tx){
-    const edge=document.querySelector('.tilt-edge');
-    if(!edge)return;
-    edge.style.transform=`translateX(${tx.toFixed(1)}px)`;
-    edge.style.opacity=Math.abs(tx)>1?'0.55':'0.22';
+  function _sheetOpen(){const s=document.getElementById('breath-sheet');return s&&s.style.display!=='none';}
+  function _setCardEdge(tx){
+    const e=document.querySelector('.c-tilt-edge');if(!e)return;
+    e.style.transform=`translateX(${tx.toFixed(1)}px)`;
+    e.style.opacity=Math.abs(tx)>1?'0.4':'0.22';
   }
-  // Desktop — inverted cursor parallax
+  function _setSheetEdge(tx){
+    const e=document.getElementById('sheet-tilt-edge');if(!e)return;
+    e.style.transform=`translateX(${tx.toFixed(1)}px)`;
+    e.style.opacity=Math.abs(tx)>1?'0.4':'0.22';
+  }
   document.addEventListener('mousemove',e=>{
     if(!_restVisible())return;
-    const svg=document.querySelector('.portal-illustration');if(!svg)return;
-    const r=svg.getBoundingClientRect();
-    const dx=(e.clientX-(r.left+r.width/2))/(r.width/2); // −1 … +1
-    _setEdge(-dx*12); // inverted
+    if(_sheetOpen()){
+      const svg=document.getElementById('orb-sheet-svg');if(!svg)return;
+      const r=svg.getBoundingClientRect();
+      const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
+      _setSheetEdge(-dx*5);
+    }else{
+      const card=document.getElementById('rest-orb-card');if(!card)return;
+      const r=card.getBoundingClientRect();
+      const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
+      _setCardEdge(-dx*5);
+    }
   },{passive:true});
-  // Mobile — device tilt via gamma (left−right)
   if(typeof DeviceOrientationEvent!=='undefined'){
     window.addEventListener('deviceorientation',e=>{
       if(!_restVisible())return;
       const gamma=Math.max(-30,Math.min(30,e.gamma||0));
-      _setEdge(-gamma*0.4); // inverted, ±12px
+      const tx=-gamma*0.17; // ±5px at ±30°
+      if(_sheetOpen())_setSheetEdge(tx);else _setCardEdge(tx);
     },{passive:true});
   }
-  // Tap orb → guided box breathing
-  const orbEl=document.getElementById('orb-circle');
-  if(orbEl)orbEl.addEventListener('click',_startGuidedBreath,{passive:true});
 }
 function overrideRestDay(){
   closeAbMenu();
@@ -4482,6 +4544,34 @@ startApp();
     <button class="ex-sheet-nav-btn" id="esi-prev" onclick="sheetNav(-1)" aria-label="Previous exercise">←</button>
     <button class="ex-sheet-save-btn" id="esi-save-btn" onclick="saveSheetAndNext()">Next →</button>
   </div>
+</div>
+
+<!-- BREATHING SHEET — full-screen, clip-path expansion from rest orb card -->
+<div id="breath-sheet">
+  <button class="bsheet-close" id="bsheet-close-btn" onclick="closeBreathSheet()" aria-label="Close">×</button>
+  <svg id="orb-sheet-svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="sOrbFill" cx="38%" cy="38%" r="65%">
+        <stop offset="0%" stop-color="#FFE8A0"/>
+        <stop offset="100%" stop-color="#F5C842"/>
+      </radialGradient>
+      <radialGradient id="sOrbGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#F5C842" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#F5C842" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <style>
+      .s-orb-glow{transform-box:fill-box;transform-origin:center;animation:sGlowPulse 12s ease-in-out infinite}
+      .s-orb-body{transform-box:fill-box;transform-origin:center;animation:sOrbBreathe 12s ease-in-out infinite}
+      .s-tilt-edge{transform-origin:200px 200px;transition:transform 300ms ease,opacity 300ms ease}
+      @keyframes sOrbBreathe{0%{transform:scale(1)}33%{transform:scale(1.15)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+      @keyframes sGlowPulse{0%{opacity:0.15}33%{opacity:0.5}50%{opacity:0.5}100%{opacity:0.15}}
+    </style>
+    <circle class="s-orb-glow" cx="200" cy="200" r="165" fill="url(#sOrbGlow)"/>
+    <circle class="s-orb-body" id="sheet-orb-circle" cx="200" cy="200" r="120" fill="url(#sOrbFill)"/>
+    <circle class="s-tilt-edge" id="sheet-tilt-edge" cx="200" cy="200" r="122" stroke="#C8F04A" stroke-width="2.5" fill="none" opacity="0.22"/>
+  </svg>
+  <div id="breath-phase-label"></div>
 </div>
 
 </body>
