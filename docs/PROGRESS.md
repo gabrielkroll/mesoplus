@@ -7,44 +7,10 @@
 
 ## Now
 
-**S-Rest-3 — Breathing Orb (rest empty state)**
-AC discussed, not yet coded. See spec below.
-
 **Still open: S11.5 item 3**
 Extra session card re-added to Training section. AC not yet discussed — discuss before coding.
 
 **After S11.5:** S8 — Insights → Weekly Review Flow (AC not yet discussed).
-
----
-
-## S-Rest-3 Spec — Breathing Orb
-
-Replace the portal door SVG with a breathing orb in the same visual language
-(dark bg, warm glow, green `#C8F04A` rim accent, tilt-reactive line).
-
-### Ambient state (always on)
-- Soft glowing circle, warm gold fill (`#F5C842` → `#FFE8A0` radial gradient)
-- CSS `@keyframes` scale animation: expand 4s → hold 2s → contract 6s (12s loop)
-- Green rim accent arc (same `.tilt-edge` pattern) — shifts with cursor/tilt
-- No copy — the orb speaks for itself
-
-### Guided state (tap to activate)
-- Tap orb → enters guided box breathing: 4s in / 4s hold / 4s out / 4s hold
-- Orb scale locked to the guided rhythm (overrides ambient animation)
-- Subtle phase label fades in/out: `inhale` · `hold` · `exhale` · `hold`
-- Mono font, very small, centre-aligned below orb
-- After 4 rounds → returns to ambient state automatically
-
-### Copy
-- No persistent copy line (remove "Today is yours." — not specific to rest)
-- Phase label only appears during guided mode
-
-### Implementation notes
-- SVG `<circle>` with CSS animation, same defs/gradients as door
-- `.tilt-edge` is an arc near the orb rim — same JS listener reused
-- Guided mode: JS drives `animation-play-state` + `animation-duration` override
-- State: ambient → guided → ambient (no persist needed)
-- AC fully discussed — ready to implement next session
 
 ---
 
@@ -64,6 +30,7 @@ Replace the portal door SVG with a breathing orb in the same visual language
 | S11.5-2 — Profile Sheet Modal | `f927bd4` | Circular initials button fixed top-right on mobile. Tap opens tall sheet from bottom (drag handle, avatar, user name, nav rows). Nav rows portal existing tab divs (Plan/Stats/Setup/Edit profile) into a slide-in detail panel within the sheet. hub-only tables hidden in detail to prevent recursive nav. nav() closes sheet + portal on tab switch. Bottom nav Profile → openProfileSheet(). |
 | S-Rest-1 — Rest Day UX | `bc5e665` | Check-in "Rest today" trigger (worst-case inputs OR poor tier) + equal-weight Done/Rest today buttons. TRAINING section header: Rest instead / Train instead tertiary button. 150ms cross-fade on section body. Card visibility: training hidden, performance hidden, notes visible. startRestDay() sets S.isRest=true. |
 | S-Rest-2 — Portal Illustration + Tilt | `b641660` | Inline SVG portal door. viewBox 0 180 800 720 → 0 150 800 520 (compact). Tilt-edge JS: desktop mousemove + mobile deviceorientation, inverted parallax ±12px. |
+| S-Rest-3 — Breathing Orb | `bc85dea` | Replaced portal door with warm gold orb. CSS @keyframes: 4s inhale → 2s hold → 6s exhale (12s loop). Glow pulse synced. Tap → guided box breathing 4/4/4/4 × 4 rounds, phase labels fade in/out (DM Mono 11px). Tilt-reactive green rim arc preserved. No persistent copy. |
 
 ---
 
@@ -71,7 +38,7 @@ Replace the portal door SVG with a breathing orb in the same visual language
 
 | # | Slice | Goal | Depends on |
 |---|---|---|---|
-| S-Rest-3 | Breathing Orb | Replace portal door with orb in same visual language. Ambient CSS breathing animation + tap-to-guided box breathing (4/4/4/4). Tilt-reactive rim arc. No persistent copy. Full spec above. | S-Rest-2 |
+| S-Rest-3 | Breathing Orb | ✓ Done — `bc85dea` | S-Rest-2 |
 | S11.5-3 | Extra Session Card | Extra session card (m-extra) re-added to Training section. AC not yet discussed. | 11 |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
@@ -127,4 +94,4 @@ Replace the portal door SVG with a breathing orb in the same visual language
 - **Meso phase weeks not in Sheets** — weeks-per-phase config lives in localStorage only. A reset wipes it. Needs to sync to Sheets alongside session data.
 - **No Sheets → app restore path** — V3 work. Tracked in roadmap.
 - **Mobile: Sheets setup cannot be configured from Safari on iPhone** — scriptUrl, apiKey, sheetId live in Profile setup which requires desktop. V3 (bidirectional sync) will address this properly.
-- **Portal door SVG still in place** — S-Rest-2 shipped the door; S-Rest-3 will replace it with the breathing orb. Door is intentional placeholder.
+- **Breathing orb replaces portal door** — S-Rest-3 shipped (`bc85dea`). Ambient 12s CSS loop + tap-to-guided box breathing state machine.
