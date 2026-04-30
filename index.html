@@ -2473,10 +2473,22 @@ async function importFromSheets(){
       }
       return Object.keys(bySS).map(Number).sort((a,b)=>a-b).map(n=>({exercises:bySS[n]}));
     }
-    let imported=0,skipped=0;
+    let imported=0,skipped=0,merged=0;
     for(const date of dates){
-      if(S.sessions.find(s=>s.date===date)){skipped++;continue;}
       const dateRows=byDate[date];const first=dateRows[0];
+      const existing=S.sessions.find(s=>s.date===date);
+      if(existing){
+        // Merge readiness from Sheets into existing session if it's missing locally
+        let changed=false;
+        if(!existing.sleep&&first[15]){existing.sleep=first[15];changed=true;}
+        if(!existing.energy&&first[16]){existing.energy=first[16];changed=true;}
+        if(!existing.soreness&&first[17]){existing.soreness=first[17];changed=true;}
+        if(!existing.perf&&first[18]){existing.perf=first[18];changed=true;}
+        if(!existing.extra&&first[20]){existing.extra=first[20];changed=true;}
+        if(!existing.notes&&first[21]){existing.notes=first[21];changed=true;}
+        if(changed)merged++;else skipped++;
+        continue;
+      }
       // Partition rows by activity type (matches toRows() write format)
       const gymRows=dateRows.filter(r=>(r[3]||'')==='Gym');
       const customRows=dateRows.filter(r=>(r[3]||'')==='Custom');
@@ -2510,13 +2522,20 @@ async function importFromSheets(){
       S.sessions.push(sess);imported++;
     }
     fixGymDays();
+    if(imported||merged)persist();
     // Refresh UI
     const cur=S.sessions.find(s=>s.date===S.selectedDate);
     if(cur)loadSess(cur);
     renderSummary();renderActionBar();renderWeekNav();
     if(st){
-      if(!imported&&!skipped){st.textContent='Nothing to import';st.style.color='var(--ink3)';}
-      else{st.textContent=`Imported ${imported} session${imported!==1?'s':''}${skipped?' · '+skipped+' already existed':''} ✓`;st.style.color='var(--accent)';}
+      if(!imported&&!merged&&!skipped){st.textContent='Nothing to import';st.style.color='var(--ink3)';}
+      else{
+        const parts=[];
+        if(imported)parts.push(`${imported} imported`);
+        if(merged)parts.push(`${merged} readiness merged`);
+        if(skipped)parts.push(`${skipped} already existed`);
+        st.textContent=parts.join(' · ')+' ✓';st.style.color='var(--accent)';
+      }
     }
   }catch(e){if(st){st.textContent='Import failed: '+e.message;st.style.color='var(--danger)';}}
 }
