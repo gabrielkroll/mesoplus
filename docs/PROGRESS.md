@@ -7,9 +7,6 @@
 
 ## Now
 
-**S-Rest-Data-2 — Sheets sync fix for isRest (next up)**
-Two targeted changes: (1) `_applyRestFlag` deletes date from `_synced` so rest flag changes trigger re-sync. (2) `toRows` appends `isRest` as column 23 on every row; `importFromSheets` reads it back. Closes the gap where Sheets loses the rest flag when training data also exists. AC fully documented in `docs/REST-TRAINING-DATA-ARCH.md`.
-
 **Still open: S11.5 item 3**
 Extra session card re-added to Training section. AC not yet discussed — discuss before coding.
 
@@ -38,6 +35,7 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 | S-Rest-5a — RAF Loop | `ef94bb0` | Single requestAnimationFrame loop drives all continuous animation. Parallax: events write to _tiltTarget only; RAF lerps _tiltCurrent at factor 0.10 → 60fps inertial ring with no CSS transition lag. Ambient breathing: sine wave (12s, scale 1.0–1.15) replaces CSS @keyframes — applied each tick to both card and sheet orbs. Guided breathing keeps CSS transitions for precise 4s phase timing; RAF skips breath updates while guided active. Fix `6532974`: breath-sheet inline display:none required for RAF visibility check. |
 | S-Rest-5b — Sheet Spring | `0b66f3d` | Inverse-FLIP spring: sheet starts at card position via translate+scale, springs to none via cubic-bezier(0.2,0,0,1). background-color #1e1e1e→#141414 + border-radius 10px→0 in same 500ms motion. Close reverses (400ms). toggleRestFromHeader() force-close updated to clear transform. |
 | S-Rest-Data-1 — Non-destructive Rest Toggle | `e003b75` | `_applyRestFlag(value)` single source of truth — isRest is a flag only, activities never touched. Confirmation gate when training data exists (inline header row, no modal). Past-day rest marking via S.selectedDate. `overrideRestDay()` fixed to use `_applyRestFlag(null)`. |
+| S-Rest-Data-2 — Sheets sync fix for isRest | `89c1344` | `_applyRestFlag` deletes date from `_synced` so rest flag changes trigger re-sync. `toRows` appends isRest as column 23 ('1'/'') on all non-BJJ rows. `importFromSheets` reads col 22 to restore isRest — backward compat with old 'Rest' row type. BJJ+rest edge case noted as limitation. |
 
 ---
 
