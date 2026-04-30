@@ -576,11 +576,13 @@ select.bare{cursor:pointer}
 .rest-orb-card:active{opacity:.85}
 .rest-orb-card svg{display:block;width:100%;height:100%}
 /* Breath sheet — full-screen, animated via inverse-FLIP spring */
-#breath-sheet{position:fixed;inset:0;z-index:260;background:#141414;border-radius:0;display:none;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;will-change:transform;transform-origin:center center}
-.bsheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px) + 8px);right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s;z-index:1;opacity:0;transition:background .1s,opacity .2s}
+/* Breath sheet — two-layer: bg scales from card, orb animates independently */
+#breath-sheet{position:fixed;inset:0;z-index:260;display:none;flex-direction:column;align-items:center;justify-content:center}
+#breath-sheet-bg{position:absolute;inset:0;background:#141414;border-radius:0;will-change:transform;transform-origin:center center;z-index:0}
+.bsheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px) + 8px);right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;z-index:2;opacity:0;transition:background .1s,opacity .2s}
 .bsheet-close:hover{background:rgba(255,255,255,.07)}
-#orb-sheet-svg{display:block;width:min(80vw,55vh);height:auto;flex-shrink:0}
-#breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px}
+#orb-sheet-svg{display:block;width:min(80vw,55vh);height:auto;flex-shrink:0;position:relative;z-index:1}
+#breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px;position:relative;z-index:1}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
@@ -3641,7 +3643,11 @@ function toggleRestFromHeader(){
   const bsheet=document.getElementById('breath-sheet');
   if(bsheet&&bsheet.style.display!=='none'){
     _stopGuidedBreath();
-    bsheet.style.display='none';bsheet.style.transform='none';bsheet.style.borderRadius='0px';bsheet.style.backgroundColor='#141414';bsheet.style.transition='none';
+    bsheet.style.display='none';
+    const bsheetBg=document.getElementById('breath-sheet-bg');
+    if(bsheetBg){bsheetBg.style.transition='none';bsheetBg.style.transform='none';bsheetBg.style.borderRadius='0px';bsheetBg.style.backgroundColor='#141414';}
+    const orbSvgF=document.getElementById('orb-sheet-svg');
+    if(orbSvgF){orbSvgF.style.transition='none';orbSvgF.style.opacity='';orbSvgF.style.transform='';}
     const orbCard=document.getElementById('rest-orb-card');
     if(orbCard)orbCard.style.opacity='';
   }
@@ -3666,46 +3672,57 @@ function toggleRestFromHeader(){
     }));
   },150);
 }
-// ── BREATH SHEET: open / close via inverse-FLIP spring ──────────────────────
+// ── BREATH SHEET: two-layer open/close ──────────────────────────────────────
+// bg layer (#breath-sheet-bg) gets the non-uniform inverse-FLIP spring.
+// Orb (#orb-sheet-svg) animates independently — uniform scale, no distortion.
 function _cardSpringTransform(rect){
-  // Returns the transform that makes the full-screen sheet appear to sit at card position.
-  // Sheet is fixed inset:0 (vw × vh). We translate its center to card center, then scale.
   const vw=window.innerWidth,vh=window.innerHeight;
   const tx=(rect.left+rect.width/2)-vw/2;
   const ty=(rect.top+rect.height/2)-vh/2;
   const sx=rect.width/vw;
   const sy=rect.height/vh;
-  return{tx,ty,sx,sy,vw,vh};
+  return{tx,ty,sx,sy};
 }
 function openBreathSheet(){
   const card=document.getElementById('rest-orb-card');
   const sheet=document.getElementById('breath-sheet');
-  if(!card||!sheet)return;
+  const bg=document.getElementById('breath-sheet-bg');
+  const orbSvg=document.getElementById('orb-sheet-svg');
+  if(!card||!sheet||!bg)return;
   const rect=card.getBoundingClientRect();
   const{tx,ty,sx,sy}=_cardSpringTransform(rect);
-  // Store card rect for close animation
   sheet._cardRect=rect;
   const closeBtn=document.getElementById('bsheet-close-btn');
   if(closeBtn)closeBtn.style.opacity='0';
   card.style.opacity='0';
-  // Set start state — sheet at card position
-  sheet.style.transition='none';
-  sheet.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
-  sheet.style.borderRadius='10px';
-  sheet.style.backgroundColor='#1e1e1e';
+  // Background layer: start at card position
+  bg.style.transition='none';
+  bg.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
+  bg.style.borderRadius='10px';
+  bg.style.backgroundColor='#1e1e1e';
+  // Orb: start hidden + slightly small
+  if(orbSvg){orbSvg.style.transition='none';orbSvg.style.opacity='0';orbSvg.style.transform='scale(0.8)';}
   sheet.style.display='flex';
-  // Force reflow, then spring to full-screen
-  sheet.getBoundingClientRect();
-  const ease='cubic-bezier(0.2,0,0,1)';
-  sheet.style.transition=`transform 0.5s ${ease},background-color 0.5s ${ease},border-radius 0.5s ${ease}`;
-  sheet.style.transform='none';
-  sheet.style.borderRadius='0px';
-  sheet.style.backgroundColor='#141414';
-  // Reveal close button and start breathing after spring settles
+  sheet.getBoundingClientRect(); // force reflow
+  // Background springs to full-screen (iOS deceleration: fast start, soft landing)
+  const bgEase='cubic-bezier(0.25,0.46,0.45,0.94)';
+  bg.style.transition=`transform 0.35s ${bgEase},background-color 0.35s ${bgEase},border-radius 0.35s ${bgEase}`;
+  bg.style.transform='none';
+  bg.style.borderRadius='0px';
+  bg.style.backgroundColor='#141414';
+  // Orb springs in with natural overshoot — slight delay so bg leads
+  setTimeout(()=>{
+    if(orbSvg){
+      orbSvg.style.transition='opacity 0.3s ease,transform 0.36s cubic-bezier(0.34,1.56,0.64,1)';
+      orbSvg.style.opacity='1';
+      orbSvg.style.transform='scale(1)';
+    }
+  },70);
+  // Reveal close button + start breathing once bg has settled
   setTimeout(()=>{
     if(closeBtn)closeBtn.style.opacity='1';
     _startGuidedBreath();
-  },500);
+  },400);
 }
 function closeBreathSheet(){
   const sheet=document.getElementById('breath-sheet');
@@ -3713,24 +3730,33 @@ function closeBreathSheet(){
   _stopGuidedBreath();
   const closeBtn=document.getElementById('bsheet-close-btn');
   if(closeBtn)closeBtn.style.opacity='0';
-  // Use stored rect (card may be invisible, but its position is fixed)
+  const bg=document.getElementById('breath-sheet-bg');
+  const orbSvg=document.getElementById('orb-sheet-svg');
   const card=document.getElementById('rest-orb-card');
+  // Orb fades out quickly
+  if(orbSvg){
+    orbSvg.style.transition='opacity 0.15s ease,transform 0.15s ease';
+    orbSvg.style.opacity='0';
+    orbSvg.style.transform='scale(0.8)';
+  }
+  // Background snaps back to card (ease-in = feels like it's being pulled away)
   const rect=sheet._cardRect||(card?card.getBoundingClientRect():null);
-  if(!rect){sheet.style.display='none';if(card)card.style.opacity='';return;}
+  if(!bg||!rect){sheet.style.display='none';if(card)card.style.opacity='';return;}
   const{tx,ty,sx,sy}=_cardSpringTransform(rect);
-  const ease='cubic-bezier(0.2,0,0,1)';
-  sheet.style.transition=`transform 0.4s ${ease},background-color 0.4s ${ease},border-radius 0.4s ${ease}`;
-  sheet.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
-  sheet.style.borderRadius='10px';
-  sheet.style.backgroundColor='#1e1e1e';
+  const ease='cubic-bezier(0.4,0,1,1)';
+  bg.style.transition=`transform 0.28s ${ease},background-color 0.28s ${ease},border-radius 0.28s ${ease}`;
+  bg.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
+  bg.style.borderRadius='10px';
+  bg.style.backgroundColor='#1e1e1e';
   setTimeout(()=>{
     sheet.style.display='none';
-    sheet.style.transform='none';
-    sheet.style.borderRadius='0px';
-    sheet.style.backgroundColor='#141414';
-    sheet.style.transition='none';
+    bg.style.transition='none';
+    bg.style.transform='none';
+    bg.style.borderRadius='0px';
+    bg.style.backgroundColor='#141414';
+    if(orbSvg){orbSvg.style.transition='none';orbSvg.style.opacity='';orbSvg.style.transform='';}
     if(card)card.style.opacity='';
-  },400);
+  },280);
 }
 // ── ORB TILT + GUIDED BREATHING ─────────────────────────────────────────────
 const _BPHASES=['inhale','hold','exhale','hold'];
@@ -4598,8 +4624,9 @@ startApp();
   </div>
 </div>
 
-<!-- BREATHING SHEET — full-screen, inverse-FLIP spring from rest orb card -->
+<!-- BREATHING SHEET — two-layer: bg springs from card, orb animates independently -->
 <div id="breath-sheet" style="display:none">
+  <div id="breath-sheet-bg"></div>
   <button class="bsheet-close" id="bsheet-close-btn" onclick="closeBreathSheet()" aria-label="Close">×</button>
   <svg id="orb-sheet-svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs>
