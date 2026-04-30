@@ -31,6 +31,9 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 | S-Rest-1 — Rest Day UX | `bc5e665` | Check-in "Rest today" trigger (worst-case inputs OR poor tier) + equal-weight Done/Rest today buttons. TRAINING section header: Rest instead / Train instead tertiary button. 150ms cross-fade on section body. Card visibility: training hidden, performance hidden, notes visible. startRestDay() sets S.isRest=true. |
 | S-Rest-2 — Portal Illustration + Tilt | `b641660` | Inline SVG portal door. viewBox 0 180 800 720 → 0 150 800 520 (compact). Tilt-edge JS: desktop mousemove + mobile deviceorientation, inverted parallax ±12px. |
 | S-Rest-3 — Breathing Orb | `bc85dea` | Replaced portal door with warm gold orb. CSS @keyframes: 4s inhale → 2s hold → 6s exhale (12s loop). Glow pulse synced. Tap → guided box breathing 4/4/4/4 × 4 rounds, phase labels fade in/out (DM Mono 11px). Tilt-reactive green rim arc preserved. No persistent copy. |
+| S-Rest-4 — Orb Card + Breath Sheet | `8487407` | Rest state: single full-width orb card (184px, same height as 2×2 grid), whole card tappable. Green accent: full closed circle (not arc). clip-path expansion opens card into full-screen breath sheet (#141414). Guided breathing loops indefinitely (no auto-exit). × close reverses animation. TRAINING label → RESTING. 2D parallax ±5px. |
+| S-Rest-5a — RAF Loop | `ef94bb0` | Single requestAnimationFrame loop drives all continuous animation. Parallax: events write to _tiltTarget only; RAF lerps _tiltCurrent at factor 0.10 → 60fps inertial ring with no CSS transition lag. Ambient breathing: sine wave (12s, scale 1.0–1.15) replaces CSS @keyframes — applied each tick to both card and sheet orbs. Guided breathing keeps CSS transitions for precise 4s phase timing; RAF skips breath updates while guided active. Fix `6532974`: breath-sheet inline display:none required for RAF visibility check. |
+| S-Rest-5b — Sheet Spring | `0b66f3d` | Inverse-FLIP spring: sheet starts at card position via translate+scale, springs to none via cubic-bezier(0.2,0,0,1). background-color #1e1e1e→#141414 + border-radius 10px→0 in same 500ms motion. Close reverses (400ms). toggleRestFromHeader() force-close updated to clear transform. |
 
 ---
 
@@ -39,6 +42,9 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 | # | Slice | Goal | Depends on |
 |---|---|---|---|
 | S-Rest-3 | Breathing Orb | ✓ Done — `bc85dea` | S-Rest-2 |
+| S-Rest-4 | Orb Card + Breath Sheet | ✓ Done — `8487407` | S-Rest-3 |
+| S-Rest-5a | RAF Loop | ✓ Done — `ef94bb0` | S-Rest-4 |
+| S-Rest-5b | Sheet Spring Animation | ✓ Done — `0b66f3d` | S-Rest-5a |
 | S11.5-3 | Extra Session Card | Extra session card (m-extra) re-added to Training section. AC not yet discussed. | 11 |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
@@ -71,6 +77,10 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 - **Touch target expansion pattern**: use padding + negative margin (not min-height) to extend tap area without inflating layout height.
 - **Rest day UX**: rest triggered from check-in (worst inputs) OR section header button OR dot menu. Three entry points, all kept.
 - **S-Rest-3**: orb replaces door. Same SVG visual language. Ambient breathing + tap-to-guided. No persistent copy. AC fully discussed.
+- **S-Rest-4**: single rest card (184px = 2×2 grid height). Whole card tappable. Green ring = full closed circle. Clip-path expansion into full-screen breath sheet. Guided breathing loops indefinitely — user exits via ×. TRAINING title swaps to RESTING in rest state.
+- **S-Rest-5a**: all continuous animation via single RAF loop. Parallax: lerp factor 0.10, 2D translate(x,y), ±5px. Ambient breathing: sine wave, no CSS @keyframes. Guided breathing: CSS transitions for exact 4s phase timing. RAF skips breath updates while guided active.
+- **S-Rest-5b**: inverse-FLIP spring — translate+scale start state, cubic-bezier(0.2,0,0,1), bg+radius in same motion. Shipped `0b66f3d`.
+- **btn-t hover pattern**: in `.card-section-hdr`, suppress background on hover entirely (color change only) to avoid bleed into adjacent cards from touch-target padding expansion.
 
 ## Bugs fixed this session (not slice commits)
 
