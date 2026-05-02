@@ -3777,6 +3777,8 @@ function openBreathSheet(){
   const bg=document.getElementById('breath-sheet-bg');
   const orbSvg=document.getElementById('orb-sheet-svg');
   if(!card||!sheet||!bg)return;
+  // Reset tilt so sheet ring starts from centre, not stale card position
+  _tiltTarget={x:0,y:0};_tiltCurrent={x:0,y:0};
   const rect=card.getBoundingClientRect();
   sheet._cardRect=rect;
   const closeBtn=document.getElementById('bsheet-close-btn');
@@ -3818,6 +3820,8 @@ function openBreathSheet(){
     orbSvg.style.transform='translate(0px,0px) scale(1)';
   }
   setTimeout(()=>{
+    // Clear inline spring transform — RAF writes to child (sheet-tilt-edge) independently
+    if(orbSvg){orbSvg.style.transition='none';orbSvg.style.transform='';}
     if(closeBtn)closeBtn.style.opacity='1';
     _startGuidedBreath();
   },400);
@@ -3862,6 +3866,8 @@ function closeBreathSheet(){
     bg.style.transition='none';bg.style.transform='';bg.style.borderRadius='';bg.style.backgroundColor='';
     if(orbSvg){orbSvg.style.transition='none';orbSvg.style.opacity='';orbSvg.style.transform='';}
     if(card)card.style.opacity='';
+    // Reset tilt so card ring returns to centre after sheet closes
+    _tiltTarget={x:0,y:0};_tiltCurrent={x:0,y:0};
   },280);
 }
 // ── ORB TILT + GUIDED BREATHING ─────────────────────────────────────────────
@@ -3955,6 +3961,7 @@ function _startOrbRaf(){
 }
 function _stopOrbRaf(){
   if(_orbRafId){cancelAnimationFrame(_orbRafId);_orbRafId=null;_orbLastTs=null;}
+  _tiltTarget={x:0,y:0};_tiltCurrent={x:0,y:0};
 }
 
 // Tilt input — events only write to _tiltTarget; RAF loop does the DOM work
