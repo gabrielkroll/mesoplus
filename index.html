@@ -554,6 +554,8 @@ select.bare{cursor:pointer}
 .tday-sug{font-family:var(--mono);font-size:12px;color:var(--ink2);padding:8px 16px;border-top:1px solid var(--line);margin:8px -16px 0}
 .tday-menu-btn{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:52px;background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-menu-btn:hover{background:var(--surf)}
+.section-dot-btn{background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s;flex-shrink:0;margin:-8px -8px -8px 0}
+.section-dot-btn:hover,.section-dot-btn:active{background:var(--surf)}
 .tday-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom,0))}
 #tday-body .activity-block-hdr{display:none}
 .tday-footer{flex-shrink:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--line)}
@@ -996,7 +998,7 @@ select.bare{cursor:pointer}
     <div class="card-section">
       <div class="card-section-hdr" id="training-section-hdr">
         <div class="card-section-title" id="training-section-title">Training</div>
-        <button class="btn-t" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" style="font-size:18px;letter-spacing:1px;color:var(--ink3)">···</button>
+        <button class="section-dot-btn" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" aria-label="More options">···</button>
       </div>
       <div id="training-section-body">
         <div id="training-cards-grid" class="card-grid">
@@ -3217,9 +3219,7 @@ function renderCards(){
         +'</div>';
     }else{
       hdr.innerHTML='<div class="card-section-title" id="training-section-title">'+(isRest?'Resting':'Training')+'</div>'
-        +(isRest
-          ?'<button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">Train instead</button>'
-          :'<button class="btn-t" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" style="font-size:18px;letter-spacing:1px;color:var(--ink3)">···</button>');
+        +'<button class="section-dot-btn" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" aria-label="More options">···</button>';
     }
   }
 
@@ -3724,7 +3724,9 @@ function toggleTrainingHdrMenu(){
   menu.id='training-hdr-menu';menu.className='ab-menu';
   menu.style.top=(r.bottom+8)+'px';
   menu.style.right=(window.innerWidth-r.right)+'px';
-  menu.innerHTML=`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
+  menu.innerHTML=S.isRest===true
+    ?`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Train instead</button>`
+    :`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_trainingHdrMenuOutside,true),10);
 }
