@@ -3720,20 +3720,18 @@ function startRestDay(){
 }
 function toggleTrainingHdrMenu(){
   if(document.getElementById('training-hdr-menu')){closeTrainingHdrMenu();return;}
-  const btn=document.getElementById('training-hdr-menu-btn');
-  const r=btn?btn.getBoundingClientRect():{top:160};
+  // Use section header rect, not button rect — button's extended hit area padding inflates r.bottom
+  const hdr=document.getElementById('training-section-hdr');
+  const anchor=hdr?hdr.getBoundingClientRect():{bottom:160};
   const menu=document.createElement('div');
   menu.id='training-hdr-menu';menu.className='ab-menu';
-  menu.style.top=(r.bottom+8)+'px';
-  menu.style.right='16px'; // anchor to page padding, not rect (extended hit area skews r.right)
+  menu.style.top=(anchor.bottom+8)+'px';
+  menu.style.right='16px';
   menu.innerHTML=S.isRest===true
     ?`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Train instead</button>`
     :`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
   document.body.appendChild(menu);
-  setTimeout(()=>{
-    document.addEventListener('click',_trainingHdrMenuOutside,true);
-    document.addEventListener('scroll',closeTrainingHdrMenu,true); // close on scroll — menu is fixed, button moves
-  },10);
+  setTimeout(()=>document.addEventListener('click',_trainingHdrMenuOutside,true),10);
 }
 function _trainingHdrMenuOutside(e){
   const menu=document.getElementById('training-hdr-menu');
@@ -3745,7 +3743,6 @@ function closeTrainingHdrMenu(){
   const menu=document.getElementById('training-hdr-menu');
   if(menu)menu.remove();
   document.removeEventListener('click',_trainingHdrMenuOutside,true);
-  document.removeEventListener('scroll',closeTrainingHdrMenu,true);
 }
 function toggleRestFromHeader(){
   // Force-close breath sheet instantly if open
