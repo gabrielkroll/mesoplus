@@ -996,7 +996,7 @@ select.bare{cursor:pointer}
     <div class="card-section">
       <div class="card-section-hdr" id="training-section-hdr">
         <div class="card-section-title" id="training-section-title">Training</div>
-        <button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">Rest instead</button>
+        <button class="btn-t" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" style="font-size:18px;letter-spacing:1px;color:var(--ink3)">···</button>
       </div>
       <div id="training-section-body">
         <div id="training-cards-grid" class="card-grid">
@@ -1015,11 +1015,7 @@ select.bare{cursor:pointer}
             <div class="session-card-label">BJJ</div>
             <div class="session-card-body" id="card-bjj-body">Tap to log</div>
           </button>
-          <button class="session-card" id="card-rest" onclick="tapRestCard()">
-            <div class="session-card-dot"></div>
-            <div class="session-card-label">Rest</div>
-            <div class="session-card-body" id="card-rest-body">Tap to mark rest day</div>
-          </button>
+
         </div>
         <div id="training-rest-state" class="rest-empty-state" style="display:none">
           <!-- Single orb card — whole card tappable, same height as card grid -->
@@ -3221,7 +3217,9 @@ function renderCards(){
         +'</div>';
     }else{
       hdr.innerHTML='<div class="card-section-title" id="training-section-title">'+(isRest?'Resting':'Training')+'</div>'
-        +'<button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">'+(isRest?'Train instead':'Rest instead')+'</button>';
+        +(isRest
+          ?'<button class="btn-t" id="training-rest-btn" onclick="toggleRestFromHeader()">Train instead</button>'
+          :'<button class="btn-t" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" style="font-size:18px;letter-spacing:1px;color:var(--ink3)">···</button>');
     }
   }
 
@@ -3249,7 +3247,6 @@ function renderCards(){
     applyCard('resistance',cs.resistance);
     applyCard('custom',cs.custom);
     applyCard('bjj',cs.bjj);
-    applyCard('rest',cs.rest);
   }
   applyCard('performance',cs.performance);
   applyCard('notes',cs.notes);
@@ -3719,6 +3716,27 @@ function startRestDay(){
   // Kept for backward compat — delegates to _applyRestFlag
   _applyRestFlag(true);
 }
+function toggleTrainingHdrMenu(){
+  if(document.getElementById('training-hdr-menu')){closeTrainingHdrMenu();return;}
+  const btn=document.getElementById('training-hdr-menu-btn');
+  const r=btn?btn.getBoundingClientRect():{top:160,right:window.innerWidth-16};
+  const menu=document.createElement('div');
+  menu.id='training-hdr-menu';menu.className='ab-menu';
+  menu.style.top=(r.bottom+8)+'px';
+  menu.style.right=(window.innerWidth-r.right)+'px';
+  menu.innerHTML=`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',_trainingHdrMenuOutside,true),10);
+}
+function _trainingHdrMenuOutside(e){
+  const menu=document.getElementById('training-hdr-menu');
+  if(menu&&!menu.contains(e.target)){closeTrainingHdrMenu();}
+}
+function closeTrainingHdrMenu(){
+  const menu=document.getElementById('training-hdr-menu');
+  if(menu)menu.remove();
+  document.removeEventListener('click',_trainingHdrMenuOutside,true);
+}
 function toggleRestFromHeader(){
   // Force-close breath sheet instantly if open
   const bsheet=document.getElementById('breath-sheet');
@@ -4144,6 +4162,7 @@ function renderSummaryWeek(){
 function nav(id){
   if(_psheetPortal)closeProfileDetail();
   closeProfileSheet();
+  closeTrainingHdrMenu();
   ['summary','train','insights','profile','program','setup','progress'].forEach(v=>{
     document.getElementById('v-'+v).classList.toggle('hidden',v!==id);
     const el=document.getElementById('nl-'+v);if(el)el.classList.toggle('on',v===id);
