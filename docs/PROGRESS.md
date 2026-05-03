@@ -77,7 +77,7 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 - **Profile keys**: gabriel-main → mp7 (main), gabriel → mp7_gabriel (alpha), erik → mp7_erik (alpha). Migration runs on load: mp7_profile='gabriel' remapped to 'gabriel-main' (commit 821d32f).
 - **S11.5 scope agreed**: (1) page titles IA, (2) profile top-right mobile, (3) extra session card. Discuss AC before coding.
 - **Data roadmap**: V1=localStorage+Sheets write-only, V2=CSV download, V3=Sheets bidirectional, V4=real accounts+multi-device.
-- **Touch target expansion pattern**: use padding + negative margin (not min-height) to extend tap area without inflating layout height.
+- **Extended hit area pattern** (Apple HIG term): use padding + negative margin (not min-height) to extend the interactive hit area beyond visual bounds without inflating layout height. On mobile the hit area can bleed over adjacent elements intentionally. Background highlight suppressed in those cases to avoid visual bleed over cards.
 - **Rest day UX**: rest triggered from check-in (worst inputs) OR section header button OR dot menu. Three entry points, all kept.
 - **S-Rest-3**: orb replaces door. Same SVG visual language. Ambient breathing + tap-to-guided. No persistent copy. AC fully discussed.
 - **S-Rest-4**: single rest card (184px = 2×2 grid height). Whole card tappable. Green ring = full closed circle. Clip-path expansion into full-screen breath sheet. Guided breathing loops indefinitely — user exits via ×. TRAINING title swaps to RESTING in rest state.
