@@ -3159,23 +3159,27 @@ function computeCardStates(){
   let customState='not-started',customDisplay='';
   if(trainingDisabled){customState='disabled';}
   else if(customAct){
+    const customHasData=(customAct.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
     if(customAct.completed){
       customState='done';
       const exs=customAct.supersets.flatMap(ss=>ss.exercises);
       const loggedEx=exs.filter(e=>e.kg).length;
       const setTotal=exs.reduce((n,e)=>n+(parseInt(e.sets)||0),0);
       customDisplay=loggedEx+' exercises · '+setTotal+' sets';
-    }else{customState='in-progress';}
+    }else if(customHasData){customState='in-progress';}
+    // else: stub exists, no data entered → stays 'not-started'
   }
 
   // BJJ
   let bjjState='not-started',bjjDisplay='';
   if(trainingDisabled){bjjState='disabled';}
   else if(bjjAct){
+    const bjjHasData=!!(bjjAct.bjj&&(bjjAct.bjj.gc||bjjAct.bjj.desc||bjjAct.bjj.partner||bjjAct.bjj.drilling||bjjAct.bjj.good||bjjAct.bjj.bad||bjjAct.bjj.subs||bjjAct.bjj.next||(bjjAct.bjj.positions||[]).length));
     if(bjjAct.completed){
       bjjState='done';
       bjjDisplay=bjjAct.bjj?.gc||'Session logged';
-    }else{bjjState='in-progress';}
+    }else if(bjjHasData){bjjState='in-progress';}
+    // else: stub exists, no data entered → stays 'not-started'
   }
 
   // Performance
@@ -3255,6 +3259,7 @@ function renderCards(){
 }
 
 let _csheetType=null;
+let _csheetWasNew=false;
 function openCardSheet(type){
   _csheetType=type;
   const eyebrow=document.getElementById('csheet-eyebrow');
@@ -3275,7 +3280,8 @@ function openCardSheet(type){
       if(type==='bjj'){act={id,type:'bjj',supersets:[],bjj:{},completed:false};}
       else{act={id,type:'custom',supersets:[{label:'',exercises:[_newEx()]}],bjj:{},completed:false};}
       S.activities.push(act);markDirty();
-    }
+      _csheetWasNew=true;
+    }else{_csheetWasNew=false;}
     // Orphan IDs so they don't clash with sheet re-render
     ['act-block-','sug-text-','adopt-bar-','adopt-undo-btn-','ex-tbody-','undo-ss-'].forEach(prefix=>{
       const el=document.getElementById(prefix+act.id);if(el)el.removeAttribute('id');
@@ -3310,14 +3316,27 @@ function _closeCardSheetDOM(){
 }
 
 function closeCardSheet(){
-  // Persist in-progress data before closing
   if(_csheetType==='bjj'){
     const act=S.activities.find(a=>a.type==='bjj');
-    if(act){act.bjj=getBJJ(act.id);markDirty();}
+    if(act){
+      const b=getBJJ(act.id);
+      const hasData=!!(b.gc||b.desc||b.partner||b.drilling||b.good||b.bad||b.subs||b.next||(b.positions||[]).length);
+      if(hasData){act.bjj=b;markDirty();}
+      else if(_csheetWasNew){S.activities=S.activities.filter(a=>a.type!=='bjj');persist();}
+    }
+  }else if(_csheetType==='custom'){
+    if(_csheetWasNew){
+      const act=S.activities.find(a=>a.type==='custom');
+      if(act){
+        const hasData=(act.supersets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir));
+        if(!hasData){S.activities=S.activities.filter(a=>a.type!=='custom');persist();}
+      }
+    }
   }else if(_csheetType==='notes'){
     const ta=document.getElementById('csheet-notes');
     if(ta){S.notes=ta.value;markDirty();}
   }
+  _csheetWasNew=false;
   _closeCardSheetDOM();
 }
 
