@@ -463,8 +463,8 @@ select.bare{cursor:pointer}
   .settings-card-title{font-size:20px;margin-bottom:0}
   .settings-card .s-row{border-bottom:1px solid var(--line);padding-bottom:14px}
   .hub-only{display:none!important}
-  /* tday-inner: constrain to content column on desktop */
-  .tday-inner{max-width:900px;margin:0 auto}
+  /* constrain all full-screen sheet inners to content column on desktop */
+  .tday-inner,.csheet-inner,.rs-inner{max-width:900px;margin:0 auto}
 }
 /* ANALYSIS + SETTINGS */
 .a-out{font-size:12px;color:var(--ink2);line-height:1.8;white-space:pre-wrap;padding-top:14px;min-height:60px}
@@ -602,6 +602,7 @@ select.bare{cursor:pointer}
 .csheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
 .csheet.open{transform:translateY(0);visibility:visible}
 .csheet-inner{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;width:100%}
+.rs-inner{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;width:100%}
 .csheet-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 16px;border-bottom:1px solid var(--line);position:relative}
 .csheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .csheet-close:hover{background:var(--surf)}
@@ -4694,6 +4695,7 @@ startApp();
 <!-- READINESS SHEET -->
 <div id="rs-backdrop" class="rs-backdrop" onclick="closeReadinessSheet()"></div>
 <div id="rs-sheet" class="rs-sheet" role="dialog" aria-modal="true" aria-label="Readiness check-in">
+  <div class="rs-inner">
   <div class="rs-hdr">
     <button class="rs-close" onclick="closeReadinessSheet()" aria-label="Close">×</button>
     <div class="rs-eyebrow">Check-in</div>
@@ -4713,6 +4715,7 @@ startApp();
   <div class="rs-footer" id="rs-footer">
     <button class="rs-done-btn" id="rs-cta-btn" onclick="closeReadinessSheet()">Done</button>
   </div>
+  </div><!-- /rs-inner -->
 </div>
 
 <!-- TRAINING DAY SHEET -->
