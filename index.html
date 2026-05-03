@@ -554,7 +554,7 @@ select.bare{cursor:pointer}
 .tday-sug{font-family:var(--mono);font-size:12px;color:var(--ink2);padding:8px 16px;border-top:1px solid var(--line);margin:8px -16px 0}
 .tday-menu-btn{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:52px;background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .tday-menu-btn:hover{background:var(--surf)}
-.section-dot-btn{background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s;flex-shrink:0;margin:-8px -8px -8px 0}
+.section-dot-btn{background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;padding:3px 8px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s,color .1s;flex-shrink:0}
 .section-dot-btn:hover,.section-dot-btn:active{background:var(--surf)}
 .tday-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom,0))}
 #tday-body .activity-block-hdr{display:none}
@@ -666,6 +666,8 @@ select.bare{cursor:pointer}
   .btn-t{font-size:11px;padding:6px 10px;min-height:44px;display:inline-flex;align-items:center}
   .card-section-hdr .btn-t{min-height:unset;padding-top:16px;padding-bottom:16px;margin-top:-16px;margin-bottom:-16px}
   .card-section-hdr .btn-t:hover,.card-section-hdr .btn-t:active{background:none;color:var(--ink2)}
+  .section-dot-btn{padding:16px 16px 16px 8px;margin:-16px -16px -16px 0}
+  .section-dot-btn:hover,.section-dot-btn:active{background:none;color:var(--ink2)}
   .btn-o{font-size:12px;padding:10px 16px;min-height:44px}
   .btn-s{font-size:12px;padding:10px 18px;min-height:44px}
   /* Week nav: arrow | centered label | arrow, then pills full width below */
