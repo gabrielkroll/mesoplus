@@ -3737,7 +3737,9 @@ function toggleTrainingHdrMenu(){
 }
 function _trainingHdrMenuOutside(e){
   const menu=document.getElementById('training-hdr-menu');
-  if(menu&&!menu.contains(e.target)){closeTrainingHdrMenu();}
+  const btn=document.getElementById('training-hdr-menu-btn');
+  // exclude the trigger button — its own onclick handles the toggle
+  if(menu&&!menu.contains(e.target)&&!(btn&&btn.contains(e.target))){closeTrainingHdrMenu();}
 }
 function closeTrainingHdrMenu(){
   const menu=document.getElementById('training-hdr-menu');
