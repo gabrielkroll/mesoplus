@@ -83,6 +83,9 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 - **S-Rest-5a**: all continuous animation via single RAF loop. Parallax: lerp factor 0.10, 2D translate(x,y), ±5px. Ambient breathing: sine wave, no CSS @keyframes. Guided breathing: CSS transitions for exact 4s phase timing. RAF skips breath updates while guided active.
 - **S-Rest-5b**: inverse-FLIP spring — translate+scale start state, cubic-bezier(0.2,0,0,1), bg+radius in same motion. Shipped `0b66f3d`.
 - **btn-t hover pattern**: in `.card-section-hdr`, suppress background on hover entirely (color change only) to avoid bleed into adjacent cards from touch-target padding expansion.
+- **Readiness sheet is always scoped to S.selectedDate** — never td(). Past days show "Save" not "Start Day X". closeReadinessSheet must never overwrite S.selectedDate.
+- **Import merge rule**: existing sessions are never skipped wholesale — if missing sleep/energy/soreness, those fields are filled from Sheets. Local data always wins (only gaps filled).
+- **Tilt state reset rule**: _tiltTarget/_tiltCurrent must be zeroed at every rest↔non-rest transition and at breath sheet open/close so ring always starts from centre.
 
 ## Bugs fixed this session (not slice commits)
 
@@ -99,6 +102,9 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 | `f9d8c07` | gymDone + day indicators: added sessionHasData guard — empty template sessions no longer counted as done |
 | `e7f9168` | Removed sets pace label (behind/on pace) — bar + numbers self-explanatory |
 | `de09f06` | Touch target expansion on section header button — padding+negative margin, no layout inflation |
+| `3a4072c` | Import merges readiness into existing sessions: skipped dates now get sleep/energy/soreness filled from Sheets if missing locally; status shows "X readiness merged" |
+| `2ed609a` | Readiness sheet past-day fix: openReadinessSheet/closeReadinessSheet/\_updateRsSheet all used td() — changed to S.selectedDate; past days show "Save" not "Start Day X"; closeReadinessSheet no longer overwrites S.selectedDate or bleeds perf/notes onto today |
+| `9ee6584` | Tilt reset on breath sheet open/close and RAF stop: _tiltTarget/\_tiltCurrent now zeroed at open (sheet ring starts fresh), at close (card ring returns to centre), and in \_stopOrbRaf (rest→train→rest no longer carries stale position); orbSvg inline spring transform cleared after 400ms so RAF child writes have clean parent |
 
 ## Known Debt
 
