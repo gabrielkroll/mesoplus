@@ -557,7 +557,7 @@ select.bare{cursor:pointer}
 .section-dot-btn{background:none;border:none;color:var(--ink3);font-size:18px;letter-spacing:1px;cursor:pointer;padding:3px 8px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s,color .1s;flex-shrink:0}
 .section-dot-btn:hover,.section-dot-btn:active{background:var(--surf)}
 .tday-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom,0))}
-#tday-body .activity-block-hdr{display:none}
+#tday-body .activity-toggle-btn{display:none}
 .tday-footer{flex-shrink:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--line)}
 .tday-footer-btn{width:100%;padding:14px;border-radius:10px;border:none;font-family:var(--mono);font-size:13px;letter-spacing:.04em;cursor:pointer;transition:opacity .15s;outline:none}
 .tday-footer-btn.primary{background:var(--ink);color:var(--lift)}
@@ -3267,7 +3267,7 @@ function openCardSheet(type){
   const title=document.getElementById('csheet-title');
   const body=document.getElementById('csheet-body');
   const footer=document.getElementById('csheet-footer');
-  const cfg={bjj:{eyebrow:'Training',title:'BJJ Session'},custom:{eyebrow:'Training',title:'Custom Training'},performance:{eyebrow:'Reflect',title:'Performance'},notes:{eyebrow:'Reflect',title:'Notes'}}[type];
+  const cfg={bjj:{eyebrow:'Training',title:'BJJ'},custom:{eyebrow:'Training',title:'Custom'},performance:{eyebrow:'Reflect',title:'Performance'},notes:{eyebrow:'Reflect',title:'Notes'}}[type];
   if(!cfg)return;
   eyebrow.textContent=cfg.eyebrow;title.textContent=cfg.title;
   const menuBtn=document.getElementById('csheet-menu-btn');
@@ -3618,7 +3618,7 @@ function _updateRsSheet(){
   if(!card)return;
   const allSet=S.sleep&&S.energy&&S.soreness;
   const someSet=S.sleep||S.energy||S.soreness;
-  const dashHtml=`<div style="display:flex;align-items:center;justify-content:center;width:100%"><span style="font-family:var(--serif);font-style:italic;font-size:48px;color:var(--ink3);line-height:1">—</span></div>`;
+  const dashHtml=`<div style="display:flex;align-items:center;justify-content:center;width:100%"><span style="font-family:var(--mono);font-size:13px;color:var(--ink3)">How are you feeling?</span></div>`;
   if(!someSet){
     card.classList.remove('rs-outcome-wave');
     card.innerHTML=dashHtml;
@@ -4076,8 +4076,8 @@ function _buildTrainingSheetUI(act){
   const letter=DAY_LETTER[act.gymDay-1];
   const focus=DAY_FOCUS[act.gymDay]||'';
   const _tst=profileCfg().sessionType;
-  document.getElementById('tday-eyebrow').textContent=`Day ${letter}${_tst?' · '+_tst:''}`;
-  document.getElementById('tday-title').textContent=focus;
+  document.getElementById('tday-eyebrow').textContent='Training';
+  document.getElementById('tday-title').textContent='Resistance';
   // Orphan any IDs the Train tab may have rendered for this activity
   ['act-block-','sug-text-','adopt-bar-','adopt-undo-btn-','ex-tbody-','undo-ss-'].forEach(prefix=>{
     const el=document.getElementById(prefix+act.id);
@@ -4699,7 +4699,7 @@ startApp();
   <div class="rs-hdr">
     <button class="rs-close" onclick="closeReadinessSheet()" aria-label="Close">×</button>
     <div class="rs-eyebrow">Check-in</div>
-    <div class="rs-title">How are you feeling?</div>
+    <div class="rs-title">Readiness</div>
   </div>
   <div class="rs-body">
     <div class="rs-outcome" id="rs-outcome">
