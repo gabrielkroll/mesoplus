@@ -7,7 +7,7 @@
 
 ## Now
 
-**Still open: S11.5 item 3**
+**Next: S11.5 item 3**
 Extra session card re-added to Training section. AC not yet discussed — discuss before coding.
 
 **After S11.5:** S8 — Insights → Weekly Review Flow (AC not yet discussed).
@@ -36,6 +36,7 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 | S-Rest-5b — Sheet Spring | `0b66f3d` | Inverse-FLIP spring: sheet starts at card position via translate+scale, springs to none via cubic-bezier(0.2,0,0,1). background-color #1e1e1e→#141414 + border-radius 10px→0 in same 500ms motion. Close reverses (400ms). toggleRestFromHeader() force-close updated to clear transform. |
 | S-Rest-Data-1 — Non-destructive Rest Toggle | `e003b75` | `_applyRestFlag(value)` single source of truth — isRest is a flag only, activities never touched. Confirmation gate when training data exists (inline header row, no modal). Past-day rest marking via S.selectedDate. `overrideRestDay()` fixed to use `_applyRestFlag(null)`. |
 | S-Rest-Data-2 — Sheets sync fix for isRest | `89c1344` | `_applyRestFlag` deletes date from `_synced` so rest flag changes trigger re-sync. `toRows` appends isRest as column 23 ('1'/'') on all non-BJJ rows. `importFromSheets` reads col 22 to restore isRest — backward compat with old 'Rest' row type. BJJ+rest edge case noted as limitation. |
+| S-Rest-6 — Rest UX: dot menu + card removal | `342e5e3` | TRAINING header "Rest instead" btn replaced with ··· dot menu (toggleTrainingHdrMenu). Menu has single "Rest instead" item — friction to make rest intentional. Rest state still shows "Train instead" as direct visible button. Rest card removed from 2×2 grid (rest is a full UI state, not a card action). nav() closes menu on tab switch. |
 
 ---
 
@@ -83,6 +84,7 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 - **S-Rest-5a**: all continuous animation via single RAF loop. Parallax: lerp factor 0.10, 2D translate(x,y), ±5px. Ambient breathing: sine wave, no CSS @keyframes. Guided breathing: CSS transitions for exact 4s phase timing. RAF skips breath updates while guided active.
 - **S-Rest-5b**: inverse-FLIP spring — translate+scale start state, cubic-bezier(0.2,0,0,1), bg+radius in same motion. Shipped `0b66f3d`.
 - **btn-t hover pattern**: in `.card-section-hdr`, suppress background on hover entirely (color change only) to avoid bleed into adjacent cards from touch-target padding expansion.
+- **S-Rest-6**: Rest entry points are now (1) low readiness check-in, (2) dot menu in resistance training sheet, (3) ··· dot menu in TRAINING section header. Rest card removed — rest is a full UI state with its own orb card, not a 2×2 grid item. Recovery ("Train instead") stays as a direct button in rest state for easy override.
 - **Readiness sheet is always scoped to S.selectedDate** — never td(). Past days show "Save" not "Start Day X". closeReadinessSheet must never overwrite S.selectedDate.
 - **Import merge rule**: existing sessions are never skipped wholesale — if missing sleep/energy/soreness, those fields are filled from Sheets. Local data always wins (only gaps filled).
 - **Tilt state reset rule**: _tiltTarget/_tiltCurrent must be zeroed at every rest↔non-rest transition and at breath sheet open/close so ring always starts from centre.
