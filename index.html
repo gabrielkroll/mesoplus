@@ -2290,24 +2290,27 @@ function _showToast(msg){
 function setSave(msg,type){if(type==='err'&&msg)_showToast(msg);}
 function showUndo(v){} // element removed — kept for call-site compatibility
 
-// ---------- Remove-session undo toast ----------
-let _removeUndoFn=null,_removeConfirmFn=null;
-function _showRemoveUndo(label,undoFn,confirmFn){
+// ---------- Remove-session inline undo ----------
+// Undo lives on the card itself, not a floating toast.
+// type: 'tday' → section header flips; 'template'|'bjj'|'custom' → card transforms.
+let _removePending=null; // {type, undoFn, confirmFn}
+function _showRemoveUndo(label,undoFn,confirmFn,type){
   _flushRemovePending();
-  _removeUndoFn=undoFn;_removeConfirmFn=confirmFn;
-  let t=document.getElementById('_remove-toast');
-  if(!t){t=document.createElement('div');t.id='_remove-toast';t.style.cssText='position:fixed;bottom:calc(96px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#2c2c2e;color:var(--ink);font-family:var(--mono);font-size:12px;padding:10px 16px;border-radius:10px;z-index:600;white-space:nowrap;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:12px;transition:opacity .25s;opacity:0;pointer-events:auto';document.body.appendChild(t);}
-  t.innerHTML=`<span>${label}</span><button onclick="_doRemoveUndo()" style="background:none;border:none;font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer;padding:0;letter-spacing:.04em;-webkit-tap-highlight-color:transparent">↩ Undo</button><button onclick="_doRemoveConfirm()" style="background:none;border:none;font-family:var(--mono);font-size:15px;color:var(--ink3);cursor:pointer;padding:0;line-height:1;min-width:20px;-webkit-tap-highlight-color:transparent">×</button>`;
-  t.style.opacity='1';
+  _removePending={type,undoFn,confirmFn};
+  renderCards();
 }
-function _hideRemoveToast(){const t=document.getElementById('_remove-toast');if(t)t.style.opacity='0';}
-function _doRemoveUndo(){const fn=_removeUndoFn;_removeUndoFn=null;_removeConfirmFn=null;_hideRemoveToast();if(fn)fn();}
-function _doRemoveConfirm(){const fn=_removeConfirmFn;_removeUndoFn=null;_removeConfirmFn=null;_hideRemoveToast();if(fn)fn(false);}
+function _hideRemoveToast(){} // no-op — kept for call-site safety
+function _doRemoveUndo(){
+  const fn=_removePending?.undoFn;_removePending=null;renderCards();if(fn)fn();
+}
+function _doRemoveConfirm(){
+  const fn=_removePending?.confirmFn;_removePending=null;renderCards();if(fn)fn(false);
+}
 function _flushRemovePending(keepalive=false){
-  if(!_removeConfirmFn)return;
-  const fn=_removeConfirmFn;_removeUndoFn=null;_removeConfirmFn=null;_hideRemoveToast();fn(keepalive);
+  if(!_removePending)return;
+  const fn=_removePending.confirmFn;_removePending=null;renderCards();fn(keepalive);
 }
-// ----------------------------------------------
+// ------------------------------------------------
 
 function markDirty(){
   if(_undoPrev===undefined){const ex=S.sessions.find(s=>s.date===S.selectedDate);_undoPrev=ex?JSON.parse(JSON.stringify(ex)):null;showUndo(true);}
@@ -3229,7 +3232,13 @@ function renderCards(){
   // Section header: normal | confirm | resting states
   const hdr=document.getElementById('training-section-hdr');
   if(hdr){
-    if(_restConfirmPending&&!isRest){
+    if(_removePending?.type==='tday'){
+      hdr.innerHTML='<div class="card-section-title">Day removed</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn-t" style="color:var(--accent)" onclick="_doRemoveUndo()">↩ Undo</button>'
+        +'<button class="btn-t" onclick="_doRemoveConfirm()">×</button>'
+        +'</div>';
+    }else if(_restConfirmPending&&!isRest){
       hdr.innerHTML='<div class="card-section-title">Rest today?</div>'
         +'<div style="display:flex;gap:6px">'
         +'<button class="btn-t" style="color:var(--danger)" onclick="confirmRestToggle()">Mark as rest</button>'
@@ -3248,6 +3257,23 @@ function renderCards(){
   function applyCard(id,cd){
     const card=document.getElementById('card-'+id);if(!card)return;
     const body=document.getElementById('card-'+id+'-body');
+    // Removed state — card shows inline undo; tap card = undo, × = confirm
+    const _typeMap={resistance:'template',custom:'custom',bjj:'bjj'};
+    if(_removePending&&_typeMap[id]===_removePending.type){
+      card.className='session-card';
+      // Inject persistent × button (once only)
+      if(!card.querySelector('.card-remove-x')){
+        const x=document.createElement('button');
+        x.className='card-remove-x';
+        x.style.cssText='position:absolute;top:6px;right:8px;background:none;border:none;color:var(--ink3);font-size:15px;cursor:pointer;min-width:24px;min-height:24px;padding:0;line-height:1;-webkit-tap-highlight-color:transparent';
+        x.textContent='×';x.onclick=e=>{e.stopPropagation();_doRemoveConfirm();};
+        card.appendChild(x);
+      }
+      if(body)body.textContent='Removed — tap to undo';
+      return;
+    }
+    // Normal state — remove any lingering × button
+    card.querySelector('.card-remove-x')?.remove();
     card.className='session-card'+(cd.state==='disabled'?' disabled':cd.state==='in-progress'?' in-progress':cd.state==='done'?' done':'');
     if(!body)return;
     if(cd.state==='done'){
@@ -3274,6 +3300,7 @@ let _csheetType=null;
 let _csheetWasNew=false;
 let _csheetUndoData=null,_csheetUndoTimer=null;
 function openCardSheet(type){
+  if(_removePending?.type===type){_doRemoveUndo();return;}
   _csheetType=type;
   const eyebrow=document.getElementById('csheet-eyebrow');
   const title=document.getElementById('csheet-title');
@@ -3469,7 +3496,8 @@ function removeCsheetSession(){
       const s=S.sessions.find(sess=>sess.date===date);
       if(s&&sessionHasData(s)){syncDayToSheets(date);}
       else{deleteFromSheets(date,keepalive).then(ok=>{if(ok)markSynced(date);});}
-    }
+    },
+    type // card type for inline undo rendering
   );
 }
 
@@ -3653,7 +3681,8 @@ function removeTdaySession(){
     },
     (keepalive)=>{ // × Confirm — clean Sheets
       deleteFromSheets(date,keepalive).then(ok=>{if(ok)markSynced(date);});
-    }
+    },
+    'tday' // signals section header flip in renderCards
   );
 }
 function _injectUndoBanner(actId){
@@ -4135,6 +4164,7 @@ function overrideRestDay(){
 let _tdayActId=null,_tdayWasEmpty=false,_tdayUndoData=null;
 
 function openTrainingSheet(){
+  if(_removePending?.type==='template'){_doRemoveUndo();return;}
   const date=S.selectedDate;  // use selected date — may be today or any past date
   autoSaveCurrentDay();
   // S working state already reflects the selected date (loaded by selectDate/loadSess)
