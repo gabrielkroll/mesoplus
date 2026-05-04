@@ -3341,13 +3341,22 @@ function finishCardSheet(type){
   _closeCardSheetDOM();
 }
 
+// Shared utility — returns a CSS property object for a position:fixed dropdown
+// anchored to a trigger element. Callers use Object.assign(menu.style, _dropdownPos(btn)).
+// above=true: menu floats above el (for bars pinned to the viewport bottom).
+function _dropdownPos(el,above){
+  const r=el.getBoundingClientRect();
+  const right=Math.max(16,window.innerWidth-r.right)+'px';
+  if(above) return {top:'auto',bottom:(window.innerHeight-r.top+8)+'px',right};
+  return {top:(r.bottom+8)+'px',bottom:'auto',right};
+}
+
 function toggleCsheetMenu(){
   if(document.getElementById('csheet-menu')){closeCsheetMenu();return;}
   const btn=document.getElementById('csheet-menu-btn');
-  const r=btn.getBoundingClientRect();
   const menu=document.createElement('div');
   menu.id='csheet-menu';menu.className='ab-menu';
-  menu.style.top=(r.bottom+8)+'px';menu.style.right=Math.max(16,window.innerWidth-r.right)+'px';menu.style.bottom='auto';
+  Object.assign(menu.style,btn?_dropdownPos(btn):{top:'80px',bottom:'auto',right:'16px'});
   menu.innerHTML=`<button class="ab-menu-item" onclick="clearCsheetEntries()">Clear entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeCsheetSession()">Remove session</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_csheetMenuOutside,true),10);
@@ -3426,7 +3435,7 @@ function renderActionBar(){
   const btnBase='background:none;border:none;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;border-radius:10px;padding:0 8px';
   const left=(top,bottom='')=>`<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0"><span style="${nameS}">${top}</span>${bottom?`<span style="${stateS}">${bottom}</span>`:''}</div>`;
   const actionBtn=(label,fn)=>`<button onclick="${fn}" style="${btnBase};font-family:var(--mono);font-size:12px;color:var(--ink2);letter-spacing:.04em" aria-label="${label}">${label}</button>`;
-  const menuBtn=()=>`<button onclick="event.stopPropagation();toggleAbMenu()" style="${btnBase};font-size:18px;color:var(--ink3);letter-spacing:1px" aria-label="More options">···</button>`;
+  const menuBtn=()=>`<button id="ab-more-btn" onclick="event.stopPropagation();toggleAbMenu()" style="${btnBase};font-size:18px;color:var(--ink3);letter-spacing:1px" aria-label="More options">···</button>`;
   const dayName=state.letter?`Day ${state.letter} · ${state.focus}`:'';
   if(state.type==='checkin-needed'){
     bar.onclick=openReadinessSheet;bar.style.cursor='pointer';
@@ -3463,13 +3472,11 @@ function hasMinExerciseData(){
 function toggleAbMenu(){
   if(document.getElementById('ab-menu')){closeAbMenu();return;}
   const state=getActionBarState();
-  const bar=document.getElementById('action-bar');
-  const r=bar.getBoundingClientRect();
+  if(state.type!=='rest'){return;}
+  const btn=document.getElementById('ab-more-btn');
   const menu=document.createElement('div');
   menu.id='ab-menu';menu.className='ab-menu';
-  menu.style.bottom=(window.innerHeight-r.top+16)+'px';
-  menu.style.right=Math.max(16,window.innerWidth-r.right)+'px';
-  if(state.type!=='rest'){closeAbMenu();return;}
+  Object.assign(menu.style,btn?_dropdownPos(btn,true):{top:'auto',bottom:'80px',right:'16px'});
   menu.innerHTML=`<button class="ab-menu-item" onclick="overrideRestDay()">Train today</button><button class="ab-menu-item" onclick="openAddSessionSheet()">Add custom session</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_abMenuOutside,true),10);
@@ -3517,10 +3524,9 @@ function finishTday(){
 function toggleTdayMenu(){
   if(document.getElementById('tday-menu')){closeTdayMenu();return;}
   const btn=document.querySelector('.tday-menu-btn');
-  const r=btn.getBoundingClientRect();
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
-  menu.style.top=(r.bottom+8)+'px';menu.style.right=Math.max(16,window.innerWidth-r.right)+'px';menu.style.bottom='auto';
+  Object.assign(menu.style,btn?_dropdownPos(btn):{top:'80px',bottom:'auto',right:'16px'});
   const _undoItem=_undoPrev!==undefined?`<button class="ab-menu-item" onclick="closeTdayMenu();undoSession()">Undo all changes</button><div class="ab-menu-sep"></div>`:'';
   menu.innerHTML=`${_undoItem}<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeTdaySession()">Remove session</button>`;
   document.body.appendChild(menu);
@@ -3752,16 +3758,15 @@ function startRestDay(){
 }
 function toggleTrainingHdrMenu(){
   if(document.getElementById('training-hdr-menu')){closeTrainingHdrMenu();return;}
-  // top anchored to section header (avoids extended hit area inflating r.bottom on mobile)
-  // right anchored to button rect — on mobile Math.max(16,...) clamps correctly
   const hdr=document.getElementById('training-section-hdr');
   const btn=document.getElementById('training-hdr-menu-btn');
-  const anchor=hdr?hdr.getBoundingClientRect():{bottom:160};
-  const btnR=btn?btn.getBoundingClientRect():{right:window.innerWidth-16};
+  // _dropdownPos handles right; override top with header bottom to avoid
+  // extended-hit-area padding inflating btn.getBoundingClientRect().bottom on mobile
+  const pos=btn?_dropdownPos(btn):{top:'160px',bottom:'auto',right:'16px'};
+  if(hdr) pos.top=(hdr.getBoundingClientRect().bottom+8)+'px';
   const menu=document.createElement('div');
   menu.id='training-hdr-menu';menu.className='ab-menu';
-  menu.style.top=(anchor.bottom+8)+'px';
-  menu.style.right=Math.max(16,window.innerWidth-btnR.right)+'px';
+  Object.assign(menu.style,pos);
   menu.innerHTML=S.isRest===true
     ?`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Train instead</button>`
     :`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
