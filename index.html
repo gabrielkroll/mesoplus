@@ -776,22 +776,23 @@ select.bare{cursor:pointer}
 .profile-sheet[data-mode="popover"] .psheet-handle{display:none}
 .profile-sheet[data-mode="popover"] .psheet-close{display:none}
 .psheet-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:12px auto 0;flex-shrink:0}
-.psheet-titlebar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;flex-shrink:0}
-.psheet-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)}
-.psheet-close{background:none;border:none;cursor:pointer;color:var(--ink2);font-size:20px;line-height:1;padding:4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;flex-shrink:0}
-.psheet-close:hover,.psheet-close:active{color:var(--ink)}
-.psheet-userblock{display:flex;align-items:center;gap:14px;padding:0 20px 12px;flex-shrink:0}
+.psheet-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 16px;border-bottom:1px solid var(--line);position:relative}
+.psheet-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.psheet-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:52px}
+.psheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
+.psheet-close:hover{background:var(--surf)}
+.profile-sheet[data-mode="popover"] .psheet-title{padding-right:0}
+.psheet-userblock{display:flex;align-items:center;gap:14px;padding:16px 16px 12px;flex-shrink:0}
 .psheet-avatar{width:48px;height:48px;border-radius:50%;background:var(--line2);color:#fff;font-family:var(--mono);font-size:15px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
-.psheet-name-input{background:none;border:none;border-bottom:1px solid transparent;color:var(--ink);font-family:var(--mono);font-size:15px;outline:none;width:100%;padding:0;pointer-events:none;transition:border-color .12s}
-.psheet-name-input:not([readonly]){pointer-events:auto;border-bottom-color:var(--line2)}
-.psheet-edit-btn{background:none;border:none;color:var(--ink3);font-size:11px;cursor:pointer;padding:2px 0 2px 4px;line-height:1;flex-shrink:0;-webkit-tap-highlight-color:transparent}
-.psheet-edit-btn:hover{color:var(--ink2)}
-.psheet-usub{font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.psheet-name-bare{width:100%;background:none;border:none;border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:15px;padding:2px 0;outline:none;transition:border-color .12s;-webkit-tap-highlight-color:transparent}
+.psheet-name-bare:focus{border-bottom-color:var(--line2)}
+.psheet-name-bare::placeholder{color:var(--ink3)}
+.psheet-usub{font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
 .psheet-rulefull{height:1px;background:var(--line);flex-shrink:0}
 #psheet-list{flex:1;overflow-y:auto;padding:6px 0 16px}
-.psheet-row{display:flex;align-items:center;width:100%;background:none;border:none;padding:0 20px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s}
-.psheet-row:hover{background:rgba(128,128,128,.07)}
-.psheet-row:active{background:rgba(128,128,128,.12)}
+.psheet-row{display:flex;align-items:center;width:100%;background:none;border:none;padding:0 16px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s}
+.psheet-row:hover{background:var(--surf)}
+.psheet-row:active{background:var(--surf)}
 .psheet-row-label{flex:1;font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.01em;text-align:left}
 .psheet-row-chevron{color:var(--line2);font-size:16px;line-height:1;flex-shrink:0}
 .psheet-row.danger .psheet-row-label{color:var(--danger)}
@@ -904,18 +905,16 @@ select.bare{cursor:pointer}
 <div class="psheet-overlay" id="psheet-overlay" onclick="closeProfileSheet()"></div>
 <div class="profile-sheet" id="profile-sheet">
   <div class="psheet-handle"></div>
-  <div class="psheet-titlebar">
-    <span class="psheet-title">Profile</span>
+  <div class="psheet-hdr">
     <button class="psheet-close" onclick="closeProfileSheet()" aria-label="Close">×</button>
+    <div class="psheet-eyebrow">Account</div>
+    <div class="psheet-title">Profile</div>
   </div>
   <div class="psheet-userblock">
     <div class="psheet-avatar" id="psheet-avatar"></div>
     <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:center;gap:4px">
-        <input class="psheet-name-input" id="psheet-name-input" placeholder="Your name" readonly
-               onblur="savePsheetName()" onkeydown="if(event.key==='Enter')this.blur()">
-        <button class="psheet-edit-btn" onclick="startPsheetEdit()" aria-label="Edit name">✎</button>
-      </div>
+      <input class="psheet-name-bare" id="psheet-name-input" placeholder="Your name"
+             oninput="savePsheetName()" onkeydown="if(event.key==='Enter')this.blur()">
       <div class="psheet-usub" id="psheet-usub"></div>
     </div>
   </div>
@@ -4284,9 +4283,7 @@ function openProfileSheet(){
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
   // Sync inline name input
   const pni=document.getElementById('psheet-name-input');
-  if(pni){pni.value=name;pni.setAttribute('readonly','');}
-  const eBtn=document.getElementById('psheet-edit-btn'); // ensure pencil visible
-  if(eBtn)eBtn.style.display='';
+  if(pni)pni.value=name;
   const sh=document.getElementById('profile-sheet');
   const isDesktop=window.innerWidth>=601;
   if(isDesktop){
@@ -4328,20 +4325,9 @@ function psheetNav(tabId,title){
   if(window.innerWidth>=601){closeProfileSheet();nav(tabId.slice(2));}
   else{openProfileDetail(tabId,title);}
 }
-function startPsheetEdit(){
-  const inp=document.getElementById('psheet-name-input');
-  const btn=document.getElementById('psheet-edit-btn');
-  if(!inp)return;
-  inp.removeAttribute('readonly');
-  inp.focus();inp.select();
-  if(btn)btn.style.display='none';
-}
 function savePsheetName(){
   const inp=document.getElementById('psheet-name-input');
-  const btn=document.getElementById('psheet-edit-btn');
   if(!inp)return;
-  inp.setAttribute('readonly','');
-  if(btn)btn.style.display='';
   const sn=document.getElementById('s-name');
   if(sn){sn.value=inp.value;updateProfileNav();}
 }
