@@ -60,8 +60,6 @@ body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;bac
 .btn-o:hover{border-color:var(--line2);color:var(--ink)}
 .btn-s{background:var(--ink);border:none;color:var(--lift);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:4px;transition:opacity .12s;white-space:nowrap;outline:none}
 .btn-s:hover{opacity:.8}
-.btn-ghost{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;padding:4px 8px;cursor:pointer;border-radius:4px;transition:all .12s;outline:none;text-decoration:underline}
-.btn-ghost:hover{color:var(--ink)}
 
 /* NAV */
 .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;background:var(--lift);padding-top:16px;margin-top:-16px}
@@ -257,9 +255,6 @@ select.bare{cursor:pointer}
 .rest-sub{font-size:11px;color:var(--ink3);margin-top:18px;line-height:1.7}
 
 /* BOTTOM */
-.bottom{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:14px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--lift);padding-bottom:16px}
-.save-msg{font-size:11px;color:var(--ink3)}
-.save-msg.ok{color:var(--accent)}.save-msg.err{color:var(--danger)}
 
 /* PROGRESS */
 .h-row{display:grid;grid-template-columns:84px 1fr 64px;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:11px}
@@ -755,9 +750,6 @@ select.bare{cursor:pointer}
   .settings-nav-sub{font-size:11px}
   .settings-nav-row{min-height:56px;padding:16px}
   /* Bottom bar safe area */
-  .bottom{padding-bottom:calc(16px + env(safe-area-inset-bottom,0));gap:8px;flex-wrap:wrap}
-  .bottom>div{gap:6px}
-  .save-msg{font-size:12px}
 }
 
 .hidden{display:none!important}
@@ -1067,17 +1059,6 @@ select.bare{cursor:pointer}
       </div>
     </div>
 
-    <div class="bottom">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="save-msg" id="save-msg"></span>
-        <button class="btn-ghost" id="undo-btn" onclick="undoSession()" style="display:none">↩ Undo</button>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-o" onclick="nav('insights')">Analyse ↗</button>
-        <button class="btn-o" onclick="manualSync()">Sync ↑</button>
-        <button class="btn-s" onclick="completeDay()">Complete day</button>
-      </div>
-    </div>
   </div>
 
   <div id="v-progress" class="hidden">
@@ -2302,8 +2283,15 @@ function markSynced(date){_synced.add(date);localStorage.setItem('mp7_synced',JS
 
 let _syncTimer=null,_undoPrev=undefined,_lastSaveTime=null;
 function fmtTime(ts){const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function setSave(msg,type){const el=document.getElementById('save-msg');if(!el)return;el.textContent=msg;el.className='save-msg'+(type==='ok'?' ok':type==='err'?' err':'');}
-function showUndo(v){const b=document.getElementById('undo-btn');if(b)b.style.display=v?'':'none';}
+let _toastTimer=null;
+function _showToast(msg){
+  let t=document.getElementById('_app-toast');
+  if(!t){t=document.createElement('div');t.id='_app-toast';t.style.cssText='position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:#2c2c2e;color:var(--danger);font-family:var(--mono);font-size:12px;padding:10px 18px;border-radius:10px;z-index:999;pointer-events:none;white-space:nowrap;border:1px solid rgba(255,255,255,.12);transition:opacity .3s;opacity:0';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>{t.style.opacity='0';},4000);
+}
+function setSave(msg,type){if(type==='err'&&msg)_showToast(msg);}
+function showUndo(v){} // element removed — kept for call-site compatibility
 
 function markDirty(){
   if(_undoPrev===undefined){const ex=S.sessions.find(s=>s.date===S.selectedDate);_undoPrev=ex?JSON.parse(JSON.stringify(ex)):null;showUndo(true);}
@@ -2312,7 +2300,6 @@ function markDirty(){
   const ei=S.sessions.findIndex(s=>s.date===S.selectedDate);
   if(ei>=0)S.sessions[ei]=sess;else S.sessions.push(sess);
   persist();_lastSaveTime=Date.now();
-  setSave('Auto-saved · '+fmtTime(_lastSaveTime));
   renderCards();
   clearTimeout(_syncTimer);
   if(S.scriptUrl)_syncTimer=setTimeout(()=>syncDayToSheets(S.selectedDate),10000);
@@ -3261,6 +3248,7 @@ function renderCards(){
 
 let _csheetType=null;
 let _csheetWasNew=false;
+let _csheetUndoData=null,_csheetUndoTimer=null;
 function openCardSheet(type){
   _csheetType=type;
   const eyebrow=document.getElementById('csheet-eyebrow');
@@ -3381,16 +3369,43 @@ function clearCsheetEntries(){
   closeCsheetMenu();
   const act=S.activities.find(a=>a.type===_csheetType);if(!act)return;
   if(_csheetType==='bjj'){
+    _csheetUndoData=JSON.parse(JSON.stringify(act.bjj||{}));
     act.bjj={};act.completed=false;
-    // Rebuild the BJJ form in place
     const body=document.getElementById('csheet-body');
     if(body){body.innerHTML='';['act-block-'].forEach(p=>{const el=document.getElementById(p+act.id);if(el)el.removeAttribute('id');});appendActivityBlock(act,body);body.querySelectorAll('.activity-toggle-btn').forEach(b=>b.style.display='none');}
   }else if(_csheetType==='custom'){
+    _csheetUndoData=JSON.parse(JSON.stringify(act.supersets));
     act.supersets.forEach(ss=>ss.exercises.forEach(e=>{e.kg='';e.sets='';e.reps='';e.rir='';e.flagged=false;}));
     act.completed=false;
     renderTable(act.id);
   }
   markDirty();
+  _showCsheetUndoBanner();
+}
+function _showCsheetUndoBanner(){
+  const body=document.getElementById('csheet-body');if(!body)return;
+  const prev=document.getElementById('csheet-undo-banner');if(prev)prev.remove();
+  const banner=document.createElement('div');
+  banner.id='csheet-undo-banner';banner.className='adopt-bar show';
+  banner.innerHTML=`<span style="color:var(--danger)">Entries cleared</span><div class="adopt-bar-actions"><button class="adopt-all-btn" onclick="undoCsheetClear()">↩ Undo</button><button class="adopt-btn" onclick="_dismissCsheetUndoBanner()" style="font-size:15px;line-height:1">×</button></div>`;
+  body.insertBefore(banner,body.firstChild);
+  clearTimeout(_csheetUndoTimer);_csheetUndoTimer=setTimeout(_dismissCsheetUndoBanner,8000);
+}
+function undoCsheetClear(){
+  _dismissCsheetUndoBanner();
+  const act=S.activities.find(a=>a.type===_csheetType);if(!act||!_csheetUndoData)return;
+  if(_csheetType==='bjj'){
+    act.bjj=_csheetUndoData;
+    const body=document.getElementById('csheet-body');
+    if(body){body.innerHTML='';['act-block-'].forEach(p=>{const el=document.getElementById(p+act.id);if(el)el.removeAttribute('id');});appendActivityBlock(act,body);body.querySelectorAll('.activity-toggle-btn').forEach(b=>b.style.display='none');}
+  }else if(_csheetType==='custom'){
+    act.supersets=_csheetUndoData;renderTable(act.id);
+  }
+  _csheetUndoData=null;markDirty();
+}
+function _dismissCsheetUndoBanner(){
+  clearTimeout(_csheetUndoTimer);_csheetUndoData=null;
+  const b=document.getElementById('csheet-undo-banner');if(b)b.remove();
 }
 function removeCsheetSession(){
   closeCsheetMenu();
@@ -3510,7 +3525,8 @@ function toggleTdayMenu(){
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
   menu.style.top=(r.bottom+8)+'px';menu.style.right='16px';menu.style.bottom='auto';
-  menu.innerHTML=`<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeTdaySession()">Remove session</button>`;
+  const _undoItem=_undoPrev!==undefined?`<button class="ab-menu-item" onclick="closeTdayMenu();undoSession()">Undo all changes</button><div class="ab-menu-sep"></div>`:'';
+  menu.innerHTML=`${_undoItem}<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeTdaySession()">Remove session</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_tdayMenuOutside,true),10);
 }
