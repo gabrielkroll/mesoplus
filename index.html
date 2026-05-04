@@ -768,8 +768,8 @@ select.bare{cursor:pointer}
 .psheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600}
 .psheet-overlay.open{display:block}
 /* Mobile: bottom sheet */
-.profile-sheet{position:fixed;top:56px;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(110%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
-.profile-sheet.open{transform:translateY(0)}
+.profile-sheet{position:fixed;top:56px;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(110%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
+.profile-sheet.open{transform:translateY(0);pointer-events:auto}
 /* Desktop: popover anchored to nav button */
 .profile-sheet[data-mode="popover"]{top:auto;left:auto;right:auto;bottom:auto;max-width:260px;width:260px;margin:0;border-radius:10px;border:1px solid var(--line);box-shadow:0 8px 32px rgba(0,0,0,.5);transform:scale(0.97);transform-origin:top right;opacity:0;transition:opacity 150ms ease-out,transform 150ms ease-out;padding-bottom:0}
 .profile-sheet[data-mode="popover"].open{opacity:1;transform:scale(1)}
@@ -4294,7 +4294,13 @@ function openProfileSheet(){
 function closeProfileSheet(){
   if(_psheetPortal)closeProfileDetail();
   const ov=document.getElementById('psheet-overlay');if(ov)ov.classList.remove('open');
-  const sh=document.getElementById('profile-sheet');if(sh)sh.classList.remove('open');
+  const sh=document.getElementById('profile-sheet');
+  if(sh){
+    sh.classList.remove('open');
+    // Reset popover inline position so closed sheet returns to off-screen mobile default
+    sh.style.top='';sh.style.right='';sh.style.left='';sh.style.bottom='';
+    sh.removeAttribute('data-mode');
+  }
   document.body.style.overflow='';
   document.removeEventListener('click',_psheetOutside,true);
   document.removeEventListener('keydown',_psheetEsc);
