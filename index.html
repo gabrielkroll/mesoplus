@@ -782,17 +782,11 @@ select.bare{cursor:pointer}
 .psheet-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
 .psheet-close:hover{background:var(--surf)}
 .profile-sheet[data-mode="popover"] .psheet-title{padding-right:0}
-.psheet-userblock{display:flex;align-items:center;gap:14px;padding:16px 16px 12px;flex-shrink:0}
-.psheet-avatar{width:48px;height:48px;border-radius:50%;background:var(--line2);color:#fff;font-family:var(--mono);font-size:15px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
-.psheet-name-bare{width:100%;background:none;border:none;border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:15px;padding:2px 0;outline:none;transition:border-color .12s;-webkit-tap-highlight-color:transparent}
-.psheet-name-bare:focus{border-bottom-color:var(--line2)}
-.psheet-name-bare::placeholder{color:var(--ink3)}
-.psheet-usub{font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
-.psheet-rulefull{height:1px;background:var(--line);flex-shrink:0}
 #psheet-list{flex:1;overflow-y:auto;padding:6px 0 16px}
-.psheet-row{display:flex;align-items:center;width:100%;background:none;border:none;padding:0 16px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s}
+.psheet-row{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;padding:0 16px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s}
 .psheet-row:hover{background:var(--surf)}
 .psheet-row:active{background:var(--surf)}
+.psheet-row-avatar{width:32px;height:32px;border-radius:50%;background:var(--line2);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
 .psheet-row-label{flex:1;font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.01em;text-align:left}
 .psheet-row-chevron{color:var(--line2);font-size:16px;line-height:1;flex-shrink:0}
 .psheet-row.danger .psheet-row-label{color:var(--danger)}
@@ -907,25 +901,16 @@ select.bare{cursor:pointer}
   <div class="psheet-handle"></div>
   <div class="psheet-hdr">
     <button class="psheet-close" onclick="closeProfileSheet()" aria-label="Close">×</button>
-    <div class="psheet-eyebrow">Account</div>
-    <div class="psheet-title">Profile</div>
+    <div class="psheet-eyebrow">Profile</div>
+    <div class="psheet-title" id="psheet-name-display">—</div>
   </div>
-  <div class="psheet-userblock">
-    <div class="psheet-avatar" id="psheet-avatar"></div>
-    <div style="flex:1;min-width:0">
-      <input class="psheet-name-bare" id="psheet-name-input" placeholder="Your name"
-             oninput="savePsheetName()" onkeydown="if(event.key==='Enter')this.blur()">
-      <div class="psheet-usub" id="psheet-usub"></div>
-    </div>
-  </div>
-  <div class="psheet-rulefull"></div>
   <div id="psheet-list">
+    <button class="psheet-row" onclick="psheetNav('v-profile','Edit')"><div class="psheet-row-avatar" id="psheet-avatar"></div><span class="psheet-row-label">Edit</span><span class="psheet-row-chevron">›</span></button>
+    <div class="psheet-row-divider"></div>
     <button class="psheet-row" onclick="psheetNav('v-progress','Stats')"><span class="psheet-row-label">Stats</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider"></div>
     <button class="psheet-row" onclick="psheetNav('v-setup','Setup')"><span class="psheet-row-label">Setup</span><span class="psheet-row-chevron">›</span></button>
-    <div class="psheet-row-divider" style="margin:8px 20px"></div>
-    <button class="psheet-row" onclick="psheetNav('v-profile','Change password')"><span class="psheet-row-label">Change password</span><span class="psheet-row-chevron">›</span></button>
-    <div class="psheet-row-divider" style="margin:8px 20px"></div>
+    <div class="psheet-row-divider" style="margin:8px 16px"></div>
     <button class="psheet-row" onclick="closeProfileSheet();showProfileGate()"><span class="psheet-row-label">Switch profile</span></button>
     <div class="psheet-row-divider"></div>
     <button class="psheet-row danger" onclick="closeProfileSheet();lockApp()"><span class="psheet-row-label">Log out</span></button>
@@ -4270,7 +4255,7 @@ function updateProfileNav(){
   document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
   const nla=document.getElementById('nl-profile-avatar');if(nla)nla.textContent=initials;
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
-  const pni=document.getElementById('psheet-name-input');if(pni&&document.activeElement!==pni)pni.value=name;
+  const nd=document.getElementById('psheet-name-display');if(nd)nd.textContent=name||'—';
 }
 
 /* === PROFILE SHEET === */
@@ -4281,9 +4266,9 @@ function openProfileSheet(){
   document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
   const nla=document.getElementById('nl-profile-avatar');if(nla)nla.textContent=initials;
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
-  // Sync inline name input
-  const pni=document.getElementById('psheet-name-input');
-  if(pni)pni.value=name;
+  // Sync name display in header title
+  const nd=document.getElementById('psheet-name-display');
+  if(nd)nd.textContent=name||'—';
   const sh=document.getElementById('profile-sheet');
   const isDesktop=window.innerWidth>=601;
   if(isDesktop){
@@ -4324,12 +4309,6 @@ function _psheetEsc(e){if(e.key==='Escape')closeProfileSheet();}
 function psheetNav(tabId,title){
   if(window.innerWidth>=601){closeProfileSheet();nav(tabId.slice(2));}
   else{openProfileDetail(tabId,title);}
-}
-function savePsheetName(){
-  const inp=document.getElementById('psheet-name-input');
-  if(!inp)return;
-  const sn=document.getElementById('s-name');
-  if(sn){sn.value=inp.value;updateProfileNav();}
 }
 function openProfileDetail(tabId,title){
   const div=document.getElementById(tabId);
