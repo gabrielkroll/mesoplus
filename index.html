@@ -755,34 +755,44 @@ select.bare{cursor:pointer}
 .hidden{display:none!important}
 
 /* Desktop nav profile avatar */
-.nl-profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;line-height:1;flex-shrink:0}
+.nl-profile-avatar{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--line2);color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;line-height:1;flex-shrink:0}
 
 /* === PROFILE TRIGGER (inline with page title) === */
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .page-header .page-title{margin-bottom:0}
-.pf-trigger{width:34px;height:34px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;text-transform:uppercase;line-height:1}
-.pf-trigger:active{background:#555}
+.pf-trigger{width:34px;height:34px;border-radius:50%;background:var(--line2);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;text-transform:uppercase;line-height:1}
+.pf-trigger:active{background:var(--line)}
 @media(min-width:601px){.pf-trigger{display:none}}
 
 /* === PROFILE SHEET === */
 .psheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600}
 .psheet-overlay.open{display:block}
+/* Mobile: bottom sheet */
 .profile-sheet{position:fixed;top:56px;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--lift);border-radius:20px 20px 0 0;z-index:601;transform:translateY(110%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
 .profile-sheet.open{transform:translateY(0)}
+/* Desktop: popover anchored to nav button */
+.profile-sheet[data-mode="popover"]{top:auto;left:auto;right:auto;bottom:auto;max-width:260px;width:260px;margin:0;border-radius:10px;border:1px solid var(--line);box-shadow:0 8px 32px rgba(0,0,0,.5);transform:scale(0.97);transform-origin:top right;opacity:0;transition:opacity 150ms ease-out,transform 150ms ease-out;padding-bottom:0}
+.profile-sheet[data-mode="popover"].open{opacity:1;transform:scale(1)}
+.profile-sheet[data-mode="popover"] .psheet-handle{display:none}
+.profile-sheet[data-mode="popover"] .psheet-close{display:none}
 .psheet-handle{width:36px;height:4px;background:var(--line2);border-radius:2px;margin:12px auto 0;flex-shrink:0}
-.psheet-titlebar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 12px;flex-shrink:0}
+.psheet-titlebar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;flex-shrink:0}
 .psheet-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)}
-.psheet-close{width:30px;height:30px;border-radius:50%;background:var(--surf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink2);font-size:18px;line-height:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation;flex-shrink:0}
-.psheet-close:active{background:var(--line)}
-.psheet-userblock{display:flex;align-items:center;gap:14px;padding:0 20px 16px;flex-shrink:0}
-.psheet-avatar{width:52px;height:52px;border-radius:50%;background:#3a3a3a;color:#fff;font-family:var(--mono);font-size:16px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
-.psheet-uname{font-family:var(--mono);font-size:16px;color:var(--ink);line-height:1.2}
+.psheet-close{background:none;border:none;cursor:pointer;color:var(--ink2);font-size:20px;line-height:1;padding:4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;flex-shrink:0}
+.psheet-close:hover,.psheet-close:active{color:var(--ink)}
+.psheet-userblock{display:flex;align-items:center;gap:14px;padding:0 20px 12px;flex-shrink:0}
+.psheet-avatar{width:48px;height:48px;border-radius:50%;background:var(--line2);color:#fff;font-family:var(--mono);font-size:15px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
+.psheet-name-input{background:none;border:none;border-bottom:1px solid transparent;color:var(--ink);font-family:var(--mono);font-size:15px;outline:none;width:100%;padding:0;pointer-events:none;transition:border-color .12s}
+.psheet-name-input:not([readonly]){pointer-events:auto;border-bottom-color:var(--line2)}
+.psheet-edit-btn{background:none;border:none;color:var(--ink3);font-size:11px;cursor:pointer;padding:2px 0 2px 4px;line-height:1;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.psheet-edit-btn:hover{color:var(--ink2)}
 .psheet-usub{font-family:var(--mono);font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .psheet-rulefull{height:1px;background:var(--line);flex-shrink:0}
-#psheet-list{flex:1;overflow-y:auto;padding:8px 0 20px}
-.psheet-row{display:flex;align-items:center;width:100%;background:none;border:none;padding:0 20px;min-height:52px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.psheet-row:active{background:rgba(128,128,128,.07)}
-.psheet-row-label{flex:1;font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.01em;text-align:left}
+#psheet-list{flex:1;overflow-y:auto;padding:6px 0 16px}
+.psheet-row{display:flex;align-items:center;width:100%;background:none;border:none;padding:0 20px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .1s}
+.psheet-row:hover{background:rgba(128,128,128,.07)}
+.psheet-row:active{background:rgba(128,128,128,.12)}
+.psheet-row-label{flex:1;font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.01em;text-align:left}
 .psheet-row-chevron{color:var(--line2);font-size:16px;line-height:1;flex-shrink:0}
 .psheet-row.danger .psheet-row-label{color:var(--danger)}
 .psheet-row-divider{height:1px;background:var(--line);margin:4px 20px}
@@ -900,20 +910,22 @@ select.bare{cursor:pointer}
   </div>
   <div class="psheet-userblock">
     <div class="psheet-avatar" id="psheet-avatar"></div>
-    <div>
-      <div class="psheet-uname" id="psheet-uname">Profile</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input class="psheet-name-input" id="psheet-name-input" placeholder="Your name" readonly
+               onblur="savePsheetName()" onkeydown="if(event.key==='Enter')this.blur()">
+        <button class="psheet-edit-btn" onclick="startPsheetEdit()" aria-label="Edit name">✎</button>
+      </div>
       <div class="psheet-usub" id="psheet-usub"></div>
     </div>
   </div>
   <div class="psheet-rulefull"></div>
   <div id="psheet-list">
-    <button class="psheet-row" onclick="openProfileDetail('v-program','Plan')"><span class="psheet-row-label">Plan</span><span class="psheet-row-chevron">›</span></button>
+    <button class="psheet-row" onclick="psheetNav('v-progress','Stats')"><span class="psheet-row-label">Stats</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider"></div>
-    <button class="psheet-row" onclick="openProfileDetail('v-progress','Stats')"><span class="psheet-row-label">Stats</span><span class="psheet-row-chevron">›</span></button>
-    <div class="psheet-row-divider"></div>
-    <button class="psheet-row" onclick="openProfileDetail('v-setup','Setup')"><span class="psheet-row-label">Setup</span><span class="psheet-row-chevron">›</span></button>
+    <button class="psheet-row" onclick="psheetNav('v-setup','Setup')"><span class="psheet-row-label">Setup</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider" style="margin:8px 20px"></div>
-    <button class="psheet-row" onclick="openProfileDetail('v-profile','Edit profile')"><span class="psheet-row-label">Edit profile</span><span class="psheet-row-chevron">›</span></button>
+    <button class="psheet-row" onclick="psheetNav('v-profile','Change password')"><span class="psheet-row-label">Change password</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider" style="margin:8px 20px"></div>
     <button class="psheet-row" onclick="closeProfileSheet();showProfileGate()"><span class="psheet-row-label">Switch profile</span></button>
     <div class="psheet-row-divider"></div>
@@ -4259,28 +4271,79 @@ function updateProfileNav(){
   document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
   const nla=document.getElementById('nl-profile-avatar');if(nla)nla.textContent=initials;
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
-  const un=document.getElementById('psheet-uname');if(un)un.textContent=name||'Profile';
+  const pni=document.getElementById('psheet-name-input');if(pni&&document.activeElement!==pni)pni.value=name;
 }
 
 /* === PROFILE SHEET === */
 let _psheetPortal=null;
 function openProfileSheet(){
-  // Sync initials + name (in case updateProfileNav hasn't run yet)
   const name=(document.getElementById('s-name')?.value||'').trim();
   const initials=getInitials(name);
   document.querySelectorAll('.pf-trigger').forEach(b=>b.textContent=initials);
   const nla=document.getElementById('nl-profile-avatar');if(nla)nla.textContent=initials;
   const av=document.getElementById('psheet-avatar');if(av)av.textContent=initials;
-  const un=document.getElementById('psheet-uname');if(un)un.textContent=name||'Profile';
-  document.getElementById('psheet-overlay').classList.add('open');
-  document.getElementById('profile-sheet').classList.add('open');
-  document.body.style.overflow='hidden';
+  // Sync inline name input
+  const pni=document.getElementById('psheet-name-input');
+  if(pni){pni.value=name;pni.setAttribute('readonly','');}
+  const eBtn=document.getElementById('psheet-edit-btn'); // ensure pencil visible
+  if(eBtn)eBtn.style.display='';
+  const sh=document.getElementById('profile-sheet');
+  const isDesktop=window.innerWidth>=601;
+  if(isDesktop){
+    const btn=document.getElementById('nl-profile');
+    const r=btn?btn.getBoundingClientRect():{bottom:56,right:window.innerWidth};
+    sh.style.top=(r.bottom+8)+'px';
+    sh.style.right=(window.innerWidth-r.right)+'px';
+    sh.style.left='auto';
+    sh.style.bottom='auto';
+    sh.setAttribute('data-mode','popover');
+  }else{
+    sh.style.top='';sh.style.right='';sh.style.left='';sh.style.bottom='';
+    sh.setAttribute('data-mode','sheet');
+    document.getElementById('psheet-overlay').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  sh.classList.add('open');
+  setTimeout(()=>{
+    document.addEventListener('click',_psheetOutside,true);
+    if(isDesktop)document.addEventListener('keydown',_psheetEsc);
+  },10);
 }
 function closeProfileSheet(){
   if(_psheetPortal)closeProfileDetail();
   const ov=document.getElementById('psheet-overlay');if(ov)ov.classList.remove('open');
   const sh=document.getElementById('profile-sheet');if(sh)sh.classList.remove('open');
   document.body.style.overflow='';
+  document.removeEventListener('click',_psheetOutside,true);
+  document.removeEventListener('keydown',_psheetEsc);
+}
+function _psheetOutside(e){
+  const sh=document.getElementById('profile-sheet');
+  const btn=document.getElementById('nl-profile');
+  if(sh&&!sh.contains(e.target)&&!(btn&&btn.contains(e.target)))closeProfileSheet();
+}
+function _psheetEsc(e){if(e.key==='Escape')closeProfileSheet();}
+// Desktop: close + nav directly; mobile: open in-panel slide
+function psheetNav(tabId,title){
+  if(window.innerWidth>=601){closeProfileSheet();nav(tabId.slice(2));}
+  else{openProfileDetail(tabId,title);}
+}
+function startPsheetEdit(){
+  const inp=document.getElementById('psheet-name-input');
+  const btn=document.getElementById('psheet-edit-btn');
+  if(!inp)return;
+  inp.removeAttribute('readonly');
+  inp.focus();inp.select();
+  if(btn)btn.style.display='none';
+}
+function savePsheetName(){
+  const inp=document.getElementById('psheet-name-input');
+  const btn=document.getElementById('psheet-edit-btn');
+  if(!inp)return;
+  inp.setAttribute('readonly','');
+  if(btn)btn.style.display='';
+  const sn=document.getElementById('s-name');
+  if(sn){sn.value=inp.value;updateProfileNav();}
 }
 function openProfileDetail(tabId,title){
   const div=document.getElementById(tabId);
