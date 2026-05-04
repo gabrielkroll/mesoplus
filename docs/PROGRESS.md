@@ -7,10 +7,9 @@
 
 ## Now
 
-**Next: S11.5 item 3**
-Extra session card re-added to Training section. AC not yet discussed — discuss before coding.
+**Next: S8** — Insights → Weekly Review Flow (AC not yet discussed).
 
-**After S11.5:** S8 — Insights → Weekly Review Flow (AC not yet discussed).
+S11.5-3 (extra session card) has been retired as originally scoped. Extra sessions need proper product design before implementation — see roadmap item S-ExtraSess below.
 
 ---
 
@@ -53,8 +52,8 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 | S-Rest-4 | Orb Card + Breath Sheet | ✓ Done — `8487407` | S-Rest-3 |
 | S-Rest-5a | RAF Loop | ✓ Done — `ef94bb0` | S-Rest-4 |
 | S-Rest-5b | Sheet Spring Animation | ✓ Done — `0b66f3d` | S-Rest-5a |
-| S11.5-3 | Extra Session Card | Extra session card (m-extra) re-added to Training section. AC not yet discussed. | 11 |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
+| S-ExtraSess | Extra Sessions — Proper Integration | BJJ + Custom sessions are real training, not footnotes. Needs product design: how they count toward weekly load, how they surface in Summary, whether session count (0/4) should ever reflect them. "+ 1 extra session" text removed from SESSIONS card 2026-05-03 — concept deferred to this slice. Options being considered: (A) separate session type with its own planned target, (B) surface in SETS card alongside resistance volume, (C) new "Activity" card on Summary. | 11, 8 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
 | S-Summary-Detail | Summary Card Drill-downs | Two distinct tap zones per card: title tap → historical data view; data tap → today's detail / filter. AC not yet discussed. | S10 |
@@ -80,7 +79,7 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 - **Gabriel does the testing** — do not use preview tools to click through and test features. Write code and commit; Gabriel tests on his device.
 - Alpha tester login shipped (2442bc4): username gate → password → isAlpha profile flag, mp7_erik storage key, UI restrictions
 - **Profile keys**: gabriel-main → mp7 (main), gabriel → mp7_gabriel (alpha), erik → mp7_erik (alpha). Migration runs on load: mp7_profile='gabriel' remapped to 'gabriel-main' (commit 821d32f).
-- **S11.5 scope agreed**: (1) page titles IA, (2) profile top-right mobile, (3) extra session card. Discuss AC before coding.
+- **S11.5 scope agreed**: (1) page titles IA, (2) profile top-right mobile. (3) extra session card retired — see S-ExtraSess in roadmap.
 - **Data roadmap**: V1=localStorage+Sheets write-only, V2=CSV download, V3=Sheets bidirectional, V4=real accounts+multi-device.
 - **Extended hit area pattern** (Apple HIG term): use padding + negative margin (not min-height) to extend the interactive hit area beyond visual bounds without inflating layout height. On mobile the hit area can bleed over adjacent elements intentionally. Background highlight suppressed in those cases to avoid visual bleed over cards.
 - **Fixed dropdown menu rules**: (1) Anchor right/left to a stable page constant (`right:16px`) — never compute from `getBoundingClientRect().right` when extended hit area margins are present, as negative margins push the rect past the viewport edge. (2) Always add `document.addEventListener('scroll', closeFn, true)` (capture phase) — `position:fixed` menus detach visually from their button when the page scrolls.
@@ -91,6 +90,8 @@ Extra session card re-added to Training section. AC not yet discussed — discus
 - **S-Rest-5b**: inverse-FLIP spring — translate+scale start state, cubic-bezier(0.2,0,0,1), bg+radius in same motion. Shipped `0b66f3d`.
 - **btn-t hover pattern**: in `.card-section-hdr`, suppress background on hover entirely (color change only) to avoid bleed into adjacent cards from touch-target padding expansion.
 - **S-Rest-6**: Rest entry points are now (1) low readiness check-in, (2) dot menu in resistance training sheet, (3) ··· dot menu in TRAINING section header. Rest card removed — rest is a full UI state with its own orb card, not a 2×2 grid item. Recovery ("Train instead") stays as a direct button in rest state for easy override.
+- **Microcycle week dots have three states**: `var(--ink)` = current week (primary); `var(--ink2)` = past week with any gym session logged (touched/partial); `var(--line)` = future or empty past week (muted). No accent/green state yet — deferred to when "fully completed week" has a clear definition.
+- **Extra sessions (BJJ/Custom) removed from SESSIONS card** (2026-05-03): "+ N extra sessions" text was a placeholder count, not a real product decision. Removed entirely. Proper integration tracked under S-ExtraSess.
 - **Readiness sheet is always scoped to S.selectedDate** — never td(). Past days show "Save" not "Start Day X". closeReadinessSheet must never overwrite S.selectedDate.
 - **Import merge rule**: existing sessions are never skipped wholesale — if missing sleep/energy/soreness, those fields are filled from Sheets. Local data always wins (only gaps filled).
 - **Tilt state reset rule**: _tiltTarget/_tiltCurrent must be zeroed at every rest↔non-rest transition and at breath sheet open/close so ring always starts from centre.
