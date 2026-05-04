@@ -3347,7 +3347,7 @@ function toggleCsheetMenu(){
   const r=btn.getBoundingClientRect();
   const menu=document.createElement('div');
   menu.id='csheet-menu';menu.className='ab-menu';
-  menu.style.top=(r.bottom+8)+'px';menu.style.right='16px';menu.style.bottom='auto';
+  menu.style.top=(r.bottom+8)+'px';menu.style.right=Math.max(16,window.innerWidth-r.right)+'px';menu.style.bottom='auto';
   menu.innerHTML=`<button class="ab-menu-item" onclick="clearCsheetEntries()">Clear entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeCsheetSession()">Remove session</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_csheetMenuOutside,true),10);
@@ -3468,7 +3468,7 @@ function toggleAbMenu(){
   const menu=document.createElement('div');
   menu.id='ab-menu';menu.className='ab-menu';
   menu.style.bottom=(window.innerHeight-r.top+16)+'px';
-  menu.style.right='16px';
+  menu.style.right=Math.max(16,window.innerWidth-r.right)+'px';
   if(state.type!=='rest'){closeAbMenu();return;}
   menu.innerHTML=`<button class="ab-menu-item" onclick="overrideRestDay()">Train today</button><button class="ab-menu-item" onclick="openAddSessionSheet()">Add custom session</button>`;
   document.body.appendChild(menu);
@@ -3520,7 +3520,7 @@ function toggleTdayMenu(){
   const r=btn.getBoundingClientRect();
   const menu=document.createElement('div');
   menu.id='tday-menu';menu.className='ab-menu';
-  menu.style.top=(r.bottom+8)+'px';menu.style.right='16px';menu.style.bottom='auto';
+  menu.style.top=(r.bottom+8)+'px';menu.style.right=Math.max(16,window.innerWidth-r.right)+'px';menu.style.bottom='auto';
   const _undoItem=_undoPrev!==undefined?`<button class="ab-menu-item" onclick="closeTdayMenu();undoSession()">Undo all changes</button><div class="ab-menu-sep"></div>`:'';
   menu.innerHTML=`${_undoItem}<button class="ab-menu-item" onclick="restoreProgram()">Restore program</button><button class="ab-menu-item" onclick="restInstead()">Rest instead</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="discardTdayEntries()">Discard entries</button><div class="ab-menu-sep"></div><button class="ab-menu-item" style="color:var(--danger)" onclick="removeTdaySession()">Remove session</button>`;
   document.body.appendChild(menu);
@@ -3752,13 +3752,16 @@ function startRestDay(){
 }
 function toggleTrainingHdrMenu(){
   if(document.getElementById('training-hdr-menu')){closeTrainingHdrMenu();return;}
-  // Use section header rect, not button rect — button's extended hit area padding inflates r.bottom
+  // top anchored to section header (avoids extended hit area inflating r.bottom on mobile)
+  // right anchored to button rect — on mobile Math.max(16,...) clamps correctly
   const hdr=document.getElementById('training-section-hdr');
+  const btn=document.getElementById('training-hdr-menu-btn');
   const anchor=hdr?hdr.getBoundingClientRect():{bottom:160};
+  const btnR=btn?btn.getBoundingClientRect():{right:window.innerWidth-16};
   const menu=document.createElement('div');
   menu.id='training-hdr-menu';menu.className='ab-menu';
   menu.style.top=(anchor.bottom+8)+'px';
-  menu.style.right='16px';
+  menu.style.right=Math.max(16,window.innerWidth-btnR.right)+'px';
   menu.innerHTML=S.isRest===true
     ?`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Train instead</button>`
     :`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
