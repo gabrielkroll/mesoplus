@@ -590,6 +590,20 @@ select.bare{cursor:pointer}
 .session-card-label{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
 .session-card-body{font-family:var(--mono);font-size:11px;color:var(--ink3);line-height:1.4}
 .session-card.done .session-card-body{color:var(--accent);font-size:12px}
+/* Card images — gradient scrim baked into background-image, no extra DOM */
+.card-has-img{background-size:cover;background-position:center;border-color:rgba(255,255,255,.08)}
+.card-has-img:hover{border-color:rgba(255,255,255,.15)}
+.card-has-img .session-card-label{color:rgba(255,255,255,.6)}
+.card-has-img .session-card-body{color:rgba(255,255,255,.88)}
+.card-has-img.done .session-card-body{color:var(--accent)}
+#card-readiness{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The priest checks in.png')}
+#card-resistance{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The disgraced lieutenant lifts.png');background-position:30% center}
+#card-custom{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The soldier-ship runs.png')}
+#card-bjj{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/Two soldiers, one drill.png')}
+#card-performance{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The petitioner walks the ring.png');background-position:20% center}
+#card-notes{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The officer marks herself.png')}
+/* Rest orb — stronger scrim so the gold orb stays the focal point */
+#rest-orb-card{background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url('img/The intelligence officer sits.png');background-size:cover;background-position:center}
 
 /* CARD SHEET */
 .csheet-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
@@ -3254,7 +3268,7 @@ function renderCards(){
     // Removed state — card shows inline undo; tap = undo, × = confirm
     const _actType={resistance:'template',custom:'custom',bjj:'bjj'};
     if(_removePending&&_actType[id]===_removePending.type){
-      card.className='session-card';
+      card.className='session-card card-has-img';
       if(!card.querySelector('.card-remove-x')){
         const x=document.createElement('button');x.className='card-remove-x';
         x.style.cssText='position:absolute;top:6px;right:8px;background:none;border:none;color:var(--ink3);font-size:15px;cursor:pointer;min-width:24px;min-height:24px;padding:0;line-height:1;-webkit-tap-highlight-color:transparent';
@@ -3266,7 +3280,7 @@ function renderCards(){
     }
     // Normal state — clean up any lingering × button from a previous removed state
     card.querySelector('.card-remove-x')?.remove();
-    card.className='session-card'+(cd.state==='disabled'?' disabled':cd.state==='in-progress'?' in-progress':cd.state==='done'?' done':'');
+    card.className='session-card card-has-img'+(cd.state==='disabled'?' disabled':cd.state==='in-progress'?' in-progress':cd.state==='done'?' done':'');
     if(!body)return;
     if(cd.state==='done'){
       body.textContent=cd.display||'Done ✓';
