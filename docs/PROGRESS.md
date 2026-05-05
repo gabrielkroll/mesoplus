@@ -57,6 +57,7 @@ S11.5-3 (extra session card) has been retired as originally scoped. Extra sessio
 | S-Rest-5b | Sheet Spring Animation | ✓ Done — `0b66f3d` | S-Rest-5a |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | S-ExtraSess | Extra Sessions — Proper Integration | BJJ + Custom sessions are real training, not footnotes. Needs product design: how they count toward weekly load, how they surface in Summary, whether session count (0/4) should ever reflect them. "+ 1 extra session" text removed from SESSIONS card 2026-05-03 — concept deferred to this slice. Options being considered: (A) separate session type with its own planned target, (B) surface in SETS card alongside resistance volume, (C) new "Activity" card on Summary. | 11, 8 |
+| S-TrainCards | Train Tab Card Redesign + Carousel View | Card look & feel redesign per Gabriel's design direction. Carousel as primary view: full-width, one card at a time, swipeable with animation. Grid view as alternate. Toggle in UI; user can set default in preferences (default = carousel). Preference persisted to localStorage. AC and design direction to be discussed before implementation. | S11 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
 | S-Summary-Detail | Summary Card Drill-downs | Two distinct tap zones per card: title tap → historical data view; data tap → today's detail / filter. AC not yet discussed. | S10 |
