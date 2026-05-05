@@ -581,7 +581,7 @@ select.bare{cursor:pointer}
 #orb-sheet-svg{display:block;width:min(80vw,55vh);height:min(80vw,55vh);flex-shrink:0;position:relative;z-index:1;transform-origin:50% 50%}
 #breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px;position:relative;z-index:1}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:80px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
+.session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:120px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
 .session-card:active{opacity:.8}
 .session-card.disabled{opacity:.4;pointer-events:none}
@@ -596,12 +596,12 @@ select.bare{cursor:pointer}
 .card-has-img .session-card-label{color:rgba(255,255,255,.6)}
 .card-has-img .session-card-body{color:rgba(255,255,255,.88)}
 .card-has-img.done .session-card-body{color:var(--accent)}
-#card-readiness{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The priest checks in.png')}
-#card-resistance{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The disgraced lieutenant lifts.png');background-position:30% center}
-#card-custom{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The soldier-ship runs.png')}
-#card-bjj{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/Two soldiers, one drill.png')}
-#card-performance{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The petitioner walks the ring.png');background-position:20% center}
-#card-notes{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The officer marks herself.png')}
+#card-readiness{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The priest checks in.png');background-size:cover;background-position:center}
+#card-resistance{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The disgraced lieutenant lifts.png');background-size:cover;background-position:30% center}
+#card-custom{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The soldier-ship runs.png');background-size:cover;background-position:center}
+#card-bjj{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/Two soldiers, one drill.png');background-size:cover;background-position:center}
+#card-performance{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The petitioner walks the ring.png');background-size:cover;background-position:20% center}
+#card-notes{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The officer marks herself.png');background-size:cover;background-position:center}
 /* Rest orb — stronger scrim so the gold orb stays the focal point */
 #rest-orb-card{background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url('img/The intelligence officer sits.png');background-size:cover;background-position:center}
 
@@ -991,7 +991,7 @@ select.bare{cursor:pointer}
     <div class="card-section">
       <div class="card-section-hdr"><div class="card-section-title">Check-in</div></div>
       <div class="card-grid">
-        <button class="session-card" id="card-readiness" onclick="openReadinessSheet()">
+        <button class="session-card card-has-img" id="card-readiness" onclick="openReadinessSheet()">
           <div class="session-card-dot"></div>
           <div class="session-card-label">Readiness</div>
           <div class="session-card-body" id="card-readiness-body">Sleep · Energy · Soreness</div>
@@ -1007,17 +1007,17 @@ select.bare{cursor:pointer}
       </div>
       <div id="training-section-body">
         <div id="training-cards-grid" class="card-grid">
-          <button class="session-card" id="card-resistance" onclick="openTrainingSheet()">
+          <button class="session-card card-has-img" id="card-resistance" onclick="openTrainingSheet()">
             <div class="session-card-dot"></div>
             <div class="session-card-label">Resistance</div>
             <div class="session-card-body" id="card-resistance-body">Tap to start</div>
           </button>
-          <button class="session-card" id="card-custom" onclick="openCardSheet('custom')">
+          <button class="session-card card-has-img" id="card-custom" onclick="openCardSheet('custom')">
             <div class="session-card-dot"></div>
             <div class="session-card-label">Custom</div>
             <div class="session-card-body" id="card-custom-body">Tap to start</div>
           </button>
-          <button class="session-card" id="card-bjj" onclick="openCardSheet('bjj')">
+          <button class="session-card card-has-img" id="card-bjj" onclick="openCardSheet('bjj')">
             <div class="session-card-dot"></div>
             <div class="session-card-label">BJJ</div>
             <div class="session-card-body" id="card-bjj-body">Tap to log</div>
@@ -1056,12 +1056,12 @@ select.bare{cursor:pointer}
     <div class="card-section">
       <div class="card-section-hdr"><div class="card-section-title">Reflect</div></div>
       <div class="card-grid">
-        <button class="session-card" id="card-performance" onclick="openCardSheet('performance')">
+        <button class="session-card card-has-img" id="card-performance" onclick="openCardSheet('performance')">
           <div class="session-card-dot"></div>
           <div class="session-card-label">Performance</div>
           <div class="session-card-body" id="card-performance-body">How did it go?</div>
         </button>
-        <button class="session-card" id="card-notes" onclick="openCardSheet('notes')">
+        <button class="session-card card-has-img" id="card-notes" onclick="openCardSheet('notes')">
           <div class="session-card-dot"></div>
           <div class="session-card-label">Notes</div>
           <div class="session-card-body" id="card-notes-body">Anything notable</div>
