@@ -124,7 +124,7 @@
     display: flex;
     align-items: center;
     gap: 3px;
-    padding: 10px 10px;
+    padding: 10px 10px 10px 0;
     background: #141414;
     font-family: 'DM Mono', monospace;
     font-size: 9px;
@@ -264,8 +264,10 @@ function SessionCard({
             {expandedItems.map((item, i) => (
               <React.Fragment key={i}>
                 {i > 0 && <span className="s-sep">·</span>}
-                <span className="s-key">{item.key}</span>
-                <span className="s-val">{item.val}</span>
+                <span style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                  <span className="s-key">{item.key}</span>
+                  <span className="s-val">{item.val}</span>
+                </span>
               </React.Fragment>
             ))}
           </div>
