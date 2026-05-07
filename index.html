@@ -839,13 +839,13 @@ select.bare{cursor:pointer}
   position:absolute;
   bottom:0;
   right:0;
-  height:calc(100cqw * 16 / 430);
-  line-height:calc(100cqw * 16 / 430);
-  padding:0 calc(100cqw * 8 / 430);
+  height:16px;
+  line-height:16px;
+  padding:0 8px;
   display:flex;
   align-items:center;
   font-family:'DM Mono',monospace;
-  font-size:calc(100cqw * 9 / 430);
+  font-size:9px;
   letter-spacing:0.08em;
   text-transform:uppercase;
   color:rgba(255,255,255,0.4);
@@ -873,11 +873,11 @@ select.bare{cursor:pointer}
   position:absolute;
   top:0;
   left:0;
-  height:calc(100cqw * 16 / 430);
-  line-height:calc(100cqw * 16 / 430);
-  padding:0 calc(100cqw * 10 / 430);
+  height:16px;
+  line-height:16px;
+  padding:0 10px;
   font-family:'DM Mono',monospace;
-  font-size:calc(100cqw * 9 / 430);
+  font-size:9px;
   color:rgba(255,255,255,0.6);
   letter-spacing:0.08em;
   text-transform:uppercase;
@@ -888,14 +888,14 @@ select.bare{cursor:pointer}
   position:absolute;
   bottom:0;
   right:0;
-  height:calc(100cqw * 16 / 430);
-  line-height:calc(100cqw * 16 / 430);
-  padding:0 calc(100cqw * 8 / 430);
+  height:16px;
+  line-height:16px;
+  padding:0 8px;
   display:flex;
   align-items:center;
-  gap:calc(100cqw * 3 / 430);
+  gap:3px;
   font-family:'DM Mono',monospace;
-  font-size:calc(100cqw * 9 / 430);
+  font-size:9px;
   pointer-events:none;
 }
 .sc-train-card .sc-score{color:#e8e8e8}
@@ -905,14 +905,14 @@ select.bare{cursor:pointer}
   position:absolute;
   bottom:0;
   right:0;
-  height:calc(100cqw * 16 / 430);
-  padding:0 calc(100cqw * 8 / 430);
+  height:16px;
+  padding:0 8px;
   display:flex;
   flex-direction:row;
   align-items:center;
-  gap:calc(100cqw * 3 / 430);
+  gap:3px;
   font-family:'DM Mono',monospace;
-  font-size:calc(100cqw * 9 / 430);
+  font-size:9px;
   letter-spacing:0.08em;
   text-transform:uppercase;
   white-space:nowrap;
@@ -920,7 +920,7 @@ select.bare{cursor:pointer}
   pointer-events:none;
   opacity:0;
 }
-.sc-train-card .sc-pair{display:flex;align-items:center;gap:calc(100cqw * 8 / 430)}
+.sc-train-card .sc-pair{display:flex;align-items:center;gap:8px}
 .sc-train-card .sc-key{color:#666}
 .sc-train-card .sc-val{color:#7aad2a}
 </style>
@@ -4991,26 +4991,33 @@ startApp();
 (function(){
   const DUR = 260;
   const SPRING = 'cubic-bezier(0.34,1.1,0.64,1)';
+  // Notch geometry constants (CSS px = SVG units after dynamic viewBox)
+  const NOTCH = 16, CR = 10, NOTCH_DIAG = 22.627;
+  // Bezier handle offsets for 16px notch (original 20px values × 0.8)
+  const BH=5.657, BH2=4.157, BH1=2.122, BV=2.343, BV2=0.843;
+  // Card dimensions + computed elbow positions (set by initGeometry)
+  let _cardW=0, _cardH=0;
+  let _tlElbow=0, _tlApex=0;
+  let _brElbow_col=0, _brApex_col=0, _brElbow_exp=0, _brApex_exp=0;
 
-  function buildPath(elbow, apex){
+  function buildPath(tlE, tlA, brE, brA){
     const f = n => n.toFixed(3);
+    const W=_cardW, H=_cardH;
     return [
-      'M0 30C0 24.4772 4.47715 20 10 20',
-      'H62.8579',
-      'C65.51 20 68.0536 18.9464 69.9289 17.0711',
-      'L84.0711 2.92893',
-      'C85.9464 1.05357 88.49 0 91.1421 0',
-      'H420',
-      'C425.523 0 430 4.47715 430 10',
-      'V350',
-      'C430 355.523 425.523 360 420 360',
-      `H${f(elbow)}`,
-      `C${f(elbow-2.652)} 360 ${f(elbow-5.196)} 361.054 ${f(elbow-7.071)} 362.929`,
-      `L${f(apex+7.071)} 377.071`,
-      `C${f(apex+5.196)} 378.946 ${f(apex+2.652)} 380 ${f(apex)} 380`,
-      'H10',
-      'C4.47715 380 0 375.523 0 370',
-      'V30Z'
+      `M0 ${NOTCH+CR}C0 ${f(NOTCH+CR-CR*0.5523)} ${f(CR*0.4477)} ${NOTCH} ${CR} ${NOTCH}`,
+      `H${f(tlE)}`,
+      `C${f(tlE+BH1)} ${NOTCH} ${f(tlE+BH2)} ${f(NOTCH-BV2)} ${f(tlE+BH)} ${f(NOTCH-BV)}`,
+      `L${f(tlA-BH)} ${f(BV)}`,
+      `C${f(tlA-BH2)} ${f(BV2)} ${f(tlA-BH1)} 0 ${f(tlA)} 0`,
+      `H${f(W-CR)}C${f(W-CR*0.4477)} 0 ${f(W)} ${f(CR*0.4477)} ${f(W)} ${CR}`,
+      `V${f(H-NOTCH-CR)}`,
+      `C${f(W)} ${f(H-NOTCH-CR*0.4477)} ${f(W-CR*0.4477)} ${f(H-NOTCH)} ${f(W-CR)} ${f(H-NOTCH)}`,
+      `H${f(brE)}`,
+      `C${f(brE-BH1)} ${f(H-NOTCH)} ${f(brE-BH2)} ${f(H-NOTCH+BV2)} ${f(brE-BH)} ${f(H-NOTCH+BV)}`,
+      `L${f(brA+BH)} ${f(H-BV)}`,
+      `C${f(brA+BH2)} ${f(H-BV2)} ${f(brA+BH1)} ${f(H)} ${f(brA)} ${f(H)}`,
+      `H${CR}C${f(CR*0.4477)} ${f(H)} 0 ${f(H-CR*0.4477)} 0 ${f(H-CR)}`,
+      `V${f(NOTCH+CR)}Z`
     ].join(' ');
   }
 
@@ -5028,15 +5035,15 @@ startApp();
     return sampleY(t);
   }
 
-  function animatePaths(fp, bp, fromElbow, toElbow, fromApex, toApex, dur, onDone){
+  function animatePaths(fp, bp, fromBrE, toBrE, fromBrA, toBrA, dur, onDone){
     if(_rafId){ cancelAnimationFrame(_rafId); _rafId = null; }
     const start = performance.now();
     function tick(now){
       const raw = Math.min((now - start) / dur, 1);
       const t = springEase(raw);
-      const elbow = fromElbow + (toElbow - fromElbow) * t;
-      const apex  = fromApex  + (toApex  - fromApex)  * t;
-      const d = buildPath(elbow, apex);
+      const brE = fromBrE + (toBrE - fromBrE) * t;
+      const brA = fromBrA + (toBrA - fromBrA) * t;
+      const d = buildPath(_tlElbow, _tlApex, brE, brA);
       fp.setAttribute('d', d);
       bp.setAttribute('d', d);
       if(raw < 1){ _rafId = requestAnimationFrame(tick); } else { _rafId = null; onDone && onDone(); }
@@ -5125,13 +5132,15 @@ startApp();
     const expEl = document.getElementById('sc-readiness-expanded');
     if(!fp || !bp || !def || !expEl){ busy = false; return; }
 
-    const [fe,te] = toExpand ? [353.142,201.142] : [201.142,353.142];
-    const [fa,ta] = toExpand ? [324.858,172.858] : [172.858,324.858];
+    const fromBrE = toExpand ? _brElbow_col : _brElbow_exp;
+    const fromBrA = toExpand ? _brApex_col  : _brApex_exp;
+    const toBrE   = toExpand ? _brElbow_exp : _brElbow_col;
+    const toBrA   = toExpand ? _brApex_exp  : _brApex_col;
 
     cancelAnims(def);
     cancelAnims(expEl);
 
-    animatePaths(fp, bp, fe, te, fa, ta, DUR, () => { exp = toExpand; busy = false; });
+    animatePaths(fp, bp, fromBrE, toBrE, fromBrA, toBrA, DUR, () => { exp = toExpand; busy = false; });
 
     if(toExpand){
       def.style.opacity = '1';
@@ -5158,6 +5167,45 @@ startApp();
     }
   }
 
+  function updateNotches(){
+    if(!_cardW) return;
+    const lbl = document.getElementById('sc-readiness-label');
+    const cta = document.getElementById('sc-readiness-cta');
+    const def = document.getElementById('sc-readiness-default');
+    const expEl = document.getElementById('sc-readiness-expanded');
+    const activeEl = (cta && cta.style.display !== 'none') ? cta : def;
+    const lblW    = lbl      ? lbl.getBoundingClientRect().width      : 0;
+    const activeW = activeEl ? activeEl.getBoundingClientRect().width  : 0;
+    const expW    = expEl    ? expEl.getBoundingClientRect().width     : 0;
+    _tlElbow = 10 + lblW + 4;  _tlApex = _tlElbow + NOTCH_DIAG;
+    _brElbow_col = _cardW - 8 - activeW - 4; _brApex_col = _brElbow_col - NOTCH_DIAG;
+    _brElbow_exp = _cardW - 8 - expW - 4;   _brApex_exp = _brElbow_exp - NOTCH_DIAG;
+    if(!busy){
+      const fp = document.getElementById('sc-readiness-fill');
+      const bp = document.getElementById('sc-readiness-border');
+      if(fp && bp){
+        const d = buildPath(_tlElbow, _tlApex,
+          exp ? _brElbow_exp : _brElbow_col,
+          exp ? _brApex_exp  : _brApex_col);
+        fp.setAttribute('d', d); bp.setAttribute('d', d);
+      }
+    }
+  }
+
+  function initGeometry(){
+    const card = document.getElementById('sc-card-readiness');
+    if(!card) return;
+    const svg  = card.querySelector('svg');
+    const patt = document.getElementById('sc-readiness-img');
+    const img  = patt && patt.querySelector('image');
+    const rect = card.getBoundingClientRect();
+    _cardW = rect.width; _cardH = rect.height;
+    if(svg)  svg.setAttribute('viewBox', `0 0 ${_cardW} ${_cardH}`);
+    if(patt){ patt.setAttribute('width', _cardW); patt.setAttribute('height', _cardH); }
+    if(img) { img.setAttribute('width',  _cardW); img.setAttribute('height',  _cardH); }
+    updateNotches();
+  }
+
   function initReadinessCard(){
     const card = document.getElementById('sc-card-readiness');
     if(!card) return;
@@ -5176,20 +5224,18 @@ startApp();
     }, {passive: true});
 
     card.addEventListener('touchend', e => {
-      if(Math.abs(e.changedTouches[0].clientY - _touchY) > 10) return; // scroll — skip
-      e.preventDefault(); // suppress ghost click
+      if(Math.abs(e.changedTouches[0].clientY - _touchY) > 10) return;
+      e.preventDefault();
       if(exp){ toggle(false); }
       else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
       else { toggle(true); }
     }, {passive: false});
 
-    // Desktop click (touch devices: ghost click suppressed by touchend preventDefault)
     card.addEventListener('click', () => {
       if(exp){ toggle(false); }
       else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
     });
 
-    // Keyboard
     card.addEventListener('keydown', e => {
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -5197,16 +5243,22 @@ startApp();
       }
     });
 
-    // Initial reveal after fonts ready
+    // Geometry + reveal after fonts ready
+    const boot = () => { initGeometry(); setTimeout(runReveal, 100); };
     if(document.fonts && document.fonts.ready){
-      document.fonts.ready.then(() => setTimeout(runReveal, 100));
+      document.fonts.ready.then(boot);
     } else {
-      setTimeout(runReveal, 200);
+      setTimeout(boot, 200);
+    }
+
+    // Keep geometry in sync if card resizes (orientation change etc.)
+    if(typeof ResizeObserver !== 'undefined'){
+      new ResizeObserver(() => { if(_cardW) initGeometry(); }).observe(card);
     }
   }
 
   // Expose paint hook so other code (e.g. after sync) can refresh values
-  window.repaintReadinessCard = paintReadiness;
+  window.repaintReadinessCard = () => { paintReadiness(); updateNotches(); };
 
   // Boot once DOM is ready
   if(document.readyState === 'loading'){
