@@ -5029,6 +5029,7 @@ startApp();
   }
 
   function animatePaths(fp, bp, fromElbow, toElbow, fromApex, toApex, dur, onDone){
+    if(_rafId){ cancelAnimationFrame(_rafId); _rafId = null; }
     const start = performance.now();
     function tick(now){
       const raw = Math.min((now - start) / dur, 1);
@@ -5038,9 +5039,9 @@ startApp();
       const d = buildPath(elbow, apex);
       fp.setAttribute('d', d);
       bp.setAttribute('d', d);
-      if(raw < 1){ requestAnimationFrame(tick); } else { onDone && onDone(); }
+      if(raw < 1){ _rafId = requestAnimationFrame(tick); } else { _rafId = null; onDone && onDone(); }
     }
-    requestAnimationFrame(tick);
+    _rafId = requestAnimationFrame(tick);
   }
 
   function cancelAnims(el){ if(el && el.getAnimations) el.getAnimations().forEach(a => a.cancel()); }
@@ -5113,7 +5114,7 @@ startApp();
   }
 
   // ── Expand / collapse (Section 3 combined animation) ──
-  let exp = false, busy = false;
+  let exp = false, busy = false, _rafId = null;
 
   function toggle(toExpand){
     if(busy || toExpand === exp) return;
@@ -5163,20 +5164,26 @@ startApp();
 
     paintReadiness();
 
-    // Desktop hover
-    card.addEventListener('mouseenter', () => toggle(true));
-    card.addEventListener('mouseleave', () => toggle(false));
+    // Desktop hover — guard with (hover:hover) to suppress iOS ghost mouseenter after tap
+    const canHover = window.matchMedia('(hover:hover)');
+    card.addEventListener('mouseenter', () => { if(canHover.matches) toggle(true); });
+    card.addEventListener('mouseleave', () => { if(canHover.matches) toggle(false); });
 
-    // Mobile tap: collapsed tap → openReadinessSheet (preserves existing action);
-    //             expanded tap → collapse.
+    // Mobile tap: passive touchstart (allows scroll), detect tap vs scroll on touchend
+    let _touchY = 0;
     card.addEventListener('touchstart', e => {
-      e.preventDefault();
+      _touchY = e.touches[0].clientY;
+    }, {passive: true});
+
+    card.addEventListener('touchend', e => {
+      if(Math.abs(e.changedTouches[0].clientY - _touchY) > 10) return; // scroll — skip
+      e.preventDefault(); // suppress ghost click
       if(exp){ toggle(false); }
       else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
       else { toggle(true); }
-    }, {passive:false});
+    }, {passive: false});
 
-    // Desktop click — same behavior as touchstart for keyboard/mouse on touch-capable devices
+    // Desktop click (touch devices: ghost click suppressed by touchend preventDefault)
     card.addEventListener('click', () => {
       if(exp){ toggle(false); }
       else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
