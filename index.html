@@ -5253,7 +5253,7 @@ startApp();
 
     // Keep geometry in sync if card resizes (orientation change etc.)
     if(typeof ResizeObserver !== 'undefined'){
-      new ResizeObserver(() => { if(_cardW) initGeometry(); }).observe(card);
+      new ResizeObserver(entries => { if(entries[0].contentRect.width > 0) initGeometry(); }).observe(card);
     }
   }
 
