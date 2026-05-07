@@ -607,7 +607,7 @@ select.bare{cursor:pointer}
 #rest-orb-card{background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url('img/The intelligence officer sits.png');background-size:cover;background-position:center}
 
 /* SC OVERLAY — Figma-spec card design (Readiness card) */
-#card-readiness{padding:0;overflow:hidden}
+#card-readiness{padding:0;overflow:hidden;border-radius:10px 10px 0 0;clip-path:polygon(0% 0%,100% 0%,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0% calc(100% - 14px))}
 .sc-label{position:absolute;top:0;left:0;height:16px;padding:0 10px;display:flex;align-items:center;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);z-index:3;pointer-events:none;user-select:none;white-space:nowrap}
 .sc-status{position:absolute;bottom:0;right:0;z-index:3;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .sc-status-default{display:flex;align-items:center;gap:3px;height:16px;padding:0 8px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;white-space:nowrap;transition:opacity .18s ease}
