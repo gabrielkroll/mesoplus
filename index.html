@@ -580,7 +580,8 @@ select.bare{cursor:pointer}
 .bsheet-close:hover{background:rgba(255,255,255,.07)}
 #orb-sheet-svg{display:block;width:min(80vw,55vh);height:min(80vw,55vh);flex-shrink:0;position:relative;z-index:1;transform-origin:50% 50%}
 #breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px;position:relative;z-index:1}
-.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media(min-width:600px){.card-grid{grid-template-columns:1fr 1fr}}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:320px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
 .session-card:active{opacity:.8}
@@ -604,6 +605,17 @@ select.bare{cursor:pointer}
 #card-notes{background-image:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.52)),url('img/The officer marks herself.png');background-size:cover;background-position:center}
 /* Rest orb — stronger scrim so the gold orb stays the focal point */
 #rest-orb-card{background-image:linear-gradient(rgba(0,0,0,.48),rgba(0,0,0,.48)),url('img/The intelligence officer sits.png');background-size:cover;background-position:center}
+
+/* SC OVERLAY — Figma-spec card design (Readiness card) */
+#card-readiness{padding:0;overflow:hidden}
+.sc-label{position:absolute;top:0;left:0;height:16px;padding:0 10px;display:flex;align-items:center;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);z-index:3;pointer-events:none;user-select:none;white-space:nowrap}
+.sc-status{position:absolute;bottom:0;right:0;z-index:3;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.sc-status-default{display:flex;align-items:center;gap:3px;height:16px;padding:0 8px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;white-space:nowrap;transition:opacity .18s ease}
+.sc-status-default.hidden{opacity:0;pointer-events:none}
+.sc-status-expanded{display:flex;align-items:center;gap:3px;padding:10px 10px 10px 0;background:#141414;font-family:var(--mono);font-size:9px;letter-spacing:.08em;white-space:nowrap;opacity:0;transform:translateY(4px);transition:opacity .22s ease,transform .22s ease;pointer-events:none}
+.sc-status-expanded.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.sc-kv{display:flex;align-items:center;gap:8px}
+.s-score{color:#e8e8e8}.s-sep{color:#666}.s-tier{color:#e8a020}.s-key{color:#666}.s-val{color:#7aad2a}
 
 /* CARD SHEET */
 .csheet-backdrop{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;visibility:hidden}
@@ -993,8 +1005,22 @@ select.bare{cursor:pointer}
       <div class="card-grid">
         <button class="session-card card-has-img" id="card-readiness" onclick="openReadinessSheet()">
           <div class="session-card-dot"></div>
-          <div class="session-card-label">Readiness</div>
-          <div class="session-card-body" id="card-readiness-body">Sleep · Energy · Soreness</div>
+          <div class="sc-label">Readiness</div>
+          <div class="sc-status" id="card-readiness-status">
+            <div class="sc-status-default" id="card-readiness-status-default">
+              <span class="s-score" id="card-readiness-score"></span>
+              <span class="s-sep" id="card-readiness-score-sep" style="display:none">·</span>
+              <span class="s-tier" id="card-readiness-tier"></span>
+            </div>
+            <div class="sc-status-expanded" id="card-readiness-status-expanded">
+              <span class="sc-kv"><span class="s-key">SLEEP</span><span class="s-val" id="card-readiness-sleep"></span></span>
+              <span class="s-sep">·</span>
+              <span class="sc-kv"><span class="s-key">ENERGY</span><span class="s-val" id="card-readiness-energy"></span></span>
+              <span class="s-sep">·</span>
+              <span class="sc-kv"><span class="s-key">SORENESS</span><span class="s-val" id="card-readiness-soreness"></span></span>
+            </div>
+          </div>
+          <div class="session-card-body" id="card-readiness-body" style="display:none"></div>
         </button>
       </div>
     </div>
@@ -3233,6 +3259,36 @@ function computeCardStates(){
 
 const _CARD_PROMPTS={readiness:'Sleep · Energy · Soreness',resistance:'Tap to start',custom:'Tap to start',bjj:'Tap to log',rest:'Tap to mark rest day',performance:'How did it go?',notes:'Anything notable'};
 
+const _SC_TC={Poor:'#d44040',Low:'#d46a20',Moderate:'#e8a020',High:'#7aad2a',Prime:'#9a6fd4'};
+let _readinessExpanded=false;
+function _toggleReadinessCard(){
+  _readinessExpanded=!_readinessExpanded;
+  document.getElementById('card-readiness-status-default')?.classList.toggle('hidden',_readinessExpanded);
+  document.getElementById('card-readiness-status-expanded')?.classList.toggle('visible',_readinessExpanded);
+}
+function _updateReadinessCard(){
+  const r=computeReadiness(),tier=readinessTier(r);
+  const scoreEl=document.getElementById('card-readiness-score');
+  const sepEl=document.getElementById('card-readiness-score-sep');
+  const tierEl=document.getElementById('card-readiness-tier');
+  const statusEl=document.getElementById('card-readiness-status');
+  if(!scoreEl)return;
+  if(r!==null){
+    scoreEl.textContent=r;
+    sepEl.style.display='';
+    tierEl.textContent=tier;
+    tierEl.style.color=_SC_TC[tier]||'#e8a020';
+    document.getElementById('card-readiness-sleep').textContent=S.sleep||'—';
+    document.getElementById('card-readiness-energy').textContent=S.energy||'—';
+    document.getElementById('card-readiness-soreness').textContent=S.soreness||'—';
+    statusEl.style.cursor='pointer';
+    statusEl.onclick=e=>{e.stopPropagation();_toggleReadinessCard();};
+  }else{
+    scoreEl.textContent='';sepEl.style.display='none';tierEl.textContent='';
+    statusEl.style.cursor='default';statusEl.onclick=null;
+  }
+}
+
 function renderCards(){
   const cs=computeCardStates();
   const isRest=S.isRest===true;
@@ -3292,7 +3348,7 @@ function renderCards(){
       body.textContent=_CARD_PROMPTS[id]||'';
     }
   }
-  applyCard('readiness',cs.readiness);
+  applyCard('readiness',cs.readiness);_updateReadinessCard();
   if(!isRest){
     applyCard('resistance',cs.resistance);
     applyCard('custom',cs.custom);
