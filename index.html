@@ -816,6 +816,100 @@ select.bare{cursor:pointer}
 #psheet-detail-content .page-title{display:none!important}
 #psheet-detail-content .detail-back{display:none!important}
 #psheet-detail-content .settings-nav-table.hub-only{display:none!important}
+/* ─── S-TrainCards: Readiness card ─────────────────────────── */
+.sc-train-card-wrap{
+  width:100%;
+  max-width:430px;
+  margin:0 auto 16px;
+  --sc-w:100%;
+  --sc-aspect:calc(380/430);
+  container-type:inline-size;
+}
+.sc-train-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:430/380;
+  background:#141414;
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  border:0;
+  padding:0;
+  display:block;
+  overflow:visible;
+}
+.sc-train-card svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  pointer-events:none;
+}
+.sc-train-card svg image{
+  transform-box:fill-box;
+  transform-origin:center;
+  transition:transform 700ms ease-in-out;
+}
+.sc-train-card:hover svg image{
+  transform:scale(1.04);
+  transition:transform 500ms ease-out;
+}
+.sc-train-card .sc-label{
+  position:absolute;
+  top:0;
+  left:0;
+  height:calc(100cqw * 16 / 430);
+  line-height:calc(100cqw * 16 / 430);
+  padding:0 calc(100cqw * 10 / 430);
+  font-family:'DM Mono',monospace;
+  font-size:calc(100cqw * 9 / 430);
+  color:rgba(255,255,255,0.6);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  pointer-events:none;
+}
+.sc-train-card .sc-status-default{
+  position:absolute;
+  bottom:0;
+  right:0;
+  height:calc(100cqw * 16 / 430);
+  line-height:calc(100cqw * 16 / 430);
+  padding:0 calc(100cqw * 8 / 430);
+  display:flex;
+  align-items:center;
+  gap:calc(100cqw * 3 / 430);
+  font-family:'DM Mono',monospace;
+  font-size:calc(100cqw * 9 / 430);
+  pointer-events:none;
+}
+.sc-train-card .sc-score{color:#e8e8e8}
+.sc-train-card .sc-sep{color:#444}
+.sc-train-card .sc-tier{color:#7aad2a}
+.sc-train-card .sc-status-expanded{
+  position:absolute;
+  bottom:0;
+  right:0;
+  height:calc(100cqw * 16 / 430);
+  padding:0 calc(100cqw * 8 / 430);
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:calc(100cqw * 3 / 430);
+  font-family:'DM Mono',monospace;
+  font-size:calc(100cqw * 9 / 430);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  color:#666;
+  pointer-events:none;
+  opacity:0;
+}
+.sc-train-card .sc-pair{display:flex;align-items:center;gap:calc(100cqw * 8 / 430)}
+.sc-train-card .sc-key{color:#666}
+.sc-train-card .sc-val{color:#7aad2a}
 </style>
 </head>
 <body>
@@ -988,15 +1082,31 @@ select.bare{cursor:pointer}
     </div>
     <div class="rule" style="margin-top:0"></div>
 
-    <!-- CHECK-IN -->
-    <div class="card-section">
-      <div class="card-section-hdr"><div class="card-section-title">Check-in</div></div>
-      <div class="card-grid">
-        <button class="session-card card-has-img" id="card-readiness" onclick="openReadinessSheet()">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">Readiness</div>
-          <div class="session-card-body" id="card-readiness-body">Sleep · Energy · Soreness</div>
-        </button>
+    <!-- CHECK-IN — S-TrainCards Readiness (cut-out notch card) -->
+    <div class="sc-train-card-wrap">
+      <div class="sc-train-card" id="sc-card-readiness" role="button" tabindex="0" aria-label="Readiness — tap to expand">
+        <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <pattern id="sc-readiness-img" patternUnits="userSpaceOnUse" width="430" height="380">
+              <image href="assets/Cards/img/Default.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+            </pattern>
+          </defs>
+          <path id="sc-readiness-fill" fill="url(#sc-readiness-img)"
+            d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+          <path id="sc-readiness-border" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"
+            d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+        </svg>
+        <div class="sc-label" id="sc-readiness-label" style="clip-path:inset(0 100% 0 0)">READINESS</div>
+        <div class="sc-status-default" id="sc-readiness-default" style="clip-path:inset(0 100% 0 0)">
+          <span class="sc-score" id="sc-readiness-score">--</span><span class="sc-sep">·</span><span class="sc-tier" id="sc-readiness-tier">—</span>
+        </div>
+        <div class="sc-status-expanded" id="sc-readiness-expanded">
+          <div class="sc-pair"><span class="sc-key">sleep</span><span class="sc-val" id="sc-readiness-sleep">—</span></div>
+          <span class="sc-sep">·</span>
+          <div class="sc-pair"><span class="sc-key">energy</span><span class="sc-val" id="sc-readiness-energy">—</span></div>
+          <span class="sc-sep">·</span>
+          <div class="sc-pair"><span class="sc-key">soreness</span><span class="sc-val" id="sc-readiness-soreness">—</span></div>
+        </div>
       </div>
     </div>
 
@@ -4854,6 +4964,215 @@ function doChangePw(){
 
 checkSetupToken();
 startApp();
+
+// ═══════════════════════════════════════════════════════════════
+// S-TrainCards · Readiness card · 260507-q02
+// Hybrid SVG shape + HTML text overlay. Self-contained.
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const DUR = 260;
+  const SPRING = 'cubic-bezier(0.34,1.1,0.64,1)';
+
+  function buildPath(elbow, apex){
+    const f = n => n.toFixed(3);
+    return [
+      'M0 30C0 24.4772 4.47715 20 10 20',
+      'H62.8579',
+      'C65.51 20 68.0536 18.9464 69.9289 17.0711',
+      'L84.0711 2.92893',
+      'C85.9464 1.05357 88.49 0 91.1421 0',
+      'H420',
+      'C425.523 0 430 4.47715 430 10',
+      'V350',
+      'C430 355.523 425.523 360 420 360',
+      `H${f(elbow)}`,
+      `C${f(elbow-2.652)} 360 ${f(elbow-5.196)} 361.054 ${f(elbow-7.071)} 362.929`,
+      `L${f(apex+7.071)} 377.071`,
+      `C${f(apex+5.196)} 378.946 ${f(apex+2.652)} 380 ${f(apex)} 380`,
+      'H10',
+      'C4.47715 380 0 375.523 0 370',
+      'V30Z'
+    ].join(' ');
+  }
+
+  function springEase(x){
+    const x1=0.34, y1=1.1, x2=0.64, y2=1;
+    function sampleX(t){ return 3*(1-t)*(1-t)*t*x1 + 3*(1-t)*t*t*x2 + t*t*t; }
+    function sampleY(t){ return 3*(1-t)*(1-t)*t*y1 + 3*(1-t)*t*t*y2 + t*t*t; }
+    let t = x;
+    for(let i=0;i<8;i++){
+      const d = sampleX(t) - x;
+      const dv = 3*(1-t)*(1-t)*x1 + 6*(1-t)*t*(x2-x1) + 3*t*t*(1-x2);
+      if(Math.abs(dv) < 1e-6) break;
+      t -= d/dv;
+    }
+    return sampleY(t);
+  }
+
+  function animatePaths(fp, bp, fromElbow, toElbow, fromApex, toApex, dur, onDone){
+    const start = performance.now();
+    function tick(now){
+      const raw = Math.min((now - start) / dur, 1);
+      const t = springEase(raw);
+      const elbow = fromElbow + (toElbow - fromElbow) * t;
+      const apex  = fromApex  + (toApex  - fromApex)  * t;
+      const d = buildPath(elbow, apex);
+      fp.setAttribute('d', d);
+      bp.setAttribute('d', d);
+      if(raw < 1){ requestAnimationFrame(tick); } else { onDone && onDone(); }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function cancelAnims(el){ if(el && el.getAnimations) el.getAnimations().forEach(a => a.cancel()); }
+
+  // ── Map S.sleep/S.energy/S.soreness to display values ──
+  function readinessDisplay(){
+    const sleep    = (typeof S !== 'undefined' && S.sleep)    ? S.sleep    : '';
+    const energy   = (typeof S !== 'undefined' && S.energy)   ? S.energy   : '';
+    const soreness = (typeof S !== 'undefined' && S.soreness) ? S.soreness : '';
+    let score = null, tier = '';
+    try {
+      if(typeof computeReadiness === 'function') score = computeReadiness();
+      if(typeof readinessTier === 'function')    tier  = readinessTier(score);
+    } catch(_){}
+    return {
+      sleep:    sleep    || '—',
+      energy:   energy   || '—',
+      soreness: soreness || '—',
+      score:    (score === null || score === undefined) ? '--' : String(score),
+      tier:     (tier || '—').toUpperCase()
+    };
+  }
+
+  function paintReadiness(){
+    const d = readinessDisplay();
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+    set('sc-readiness-score',    d.score);
+    set('sc-readiness-tier',     d.tier);
+    set('sc-readiness-sleep',    d.sleep);
+    set('sc-readiness-energy',   d.energy);
+    set('sc-readiness-soreness', d.soreness);
+  }
+
+  // ── Initial-load reveal ──
+  function runReveal(){
+    const lbl = document.getElementById('sc-readiness-label');
+    const def = document.getElementById('sc-readiness-default');
+    if(!lbl || !def) return;
+    lbl.style.clipPath = 'inset(0 100% 0 0)';
+    def.style.clipPath = 'inset(0 100% 0 0)';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      lbl.animate(
+        [{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],
+        {duration: DUR, easing: SPRING, fill:'forwards'}
+      );
+      setTimeout(() => {
+        def.animate(
+          [{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],
+          {duration: DUR, easing: SPRING, fill:'forwards'}
+        );
+      }, 30);
+    }));
+  }
+
+  // ── Expand / collapse (Section 3 combined animation) ──
+  let exp = false, busy = false;
+
+  function toggle(toExpand){
+    if(busy || toExpand === exp) return;
+    busy = true;
+    const fp  = document.getElementById('sc-readiness-fill');
+    const bp  = document.getElementById('sc-readiness-border');
+    const def = document.getElementById('sc-readiness-default');
+    const expEl = document.getElementById('sc-readiness-expanded');
+    if(!fp || !bp || !def || !expEl){ busy = false; return; }
+
+    const [fe,te] = toExpand ? [353.142,201.142] : [201.142,353.142];
+    const [fa,ta] = toExpand ? [324.858,172.858] : [172.858,324.858];
+
+    cancelAnims(def);
+    cancelAnims(expEl);
+
+    animatePaths(fp, bp, fe, te, fa, ta, DUR, () => { exp = toExpand; busy = false; });
+
+    if(toExpand){
+      def.style.opacity = '1';
+      def.animate([{opacity:1},{opacity:0}], {duration:80}).onfinish = () => { def.style.opacity = '0'; };
+      expEl.style.opacity = '1';
+      expEl.style.clipPath = 'inset(0 0 0 100%)';
+      setTimeout(() => {
+        cancelAnims(expEl);
+        expEl.animate(
+          [{clipPath:'inset(0 0 0 100%)'},{clipPath:'inset(0 0 0 0%)'}],
+          {duration:100, easing: SPRING}
+        ).onfinish = () => { expEl.style.clipPath = 'inset(0 0 0 0%)'; };
+      }, 160);
+    } else {
+      expEl.animate([{opacity:1},{opacity:0}], {duration:80}).onfinish = () => {
+        expEl.style.opacity = '0';
+        expEl.style.clipPath = 'inset(0 0 0 100%)';
+      };
+      def.style.opacity = '0';
+      setTimeout(() => {
+        cancelAnims(def);
+        def.animate([{opacity:0},{opacity:1}], {duration:100}).onfinish = () => { def.style.opacity = '1'; };
+      }, 80);
+    }
+  }
+
+  function initReadinessCard(){
+    const card = document.getElementById('sc-card-readiness');
+    if(!card) return;
+
+    paintReadiness();
+
+    // Desktop hover
+    card.addEventListener('mouseenter', () => toggle(true));
+    card.addEventListener('mouseleave', () => toggle(false));
+
+    // Mobile tap: collapsed tap → openReadinessSheet (preserves existing action);
+    //             expanded tap → collapse.
+    card.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if(exp){ toggle(false); }
+      else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
+      else { toggle(true); }
+    }, {passive:false});
+
+    // Desktop click — same behavior as touchstart for keyboard/mouse on touch-capable devices
+    card.addEventListener('click', () => {
+      if(exp){ toggle(false); }
+      else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
+    });
+
+    // Keyboard
+    card.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        if(typeof openReadinessSheet === 'function') openReadinessSheet();
+      }
+    });
+
+    // Initial reveal after fonts ready
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => setTimeout(runReveal, 100));
+    } else {
+      setTimeout(runReveal, 200);
+    }
+  }
+
+  // Expose paint hook so other code (e.g. after sync) can refresh values
+  window.repaintReadinessCard = paintReadiness;
+
+  // Boot once DOM is ready
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initReadinessCard, {once:true});
+  } else {
+    initReadinessCard();
+  }
+})();
+// ═══════════════════════════════════════════════════════════════
 </script>
 
 <!-- PLAN EDIT SHEET -->
