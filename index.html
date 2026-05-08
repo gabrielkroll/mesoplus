@@ -864,9 +864,11 @@ select.bare{cursor:pointer}
   transform-origin:center;
   transition:transform 700ms ease-in-out;
 }
-.sc-train-card:hover svg image{
-  transform:scale(1.04);
-  transition:transform 500ms ease-out;
+@media(hover:hover){
+  .sc-train-card:hover svg image{
+    transform:scale(1.04);
+    transition:transform 500ms ease-out;
+  }
 }
 .sc-train-card .sc-label{
   position:absolute;
@@ -3935,7 +3937,11 @@ function closeReadinessSheet(){
     _synced.delete(d);persist();
   }
   renderActionBar();renderCards();
-  if(typeof window.repaintReadinessCard === 'function') window.repaintReadinessCard();
+  if(typeof window.repaintReadinessCard === 'function'){
+    window.repaintReadinessCard();
+    // Second call after a frame — ensures repaint wins over any rAF callbacks from renderCards()
+    setTimeout(window.repaintReadinessCard, 50);
+  }
 }
 // ── REST STATE — single source of truth ──────────────────────────────────────
 // isRest is just a flag. activities are NEVER wiped by a rest toggle.
@@ -5237,7 +5243,8 @@ startApp();
     // Gesture state machine: tap=open sheet, long-press=peek, swipe=cancel, scroll-then-rest=peek
     let _t0=0, _x0=0, _y0=0, _lpTimer=null, _restTimer=null,
         _swiped=false, _peeking=false, _hasMoved=false, _touching=false,
-        _lastX=0, _lastY=0;
+        _lastX=0, _lastY=0,
+        _cardActive=false, _scrollRestTimer=null;
     const LP_MS=400, MOVE_PX=10, REST_PX=3;
 
     let _justPeeked = false;
@@ -5253,7 +5260,7 @@ startApp();
       const t=e.touches[0];
       _t0=Date.now(); _x0=t.clientX; _y0=t.clientY;
       _lastX=t.clientX; _lastY=t.clientY;
-      _swiped=false; _hasMoved=false; _touching=true;
+      _swiped=false; _hasMoved=false; _touching=true; _cardActive=true;
       // LP timer — only fires if finger never moved (mutually exclusive with scroll-then-rest)
       _lpTimer=setTimeout(()=>{
         _lpTimer=null;
@@ -5294,7 +5301,11 @@ startApp();
       _touching=false;
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
       if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
-      if(_swiped){ _swiped=false; _hasMoved=false; return; }
+      if(_swiped){
+        _swiped=false; _hasMoved=false;
+        if(_peeking){ _peeking=false; toggle(false); }
+        return;
+      }
       if(_peeking){
         _peeking=false;
         _justPeeked=true; setTimeout(()=>{ _justPeeked=false; }, 50);
@@ -5310,7 +5321,33 @@ startApp();
       _cancelLP();
       if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
       _swiped=false; _hasMoved=false;
+      // _cardActive intentionally NOT cleared here — iOS sends touchcancel when it
+      // takes over scroll (finger still on screen). scroll listener needs _cardActive=true.
     });
+
+    // Scroll-then-rest (iOS): touchcancel fires when iOS takes over scroll, so touchmove
+    // never fires on the card. Track scroll events while finger started on this card.
+    // Any new touchstart on a different element resets _cardActive via document capture.
+    document.addEventListener('touchstart', ()=>{
+      _cardActive=false;
+      if(_scrollRestTimer){ clearTimeout(_scrollRestTimer); _scrollRestTimer=null; }
+    },{passive:true,capture:true});
+    // Re-assert _cardActive for touches that start ON the card (card touchstart fires after capture)
+    document.addEventListener('touchend', ()=>{
+      _cardActive=false;
+      if(_scrollRestTimer){ clearTimeout(_scrollRestTimer); _scrollRestTimer=null; }
+    },{passive:true,capture:true});
+    window.addEventListener('scroll', ()=>{
+      if(!_cardActive) return;
+      if(_scrollRestTimer) clearTimeout(_scrollRestTimer);
+      _scrollRestTimer=setTimeout(()=>{
+        _scrollRestTimer=null;
+        if(!_cardActive) return;
+        if(!hasReadinessData()) return;
+        _peeking=true;
+        toggle(true);
+      }, LP_MS);
+    },{passive:true,capture:true});
 
     card.addEventListener('click', ()=>{
       if(_justPeeked) return;
