@@ -5214,19 +5214,11 @@ startApp();
     let _t0=0, _x0=0, _y0=0, _lpTimer=null, _swiped=false, _peeking=false;
     const LP_MS=400, MOVE_PX=10;
 
-    function _zoomIn(){
-      card.style.transition='transform 200ms cubic-bezier(0.34,1.1,0.64,1)';
-      card.style.transform='scale(1.04)';
-    }
-    function _zoomOut(){
-      card.style.transition='transform 150ms ease-out';
-      card.style.transform='';
-      setTimeout(()=>{ card.style.transition=''; },160);
-    }
+    let _justPeeked = false;
     function _cancelLP(){
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
       if(_peeking){
-        _peeking=false; _zoomOut();
+        _peeking=false;
         if(exp){ toggle(false); } else { setTimeout(()=>{ if(exp) toggle(false); }, DUR+20); }
       }
     }
@@ -5239,7 +5231,6 @@ startApp();
         _lpTimer=null;
         if(_swiped) return;
         _peeking=true;
-        _zoomIn();
         toggle(true);
       }, LP_MS);
     },{passive:true});
@@ -5256,7 +5247,8 @@ startApp();
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
       if(_swiped){ _swiped=false; return; }
       if(_peeking){
-        _peeking=false; _zoomOut();
+        _peeking=false;
+        _justPeeked=true; setTimeout(()=>{ _justPeeked=false; }, 50);
         if(exp){ toggle(false); } else { setTimeout(()=>{ if(exp) toggle(false); }, DUR+20); }
         return;
       }
@@ -5267,6 +5259,7 @@ startApp();
     card.addEventListener('touchcancel', ()=>{ _cancelLP(); _swiped=false; });
 
     card.addEventListener('click', ()=>{
+      if(_justPeeked) return;
       if(typeof openReadinessSheet==='function') openReadinessSheet();
     });
 
