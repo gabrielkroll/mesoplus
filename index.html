@@ -829,6 +829,7 @@ select.bare{cursor:pointer}
   cursor:pointer;
   user-select:none;
   -webkit-user-select:none;
+  -webkit-touch-callout:none;
   -webkit-tap-highlight-color:transparent;
   border:0;
   padding:0;
@@ -5223,7 +5224,10 @@ startApp();
     }
     function _cancelLP(){
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
-      if(_peeking){ _peeking=false; _zoomOut(); toggle(false); }
+      if(_peeking){
+        _peeking=false; _zoomOut();
+        if(exp){ toggle(false); } else { setTimeout(()=>{ if(exp) toggle(false); }, DUR+20); }
+      }
     }
 
     card.addEventListener('touchstart', e=>{
@@ -5250,7 +5254,11 @@ startApp();
     card.addEventListener('touchend', e=>{
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
       if(_swiped){ _swiped=false; return; }
-      if(_peeking){ _peeking=false; _zoomOut(); toggle(false); return; }
+      if(_peeking){
+        _peeking=false; _zoomOut();
+        if(exp){ toggle(false); } else { setTimeout(()=>{ if(exp) toggle(false); }, DUR+20); }
+        return;
+      }
       e.preventDefault();
       if(typeof openReadinessSheet==='function') openReadinessSheet();
     },{passive:false});
