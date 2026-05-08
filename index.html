@@ -3939,8 +3939,10 @@ function closeReadinessSheet(){
   renderActionBar();renderCards();
   if(typeof window.repaintReadinessCard === 'function'){
     window.repaintReadinessCard();
-    // Second call after a frame — ensures repaint wins over any rAF callbacks from renderCards()
-    setTimeout(window.repaintReadinessCard, 50);
+    // Double-rAF: runs after browser layout + any frame callbacks settle
+    requestAnimationFrame(()=>{ requestAnimationFrame(window.repaintReadinessCard); });
+    // 150ms safety net for slow devices
+    setTimeout(window.repaintReadinessCard, 150);
   }
 }
 // ── REST STATE — single source of truth ──────────────────────────────────────
@@ -5248,12 +5250,20 @@ startApp();
     const LP_MS=400, MOVE_PX=10, REST_PX=3;
 
     let _justPeeked = false;
+    // Atomically cancel any in-flight animation and snap card to collapsed state.
+    // Use this wherever collapse must win regardless of busy/exp.
+    function _forceCollapse(){
+      if(_rafId){ cancelAnimationFrame(_rafId); _rafId=null; }
+      cancelAnims(document.getElementById('sc-readiness-fill'));
+      cancelAnims(document.getElementById('sc-readiness-border'));
+      cancelAnims(document.getElementById('sc-readiness-default'));
+      cancelAnims(document.getElementById('sc-readiness-expanded'));
+      busy=false; exp=false;
+      render();
+    }
     function _cancelLP(){
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
-      if(_peeking){
-        _peeking=false;
-        if(exp){ toggle(false); } else { setTimeout(()=>{ if(exp) toggle(false); }, DUR+20); }
-      }
+      if(_peeking){ _peeking=false; _forceCollapse(); }
     }
 
     card.addEventListener('touchstart', e=>{
@@ -5303,7 +5313,7 @@ startApp();
       if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
       if(_swiped){
         _swiped=false; _hasMoved=false;
-        if(_peeking){ _peeking=false; toggle(false); }
+        if(_peeking){ _peeking=false; _forceCollapse(); }
         return;
       }
       if(_peeking){
@@ -5318,7 +5328,10 @@ startApp();
 
     card.addEventListener('touchcancel', ()=>{
       _touching=false;
-      _cancelLP();
+      if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
+      // Force-collapse immediately on touchcancel (iOS scroll takeover).
+      // toggle(false) would return early if busy=true; _forceCollapse() always wins.
+      if(_peeking){ _peeking=false; _forceCollapse(); }
       if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
       _swiped=false; _hasMoved=false;
       // _cardActive intentionally NOT cleared here — iOS sends touchcancel when it
@@ -5337,7 +5350,8 @@ startApp();
       _cardActive=false;
       if(_scrollRestTimer){ clearTimeout(_scrollRestTimer); _scrollRestTimer=null; }
     },{passive:true,capture:true});
-    window.addEventListener('scroll', ()=>{
+    // document capture catches ALL scroll events (window misses nested containers + PWA standalone mode)
+    document.addEventListener('scroll', ()=>{
       if(!_cardActive) return;
       if(_scrollRestTimer) clearTimeout(_scrollRestTimer);
       _scrollRestTimer=setTimeout(()=>{
