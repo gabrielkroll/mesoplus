@@ -3935,6 +3935,7 @@ function closeReadinessSheet(){
     _synced.delete(d);persist();
   }
   renderActionBar();renderCards();
+  if(typeof window.repaintReadinessCard === 'function') window.repaintReadinessCard();
 }
 // ── REST STATE — single source of truth ──────────────────────────────────────
 // isRest is just a flag. activities are NEVER wiped by a rest toggle.
