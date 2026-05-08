@@ -5208,23 +5208,57 @@ startApp();
     card.addEventListener('mouseenter', () => { if(canHover.matches) toggle(true); });
     card.addEventListener('mouseleave', () => { if(canHover.matches) toggle(false); });
 
-    // Mobile tap: passive touchstart (allows scroll), detect tap vs scroll on touchend
-    let _touchY = 0;
-    card.addEventListener('touchstart', e => {
-      _touchY = e.touches[0].clientY;
-    }, {passive: true});
+    // Gesture state machine: tap=open sheet, long-press=peek, swipe=cancel
+    let _t0=0, _x0=0, _y0=0, _lpTimer=null, _swiped=false, _peeking=false;
+    const LP_MS=400, MOVE_PX=10;
 
-    card.addEventListener('touchend', e => {
-      if(Math.abs(e.changedTouches[0].clientY - _touchY) > 10) return;
+    function _zoomIn(){
+      card.style.transition='transform 200ms cubic-bezier(0.34,1.1,0.64,1)';
+      card.style.transform='scale(1.04)';
+    }
+    function _zoomOut(){
+      card.style.transition='transform 150ms ease-out';
+      card.style.transform='';
+      setTimeout(()=>{ card.style.transition=''; },160);
+    }
+    function _cancelLP(){
+      if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
+      if(_peeking){ _peeking=false; _zoomOut(); toggle(false); }
+    }
+
+    card.addEventListener('touchstart', e=>{
+      const t=e.touches[0];
+      _t0=Date.now(); _x0=t.clientX; _y0=t.clientY;
+      _swiped=false;
+      _lpTimer=setTimeout(()=>{
+        _lpTimer=null;
+        if(_swiped) return;
+        _peeking=true;
+        _zoomIn();
+        toggle(true);
+      }, LP_MS);
+    },{passive:true});
+
+    card.addEventListener('touchmove', e=>{
+      const t=e.changedTouches[0];
+      if(!_swiped && (Math.abs(t.clientX-_x0)>MOVE_PX || Math.abs(t.clientY-_y0)>MOVE_PX)){
+        _swiped=true;
+        _cancelLP();
+      }
+    },{passive:true});
+
+    card.addEventListener('touchend', e=>{
+      if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
+      if(_swiped){ _swiped=false; return; }
+      if(_peeking){ _peeking=false; _zoomOut(); toggle(false); return; }
       e.preventDefault();
-      if(exp){ toggle(false); }
-      else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
-      else { toggle(true); }
-    }, {passive: false});
+      if(typeof openReadinessSheet==='function') openReadinessSheet();
+    },{passive:false});
 
-    card.addEventListener('click', () => {
-      if(exp){ toggle(false); }
-      else if(typeof openReadinessSheet === 'function'){ openReadinessSheet(); }
+    card.addEventListener('touchcancel', ()=>{ _cancelLP(); _swiped=false; });
+
+    card.addEventListener('click', ()=>{
+      if(typeof openReadinessSheet==='function') openReadinessSheet();
     });
 
     card.addEventListener('keydown', e => {
