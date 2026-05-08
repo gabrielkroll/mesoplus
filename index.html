@@ -5071,7 +5071,8 @@ startApp();
   }
 
   function hasReadinessData(){
-    return !!(S.sleep || S.energy || S.soreness);
+    const s = computeReadiness();
+    return s !== null && s !== undefined;
   }
 
   // ── Single authoritative render — only place that sets opacity/clipPath/display ──
@@ -5252,6 +5253,7 @@ startApp();
       _lpTimer=setTimeout(()=>{
         _lpTimer=null;
         if(_swiped) return;
+        if(!hasReadinessData()) return;
         _peeking=true;
         toggle(true);
       }, LP_MS);
