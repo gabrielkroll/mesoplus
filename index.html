@@ -5153,6 +5153,7 @@ startApp();
 
   function toggle(toExpand){
     if(busy || toExpand === exp) return;
+    if(toExpand && !hasReadinessData()) return;
     busy = true;
     const fp    = document.getElementById('sc-readiness-fill');
     const bp    = document.getElementById('sc-readiness-border');
