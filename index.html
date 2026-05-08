@@ -5046,6 +5046,11 @@ startApp();
 
   function cancelAnims(el){ if(el && el.getAnimations) el.getAnimations().forEach(a => a.cancel()); }
 
+  // ── Clip-path constants (named so both animation directions share one vocabulary) ──
+  const CLIP_NONE  = 'inset(0 0% 0 0)';    // fully visible
+  const CLIP_LEFT  = 'inset(0 100% 0 0)';  // hidden — entrance/exit direction (left edge)
+  const CLIP_RIGHT = 'inset(0 0 0 100%)';  // hidden — expand/collapse direction (right edge)
+
   // ── Map S.sleep/S.energy/S.soreness to display values ──
   function readinessDisplay(){
     const sleep    = (typeof S !== 'undefined' && S.sleep)    ? S.sleep    : '';
@@ -5069,59 +5074,79 @@ startApp();
     return !!(S.sleep || S.energy || S.soreness);
   }
 
-  function paintReadiness(){
-    const d = readinessDisplay();
+  // ── Single authoritative render — only place that sets opacity/clipPath/display ──
+  function render(){
     const isEmpty = !hasReadinessData();
-    const def = document.getElementById('sc-readiness-default');
-    const cta = document.getElementById('sc-readiness-cta');
-    if(isEmpty){
-      if(def) def.style.display = 'none';
-      if(cta){ cta.style.display = 'flex'; }
-    } else {
-      if(def){ def.style.display = ''; def.style.clipPath = 'inset(0 0% 0 0)'; }
-      if(cta) cta.style.display = 'none';
-      const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+    const lbl   = document.getElementById('sc-readiness-label');
+    const def   = document.getElementById('sc-readiness-default');
+    const cta   = document.getElementById('sc-readiness-cta');
+    const expEl = document.getElementById('sc-readiness-expanded');
+    if(!lbl || !def || !cta || !expEl) return;
+
+    if(!isEmpty){
+      const d = readinessDisplay();
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
       set('sc-readiness-score',    d.score);
       set('sc-readiness-tier',     d.tier);
       set('sc-readiness-sleep',    d.sleep);
       set('sc-readiness-energy',   d.energy);
       set('sc-readiness-soreness', d.soreness);
     }
+
+    lbl.style.clipPath = CLIP_NONE;
+
+    if(isEmpty){
+      def.style.display    = 'none';
+      def.style.opacity    = '1';
+      def.style.clipPath   = CLIP_NONE;
+      cta.style.display    = 'flex';
+      cta.style.clipPath   = CLIP_NONE;
+      expEl.style.opacity  = '0';
+      expEl.style.clipPath = CLIP_RIGHT;
+    } else if(exp){
+      def.style.display    = '';
+      def.style.opacity    = '0';
+      def.style.clipPath   = CLIP_NONE;
+      cta.style.display    = 'none';
+      expEl.style.opacity  = '1';
+      expEl.style.clipPath = CLIP_NONE;
+    } else {
+      def.style.display    = '';
+      def.style.opacity    = '1';
+      def.style.clipPath   = CLIP_NONE;
+      cta.style.display    = 'none';
+      expEl.style.opacity  = '0';
+      expEl.style.clipPath = CLIP_RIGHT;
+    }
   }
 
-  // ── Initial-load reveal ──
-  function runReveal(){
-    const lbl = document.getElementById('sc-readiness-label');
-    const isEmpty = !hasReadinessData();
-    const bottomEl = isEmpty
-      ? document.getElementById('sc-readiness-cta')
-      : document.getElementById('sc-readiness-default');
+  // ── Entrance animation — slides label + active status in from left (runs once at boot) ──
+  function _runEntrance(){
+    const isEmpty  = !hasReadinessData();
+    const lbl      = document.getElementById('sc-readiness-label');
+    const bottomEl = document.getElementById(isEmpty ? 'sc-readiness-cta' : 'sc-readiness-default');
     if(!lbl || !bottomEl) return;
-    lbl.style.clipPath = 'inset(0 100% 0 0)';
-    bottomEl.style.clipPath = 'inset(0 100% 0 0)';
+    lbl.style.clipPath      = CLIP_LEFT;
+    bottomEl.style.clipPath = CLIP_LEFT;
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      lbl.animate(
-        [{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],
-        {duration: DUR, easing: SPRING}
-      ).onfinish = () => { lbl.style.clipPath = 'inset(0 0% 0 0)'; };
+      lbl.animate([{clipPath:CLIP_LEFT},{clipPath:CLIP_NONE}],{duration:DUR,easing:SPRING})
+        .onfinish = () => { lbl.style.clipPath = CLIP_NONE; };
       setTimeout(() => {
-        bottomEl.animate(
-          [{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],
-          {duration: DUR, easing: SPRING}
-        ).onfinish = () => { bottomEl.style.clipPath = 'inset(0 0% 0 0)'; };
+        bottomEl.animate([{clipPath:CLIP_LEFT},{clipPath:CLIP_NONE}],{duration:DUR,easing:SPRING})
+          .onfinish = () => { bottomEl.style.clipPath = CLIP_NONE; };
       }, 30);
     }));
   }
 
-  // ── Expand / collapse (Section 3 combined animation) ──
+  // ── Expand / collapse — path morph + cross-fade, commits state via render() ──
   let exp = false, busy = false, _rafId = null;
 
   function toggle(toExpand){
     if(busy || toExpand === exp) return;
     busy = true;
-    const fp  = document.getElementById('sc-readiness-fill');
-    const bp  = document.getElementById('sc-readiness-border');
-    const def = document.getElementById('sc-readiness-default');
+    const fp    = document.getElementById('sc-readiness-fill');
+    const bp    = document.getElementById('sc-readiness-border');
+    const def   = document.getElementById('sc-readiness-default');
     const expEl = document.getElementById('sc-readiness-expanded');
     if(!fp || !bp || !def || !expEl){ busy = false; return; }
 
@@ -5133,29 +5158,26 @@ startApp();
     cancelAnims(def);
     cancelAnims(expEl);
 
-    animatePaths(fp, bp, fromBrE, toBrE, fromBrA, toBrA, DUR, () => { exp = toExpand; busy = false; });
+    animatePaths(fp, bp, fromBrE, toBrE, fromBrA, toBrA, DUR, () => { exp = toExpand; busy = false; render(); });
 
     if(toExpand){
-      def.style.opacity = '1';
-      def.animate([{opacity:1},{opacity:0}], {duration:80}).onfinish = () => { def.style.opacity = '0'; };
-      expEl.style.opacity = '1';
-      expEl.style.clipPath = 'inset(0 0 0 100%)';
+      def.animate([{opacity:1},{opacity:0}],{duration:80}).onfinish = () => { def.style.opacity = '0'; };
+      expEl.style.opacity  = '1';
+      expEl.style.clipPath = CLIP_RIGHT;
       setTimeout(() => {
         cancelAnims(expEl);
-        expEl.animate(
-          [{clipPath:'inset(0 0 0 100%)'},{clipPath:'inset(0 0 0 0%)'}],
-          {duration:100, easing: SPRING}
-        ).onfinish = () => { expEl.style.clipPath = 'inset(0 0 0 0%)'; };
+        expEl.animate([{clipPath:CLIP_RIGHT},{clipPath:CLIP_NONE}],{duration:100,easing:SPRING})
+          .onfinish = () => { expEl.style.clipPath = CLIP_NONE; };
       }, 160);
     } else {
-      expEl.animate([{opacity:1},{opacity:0}], {duration:80}).onfinish = () => {
-        expEl.style.opacity = '0';
-        expEl.style.clipPath = 'inset(0 0 0 100%)';
+      expEl.animate([{opacity:1},{opacity:0}],{duration:80}).onfinish = () => {
+        expEl.style.opacity  = '0';
+        expEl.style.clipPath = CLIP_RIGHT;
       };
       def.style.opacity = '0';
       setTimeout(() => {
         cancelAnims(def);
-        def.animate([{opacity:0},{opacity:1}], {duration:100}).onfinish = () => { def.style.opacity = '1'; };
+        def.animate([{opacity:0},{opacity:1}],{duration:100}).onfinish = () => { def.style.opacity = '1'; };
       }, 80);
     }
   }
@@ -5203,7 +5225,7 @@ startApp();
     const card = document.getElementById('sc-card-readiness');
     if(!card) return;
 
-    paintReadiness();
+    render();
 
     // Desktop hover — guard with (hover:hover) to suppress iOS ghost mouseenter after tap
     const canHover = window.matchMedia('(hover:hover)');
@@ -5271,7 +5293,7 @@ startApp();
     });
 
     // Geometry + reveal after fonts ready
-    const boot = () => { initGeometry(); setTimeout(runReveal, 100); };
+    const boot = () => { initGeometry(); render(); setTimeout(_runEntrance, 100); };
     if(document.fonts && document.fonts.ready){
       document.fonts.ready.then(boot);
     } else {
@@ -5285,7 +5307,7 @@ startApp();
   }
 
   // Expose paint hook so other code (e.g. after sync) can refresh values
-  window.repaintReadinessCard = () => { paintReadiness(); updateNotches(); };
+  window.repaintReadinessCard = () => { render(); updateNotches(); };
 
   // Boot once DOM is ready
   if(document.readyState === 'loading'){
