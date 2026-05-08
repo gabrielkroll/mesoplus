@@ -1101,10 +1101,13 @@ select.bare{cursor:pointer}
                 <pattern id="sc-readiness-img" patternUnits="userSpaceOnUse" width="430" height="380">
                   <image href="assets/Cards/img/Default.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
                 </pattern>
+                <clipPath id="sc-border-top-clip">
+                  <rect id="sc-border-top-rect" x="0" y="0" width="430" height="358"/>
+                </clipPath>
               </defs>
               <path id="sc-readiness-fill" fill="url(#sc-readiness-img)"
                 d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
-              <path id="sc-readiness-border" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"
+              <path id="sc-readiness-border" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-border-top-clip)"
                 d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
             </svg>
             <div class="sc-label" id="sc-readiness-label" style="clip-path:inset(0 100% 0 0)">READINESS</div>
@@ -5229,6 +5232,8 @@ startApp();
     if(svg)  svg.setAttribute('viewBox', `0 0 ${_cardW} ${_cardH}`);
     if(patt){ patt.setAttribute('width', _cardW); patt.setAttribute('height', _cardH); }
     if(img) { img.setAttribute('width',  _cardW); img.setAttribute('height',  _cardH); }
+    const bcr = document.getElementById('sc-border-top-rect');
+    if(bcr){ bcr.setAttribute('width', String(_cardW)); bcr.setAttribute('height', String(_cardH - 22)); }
     updateNotches();
   }
 
