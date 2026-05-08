@@ -5234,9 +5234,11 @@ startApp();
     card.addEventListener('mouseenter', () => { if(canHover.matches) toggle(true); });
     card.addEventListener('mouseleave', () => { if(canHover.matches) toggle(false); });
 
-    // Gesture state machine: tap=open sheet, long-press=peek, swipe=cancel
-    let _t0=0, _x0=0, _y0=0, _lpTimer=null, _swiped=false, _peeking=false;
-    const LP_MS=400, MOVE_PX=10;
+    // Gesture state machine: tap=open sheet, long-press=peek, swipe=cancel, scroll-then-rest=peek
+    let _t0=0, _x0=0, _y0=0, _lpTimer=null, _restTimer=null,
+        _swiped=false, _peeking=false, _hasMoved=false, _touching=false,
+        _lastX=0, _lastY=0;
+    const LP_MS=400, MOVE_PX=10, REST_PX=3;
 
     let _justPeeked = false;
     function _cancelLP(){
@@ -5250,10 +5252,12 @@ startApp();
     card.addEventListener('touchstart', e=>{
       const t=e.touches[0];
       _t0=Date.now(); _x0=t.clientX; _y0=t.clientY;
-      _swiped=false;
+      _lastX=t.clientX; _lastY=t.clientY;
+      _swiped=false; _hasMoved=false; _touching=true;
+      // LP timer — only fires if finger never moved (mutually exclusive with scroll-then-rest)
       _lpTimer=setTimeout(()=>{
         _lpTimer=null;
-        if(_swiped) return;
+        if(_swiped || _hasMoved) return;
         if(!hasReadinessData()) return;
         _peeking=true;
         toggle(true);
@@ -5262,15 +5266,35 @@ startApp();
 
     card.addEventListener('touchmove', e=>{
       const t=e.changedTouches[0];
-      if(!_swiped && (Math.abs(t.clientX-_x0)>MOVE_PX || Math.abs(t.clientY-_y0)>MOVE_PX)){
+      const dx=Math.abs(t.clientX-_x0), dy=Math.abs(t.clientY-_y0);
+      // First movement threshold — cancel LP, mark as scroll gesture
+      if(!_hasMoved && (dx>MOVE_PX || dy>MOVE_PX)){
+        _hasMoved=true;
         _swiped=true;
-        _cancelLP();
+        if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
+      }
+      // Once moving: track rest — reset _restTimer whenever finger moves >REST_PX from last position
+      if(_hasMoved){
+        const rdx=Math.abs(t.clientX-_lastX), rdy=Math.abs(t.clientY-_lastY);
+        if(rdx>REST_PX || rdy>REST_PX){
+          _lastX=t.clientX; _lastY=t.clientY;
+          if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
+          _restTimer=setTimeout(()=>{
+            _restTimer=null;
+            if(!_touching) return;               // finger already lifted
+            if(!hasReadinessData()) return;
+            _peeking=true;
+            toggle(true);
+          }, LP_MS);
+        }
       }
     },{passive:true});
 
     card.addEventListener('touchend', e=>{
+      _touching=false;
       if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer=null; }
-      if(_swiped){ _swiped=false; return; }
+      if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
+      if(_swiped){ _swiped=false; _hasMoved=false; return; }
       if(_peeking){
         _peeking=false;
         _justPeeked=true; setTimeout(()=>{ _justPeeked=false; }, 50);
@@ -5281,7 +5305,12 @@ startApp();
       if(typeof openReadinessSheet==='function') openReadinessSheet();
     },{passive:false});
 
-    card.addEventListener('touchcancel', ()=>{ _cancelLP(); _swiped=false; });
+    card.addEventListener('touchcancel', ()=>{
+      _touching=false;
+      _cancelLP();
+      if(_restTimer){ clearTimeout(_restTimer); _restTimer=null; }
+      _swiped=false; _hasMoved=false;
+    });
 
     card.addEventListener('click', ()=>{
       if(_justPeeked) return;
