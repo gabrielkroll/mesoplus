@@ -137,6 +137,24 @@ A personal progressive overload training log for one athlete (Gabriel) who train
 
 ---
 
+## Recent UX decisions
+
+### Image card dashboard
+
+The Train screen cards now follow a shared image-card model:
+- Empty cards show a single right-side action: `Start`.
+- Filled and in-progress cards reveal useful detail on hover/peek instead of repeating the action prompt.
+- Readiness card, readiness sheet, and performance card/sheet use shared helper copy so labels stay consistent.
+- Performance status uses directional arrows everywhere: down for below par, right for on track, up for exceeded.
+
+This keeps the dashboard quiet at rest and richer only when there is data worth inspecting.
+
+Roadmap note:
+- Refine the quick-view semantics per card. The hover/peek state must add value beyond the default compact card state; it should not simply repeat the same label in a larger or second location.
+- Decide what each card's glanceable value is before further visual polish: Resistance, Custom, BJJ, Notes, and any future Rest affordance may each need a different summary rule.
+
+---
+
 ## Session types
 
 | Type | What it logs |

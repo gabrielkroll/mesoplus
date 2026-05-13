@@ -222,6 +222,75 @@ Flow:
 
 ---
 
+## Card dashboard architecture
+
+The Train screen uses image-backed dashboard cards for Check-in, Training, Reflect, and Rest. The visual contract is documented in `docs/DESIGN.md`; this section documents the code ownership.
+
+### Shared card state
+
+`computeCardStates()` derives lightweight state for the non-readiness cards:
+
+```javascript
+{
+  resistance: { state, display },
+  custom:     { state, display },
+  bjj:        { state, display },
+  rest:       { state, display },
+  performance:{ state, display },
+  notes:      { state, display }
+}
+```
+
+`state` is one of `not-started`, `in-progress`, `done`, or `disabled`. `display` is the left-side revealed detail for filled states.
+
+### Session-card renderer
+
+`_renderScSessionCard(id, cd)` is the single path that maps card state into DOM for Resistance, Custom, BJJ, Performance, and Notes.
+
+It owns:
+- `sc-session-card` state classes (`is-empty`, `has-data`, `in-progress`, `done`, `disabled`, `has-value`)
+- the left reveal text (`.sc-card-meta`)
+- the optional serif value slot (`.sc-card-value`)
+- the compact right-side status/action (`.sc-card-collapsed-meta`)
+
+Empty cards intentionally show only `Start` in the compact right slot. The left footer remains label-only until the card has meaningful data.
+
+Filled card compact labels are card-specific:
+- Resistance: `Day A`, with large serif `A` on hover/reveal.
+- Custom: exercise count, with the count in the large serif value lane.
+- BJJ: `Logged` or `In progress`, with the best available BJJ detail in the reveal line.
+- Performance: `perfLabel(v)` compact, `perfArrow(v)` large value.
+- Notes: `Note`, with the first note line in the reveal line.
+
+### Readiness card
+
+The readiness card is self-contained in the `S-TrainCards · Readiness card` IIFE near the bottom of `index.html`. It owns:
+- dynamic SVG geometry setup for the notched image path
+- the readiness footer render path
+- hover/reveal timing
+- long-press peek behavior
+- `window.repaintReadinessCard()`
+
+Readiness copy is shared with the readiness sheet via `readinessMessage(tier)`. Do not hardcode separate readiness guidance strings in the card or sheet.
+
+### Shared display helpers
+
+`readinessMessage(tier)` maps readiness tiers to the card/sheet guidance copy.
+
+`perfArrow(v)` maps performance choices to their standalone arrow glyphs. `perfLabel(v)` combines the arrow and label:
+
+```javascript
+Below par → ↓ Below par
+On track  → → On track
+Exceeded  → ↑ Exceeded
+```
+
+Use `perfLabel(v)` anywhere performance is displayed, including sheet chips and card summaries, so the iconography remains consistent.
+
+The Performance card uses both helpers: compact right-side quick view uses `perfLabel(v)` (`→ On track`), while the hover/reveal state uses `S.perf` as the left metadata (`On track`) and `perfArrow(v)` as the large serif value.
+
+---
+
 ## Password system
 
 Simple password gate — not a real auth system. Suitable for personal use (V1/V2).

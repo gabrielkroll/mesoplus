@@ -582,6 +582,7 @@ select.bare{cursor:pointer}
 #breath-phase-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#C8C2A8;margin-top:28px;opacity:0;transition:opacity .4s ease;text-transform:lowercase;min-height:16px;position:relative;z-index:1}
 .card-grid{display:grid;grid-template-columns:1fr;gap:8px}
 @media(min-width:600px){.card-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.checkin-card-grid{grid-template-columns:1fr}}
 .session-card{position:relative;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 12px 12px;min-height:320px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:border-color .12s,opacity .15s;outline:none;text-align:left;display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .session-card:hover{border-color:var(--line2)}
 .session-card:active{opacity:.8}
@@ -633,7 +634,8 @@ select.bare{cursor:pointer}
 .rs-sheet{position:fixed;inset:0;z-index:251;background:var(--lift);transform:translateY(100%);transition:transform .38s cubic-bezier(0.32,0.72,0,1);visibility:hidden;display:flex;flex-direction:column;overflow:hidden}
 .rs-sheet.open{transform:translateY(0);visibility:visible}
 .rs-hdr{flex-shrink:0;padding:calc(max(env(safe-area-inset-top,0px),16px)) 16px 16px;border-bottom:1px solid var(--line);position:relative}
-.rs-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;cursor:pointer;touch-action:manipulation;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;-webkit-tap-highlight-color:transparent}
+.rs-close{position:absolute;top:calc(max(env(safe-area-inset-top,0px),8px));right:8px;background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;outline:none;-webkit-tap-highlight-color:transparent;transition:background .1s}
+.rs-close:hover{background:var(--surf)}
 .rs-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
 .rs-title{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.15;padding-right:52px}
 .rs-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 16px}
@@ -642,7 +644,7 @@ select.bare{cursor:pointer}
 .rs-footer{flex-shrink:0;padding:12px 16px;padding-bottom:calc(max(env(safe-area-inset-bottom,0px),16px));border-top:1px solid var(--line)}
 .rs-done-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;height:48px;font-family:var(--mono);font-size:13px;letter-spacing:.05em;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .rs-outcome{background:var(--surf);border-radius:12px;padding:20px;margin-bottom:24px;display:flex;align-items:center;gap:20px;min-height:88px;transition:background .2s}
-.rs-outcome-score{font-family:var(--serif);font-style:italic;font-size:48px;line-height:1;min-width:64px;flex-shrink:0;transition:color .2s}
+.rs-outcome-score{order:2;font-family:var(--serif);font-style:italic;font-size:48px;line-height:1;width:83px;box-sizing:border-box;padding-right:20px;text-align:right;flex-shrink:0;transition:color .2s}
 .rs-outcome-right{display:flex;flex-direction:column;gap:5px;flex:1}
 .rs-outcome-tier{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;transition:color .2s}
 .rs-outcome-msg{font-family:var(--mono);font-size:12px;color:var(--ink3);line-height:1.4}
@@ -824,7 +826,6 @@ select.bare{cursor:pointer}
 .sc-train-card{
   position:relative;
   width:100%;
-  aspect-ratio:430/380;
   background:#141414;
   cursor:pointer;
   user-select:none;
@@ -834,24 +835,18 @@ select.bare{cursor:pointer}
   border:0;
   padding:0;
   display:block;
-  overflow:hidden;
+  overflow:visible;
   touch-action:manipulation;
+  text-align:left;
 }
-.sc-train-card .sc-status-cta{
-  position:absolute;
-  bottom:2px;
-  right:0;
-  display:flex;
-  align-items:center;
-  font-family:'DM Mono',monospace;
-  font-size:9px;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:rgba(255,255,255,0.4);
-  white-space:nowrap;
-  pointer-events:none;
+.sc-card-face,.sc-readiness-face{
+  position:relative;
+  width:100%;
+  aspect-ratio:430/380;
+  background:#141414;
+  overflow:hidden;
 }
-.sc-train-card svg{
+.sc-card-face svg,.sc-readiness-face svg{
   position:absolute;
   inset:0;
   width:100%;
@@ -859,65 +854,277 @@ select.bare{cursor:pointer}
   overflow:visible;
   pointer-events:none;
 }
-.sc-train-card svg image{
+.sc-card-face svg image,.sc-readiness-face svg image{
   transform-box:fill-box;
   transform-origin:center;
-  transition:transform 700ms ease-in-out;
+  transition:transform 600ms ease-out;
 }
-@media(hover:hover){
-  .sc-train-card:hover svg image{
-    transform:scale(1.04);
-    transition:transform 500ms ease-out;
-  }
+.sc-card-caption,.sc-readiness-caption{
+  height:73px;
+  position:relative;
+  overflow:hidden;
+  font-family:'DM Mono',monospace;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.sc-card-caption-row,.sc-readiness-caption-row{
+  position:absolute;
+  top:20px;
+  left:-20px;
+  right:auto;
+  width:100%;
+  height:33px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 83px;
+  column-gap:0;
+  align-items:start;
+  transition:transform 600ms ease-out;
+}
+.sc-readiness-caption-row{
+  grid-template-columns:minmax(0,1fr) 83px;
+  height:33px;
+}
+.sc-card-caption-row::before,.sc-readiness-caption-row::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  width:1px;
+  height:33px;
+  background:#2a2a2a;
+  opacity:0;
+  transition:opacity 600ms ease-out;
+}
+.sc-card-copy,.sc-readiness-copy{
+  padding-left:20px;
+  min-width:0;
+  width:100%;
 }
 .sc-train-card .sc-label{
-  position:absolute;
-  top:2px;
-  left:0;
-  font-family:'DM Mono',monospace;
-  font-size:9px;
+  font-size:11px;
+  line-height:14px;
   color:rgba(255,255,255,0.6);
-  letter-spacing:0.08em;
-  text-transform:uppercase;
   white-space:nowrap;
   pointer-events:none;
 }
-.sc-train-card .sc-status-default{
-  position:absolute;
-  bottom:2px;
-  right:0;
+.sc-card-meta,.sc-readiness-meta{
+  margin-top:5px;
+  height:14px;
   display:flex;
   align-items:center;
-  gap:3px;
-  font-family:'DM Mono',monospace;
-  font-size:9px;
-  pointer-events:none;
-}
-.sc-train-card .sc-score{color:#e8e8e8}
-.sc-train-card .sc-sep{color:#444}
-.sc-train-card .sc-tier{color:#7aad2a}
-.sc-train-card .sc-status-expanded{
-  position:absolute;
-  bottom:0;
-  right:0;
-  height:16px;
-  padding:0 8px;
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  gap:3px;
-  font-family:'DM Mono',monospace;
-  font-size:9px;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  white-space:nowrap;
+  gap:5px;
+  font-size:11px;
+  line-height:14px;
   color:#666;
+  white-space:nowrap;
+  overflow:hidden;
+  max-width:0;
+  opacity:0;
+  transition:max-width 600ms ease-out, opacity 600ms ease-out;
+}
+.sc-readiness-caption{
+  background:#141414;
+}
+.sc-train-card.is-empty .sc-readiness-caption{
+  height:54px;
+}
+.sc-train-card.is-empty .sc-readiness-caption-row{
+  height:14px;
+  grid-template-columns:minmax(0,1fr);
+}
+.sc-train-card.is-empty .sc-readiness-caption-row::before{
+  height:14px;
+}
+.sc-session-card.is-empty .sc-card-caption-row{
+  height:14px;
+  grid-template-columns:minmax(0,1fr);
+}
+.sc-session-card.is-empty .sc-card-caption-row::before{
+  height:14px;
+}
+.sc-readiness-meta{
+  text-transform:none;
+  letter-spacing:.72px;
+}
+.sc-readiness-collapsed-meta{
+  position:absolute;
+  top:20px;
+  right:0;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  max-width:52%;
+  padding:0 20px 0 12px;
+  box-sizing:border-box;
+  font-family:var(--mono);
+  font-size:11px;
+  line-height:14px;
+  letter-spacing:.72px;
+  text-transform:none;
+  color:#666;
+  white-space:nowrap;
+  overflow:hidden;
+  transition:opacity 90ms ease-out 420ms,color 90ms ease-out;
   pointer-events:none;
+}
+.sc-card-collapsed-meta{
+  position:absolute;
+  top:20px;
+  right:0;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  max-width:52%;
+  padding:0 20px 0 12px;
+  box-sizing:border-box;
+  font-family:var(--mono);
+  font-size:11px;
+  line-height:14px;
+  letter-spacing:.72px;
+  text-transform:none;
+  color:#666;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  transition:opacity 90ms ease-out 420ms,color 90ms ease-out;
+  pointer-events:none;
+}
+.sc-readiness-collapsed-meta .sc-tier-compact,
+.sc-readiness-collapsed-meta .sc-guidance{
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sc-readiness-collapsed-meta .sc-sep{color:#666}
+.sc-readiness-caption-row::before{
+  height:33px;
+}
+.sc-train-card.is-empty .sc-readiness-collapsed-meta{
+  color:#666;
+}
+.sc-train-card.is-empty:hover .sc-readiness-collapsed-meta,
+.sc-train-card.is-empty.is-revealed .sc-readiness-collapsed-meta{
+  opacity:1;
+  color:var(--accent);
+}
+.sc-train-card.is-empty:hover .sc-readiness-meta,
+.sc-train-card.is-empty.is-revealed .sc-readiness-meta{
+  max-width:0;
   opacity:0;
 }
-.sc-train-card .sc-pair{display:flex;align-items:center;gap:8px}
+.sc-session-card.is-empty:hover .sc-card-collapsed-meta,
+.sc-session-card.is-empty.is-revealed .sc-card-collapsed-meta{
+  opacity:1;
+  color:var(--accent);
+}
+.sc-session-card.is-empty:hover .sc-card-meta,
+.sc-session-card.is-empty.is-revealed .sc-card-meta{
+  max-width:0;
+  opacity:0;
+}
+.sc-card-value-box,.sc-score-box{
+  width:83px;
+  height:43px;
+  box-sizing:border-box;
+  padding:3px 20px 0;
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-end;
+  margin-top:-10px;
+  opacity:0;
+  overflow:hidden;
+  text-align:right;
+  transition:opacity 600ms ease-out;
+}
+.sc-score-box{
+  width:83px;
+  padding-left:20px;
+  padding-right:20px;
+}
+.sc-train-card .sc-value,.sc-train-card .sc-score{
+  color:rgba(102,102,102,0.6);
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:50px;
+  line-height:40px;
+  letter-spacing:0;
+  white-space:nowrap;
+  display:block;
+}
+.sc-train-card .sc-sep{color:#444}
+.sc-train-card .sc-tier{color:#7aad2a}
+.sc-train-card .sc-guidance{color:#666}
+.sc-train-card.is-empty .sc-card-meta,.sc-train-card.is-empty .sc-readiness-meta{color:#666}
+.sc-train-card.is-empty .sc-card-value-box,.sc-train-card.is-empty .sc-score-box{display:none}
+.sc-train-card.is-peeking .sc-card-caption-row,
+.sc-train-card.is-revealed .sc-card-caption-row,
+.sc-train-card.is-peeking .sc-readiness-caption-row,
+.sc-train-card.is-revealed .sc-readiness-caption-row{transform:translateX(20px)}
+.sc-train-card.is-peeking .sc-card-meta,
+.sc-train-card.is-revealed .sc-card-meta,
+.sc-train-card.is-peeking .sc-readiness-meta,
+.sc-train-card.is-revealed .sc-readiness-meta{max-width:307px;opacity:1}
+.sc-train-card.is-peeking .sc-readiness-collapsed-meta,
+.sc-train-card.is-revealed .sc-readiness-collapsed-meta{opacity:0;transition-delay:0ms}
+.sc-train-card.is-peeking .sc-card-collapsed-meta,
+.sc-train-card.is-revealed .sc-card-collapsed-meta{opacity:0;transition-delay:0ms}
+.sc-train-card.is-peeking .sc-card-value-box,
+.sc-train-card.is-revealed .sc-card-value-box,
+.sc-train-card.is-peeking .sc-score-box,
+.sc-train-card.is-revealed .sc-score-box{opacity:1}
+.sc-train-card.is-peeking .sc-card-caption-row::before,
+.sc-train-card.is-revealed .sc-card-caption-row::before,
+.sc-train-card.is-peeking .sc-readiness-caption-row::before,
+.sc-train-card.is-revealed .sc-readiness-caption-row::before{opacity:1}
+.sc-train-card.is-peeking .sc-card-value-box,.sc-train-card.is-peeking .sc-score-box{display:none}
+.sc-train-card.is-peeking .sc-card-caption-row,.sc-train-card.is-peeking .sc-readiness-caption-row{grid-template-columns:minmax(0,1fr)}
+.sc-train-card.is-peeking .sc-card-meta,.sc-train-card.is-peeking .sc-readiness-meta{max-width:390px}
+@media(hover:hover){
+  .sc-train-card:hover .sc-card-face svg image,.sc-train-card:hover .sc-readiness-face svg image{transform:scale(1.04)}
+  .sc-train-card:hover .sc-card-caption-row,.sc-train-card:hover .sc-readiness-caption-row{transform:translateX(20px)}
+  .sc-train-card:hover .sc-card-meta,.sc-train-card:hover .sc-readiness-meta{max-width:307px;opacity:1}
+  .sc-train-card:hover .sc-card-value-box,.sc-train-card:hover .sc-score-box{opacity:1}
+  .sc-train-card:hover .sc-card-caption-row::before,.sc-train-card:hover .sc-readiness-caption-row::before{opacity:1}
+  .sc-train-card:hover .sc-readiness-collapsed-meta{opacity:0;transition-delay:0ms}
+  .sc-train-card:hover .sc-card-collapsed-meta{opacity:0;transition-delay:0ms}
+  .sc-train-card.is-empty:hover .sc-readiness-collapsed-meta{opacity:1}
+  .sc-session-card.is-empty:hover .sc-card-collapsed-meta{opacity:1}
+}
+@media(hover:none){
+  .sc-session-card.has-data .sc-card-caption-row{transform:translateX(20px)}
+  .sc-session-card.has-data .sc-card-meta{max-width:307px;opacity:1}
+  .sc-session-card.has-data .sc-card-value-box{opacity:1}
+  .sc-session-card.has-data .sc-card-caption-row::before{opacity:1}
+}
+.sc-train-card .sc-pair{display:flex;align-items:center;gap:5px}
 .sc-train-card .sc-key{color:#666}
 .sc-train-card .sc-val{color:#7aad2a}
+
+.sc-session-card svg image{filter:brightness(.84)}
+.sc-session-card .sc-card-meta{color:#e8e8e8;text-transform:none}
+.sc-session-card .sc-card-value-box{display:none}
+.sc-session-card.has-value .sc-card-value-box{display:flex}
+.sc-session-card.has-value .sc-card-caption-row{grid-template-columns:minmax(0,1fr) 83px}
+.sc-session-card:not(.has-value) .sc-card-caption-row{grid-template-columns:minmax(0,1fr)}
+.sc-session-card.disabled{opacity:.4;pointer-events:none}
+.sc-session-card.done .sc-card-meta,.sc-session-card.in-progress .sc-card-meta{color:var(--accent)}
+.sc-session-card#card-resistance,
+.sc-session-card#card-custom,
+.sc-session-card#card-bjj,
+.sc-session-card#card-performance,
+.sc-session-card#card-notes{
+  background:#141414;
+  background-image:none;
+  border:0;
+}
+.sc-rest-card{
+  background:#141414;
+  background-image:none!important;
+  border:0;
+}
+.sc-rest-card .sc-card-face svg{overflow:visible}
+.sc-rest-card .c-tilt-edge{will-change:transform}
 </style>
 </head>
 <body>
@@ -957,10 +1164,10 @@ select.bare{cursor:pointer}
     </div>
     <button type="button" id="pin-alpha-link" class="pin-toggle-btn" onclick="showAlphaGate()" style="margin-top:20px">Alpha tester? →</button>
     <div id="pin-alpha-form" style="display:none;width:100%;margin-top:16px">
-      <form onsubmit="submitAlphaUsername(event)" autocomplete="off">
+      <form id="alpha-form" onsubmit="return submitAlphaUsername(event)" autocomplete="off">
         <input class="pin-field" type="text" id="alpha-username" placeholder="Username" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="pin-err" id="alpha-err"></div>
-        <button type="submit" class="btn-s" style="width:100%;margin-top:10px">Continue</button>
+        <button type="submit" id="alpha-submit" class="btn-s" style="width:100%;margin-top:10px">Continue</button>
       </form>
       <button type="button" class="pin-toggle-btn" onclick="hideAlphaGate()" style="margin-top:16px">← Back</button>
     </div>
@@ -1093,35 +1300,39 @@ select.bare{cursor:pointer}
     <!-- CHECK-IN -->
     <div class="card-section">
       <div class="card-section-hdr"><div class="card-section-title">Check-in</div></div>
-      <div class="card-grid">
+      <div class="card-grid checkin-card-grid">
         <div class="sc-train-card-wrap">
           <div class="sc-train-card" id="sc-card-readiness" role="button" tabindex="0" aria-label="Readiness — tap to expand">
-            <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <pattern id="sc-readiness-img" patternUnits="userSpaceOnUse" width="430" height="380">
-                  <image href="assets/Cards/img/Default.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
-                </pattern>
-                <clipPath id="sc-border-top-clip">
-                  <rect id="sc-border-top-rect" x="0" y="0" width="430" height="358"/>
-                </clipPath>
-              </defs>
-              <path id="sc-readiness-fill" fill="url(#sc-readiness-img)"
-                d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
-              <path id="sc-readiness-border" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-border-top-clip)"
-                d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
-            </svg>
-            <div class="sc-label" id="sc-readiness-label" style="clip-path:inset(0 100% 0 0)">READINESS</div>
-            <div class="sc-status-default" id="sc-readiness-default" style="clip-path:inset(0 100% 0 0)">
-              <span class="sc-score" id="sc-readiness-score">--</span><span class="sc-sep">·</span><span class="sc-tier" id="sc-readiness-tier">—</span>
+            <div class="sc-readiness-face" id="sc-readiness-face">
+              <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <pattern id="sc-readiness-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                    <image href="assets/Cards/img/Default.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                  </pattern>
+                  <clipPath id="sc-border-top-clip">
+                    <rect id="sc-border-top-rect" x="0" y="0" width="430" height="358"/>
+                  </clipPath>
+                </defs>
+                <path id="sc-readiness-fill" fill="url(#sc-readiness-img)"
+                  d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <path id="sc-readiness-border" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-border-top-clip)"
+                  d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+              </svg>
             </div>
-            <div class="sc-status-expanded" id="sc-readiness-expanded">
-              <div class="sc-pair"><span class="sc-key">sleep</span><span class="sc-val" id="sc-readiness-sleep">—</span></div>
-              <span class="sc-sep">·</span>
-              <div class="sc-pair"><span class="sc-key">energy</span><span class="sc-val" id="sc-readiness-energy">—</span></div>
-              <span class="sc-sep">·</span>
-              <div class="sc-pair"><span class="sc-key">soreness</span><span class="sc-val" id="sc-readiness-soreness">—</span></div>
+            <div class="sc-readiness-caption">
+              <div class="sc-readiness-caption-row">
+                <div class="sc-readiness-copy">
+                  <div class="sc-label" id="sc-readiness-label">READINESS</div>
+                  <div class="sc-readiness-meta" id="sc-readiness-meta">
+                    <span class="sc-tier" id="sc-readiness-tier">—</span>
+                    <span class="sc-sep">·</span>
+                    <span class="sc-guidance" id="sc-readiness-guidance">Train smart</span>
+                  </div>
+                </div>
+                <div class="sc-score-box" id="sc-readiness-score-box"><span class="sc-score" id="sc-readiness-score">--</span></div>
+              </div>
+              <div class="sc-readiness-collapsed-meta" id="sc-readiness-collapsed-meta">Start</div>
             </div>
-            <div class="sc-status-cta" id="sc-readiness-cta" style="display:none;clip-path:inset(0 100% 0 0)">How are you feeling?</div>
           </div>
         </div>
       </div>
@@ -1135,46 +1346,113 @@ select.bare{cursor:pointer}
       </div>
       <div id="training-section-body">
         <div id="training-cards-grid" class="card-grid">
-          <button class="session-card card-has-img" id="card-resistance" onclick="openTrainingSheet()">
-            <div class="session-card-dot"></div>
-            <div class="session-card-label">Resistance</div>
-            <div class="session-card-body" id="card-resistance-body">Tap to start</div>
+          <button class="sc-train-card sc-session-card is-empty" id="card-resistance" onclick="openTrainingSheet()" aria-label="Resistance — Tap to start">
+            <div class="sc-card-face">
+              <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <pattern id="sc-resistance-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                    <image href="img/The disgraced lieutenant lifts.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                  </pattern>
+                  <clipPath id="sc-resistance-clip"><rect x="0" y="0" width="430" height="358"/></clipPath>
+                </defs>
+                <path fill="url(#sc-resistance-img)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <path fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-resistance-clip)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+              </svg>
+            </div>
+            <div class="sc-card-caption">
+              <div class="sc-card-caption-row">
+                <div class="sc-card-copy">
+                  <div class="sc-label" id="sc-resistance-label">RESISTANCE</div>
+                  <div class="sc-card-meta" id="sc-resistance-meta">Tap to start</div>
+                </div>
+                <div class="sc-card-value-box" id="sc-resistance-value-box"><span class="sc-value" id="sc-resistance-value"></span></div>
+              </div>
+            </div>
           </button>
-          <button class="session-card card-has-img" id="card-custom" onclick="openCardSheet('custom')">
-            <div class="session-card-dot"></div>
-            <div class="session-card-label">Custom</div>
-            <div class="session-card-body" id="card-custom-body">Tap to start</div>
+          <button class="sc-train-card sc-session-card is-empty" id="card-custom" onclick="openCardSheet('custom')" aria-label="Custom — Tap to start">
+            <div class="sc-card-face">
+              <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <pattern id="sc-custom-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                    <image href="img/The soldier-ship runs.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                  </pattern>
+                  <clipPath id="sc-custom-clip"><rect x="0" y="0" width="430" height="358"/></clipPath>
+                </defs>
+                <path fill="url(#sc-custom-img)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <path fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-custom-clip)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+              </svg>
+            </div>
+            <div class="sc-card-caption">
+              <div class="sc-card-caption-row">
+                <div class="sc-card-copy">
+                  <div class="sc-label" id="sc-custom-label">CUSTOM</div>
+                  <div class="sc-card-meta" id="sc-custom-meta">Tap to start</div>
+                </div>
+                <div class="sc-card-value-box" id="sc-custom-value-box"><span class="sc-value" id="sc-custom-value"></span></div>
+              </div>
+            </div>
           </button>
-          <button class="session-card card-has-img" id="card-bjj" onclick="openCardSheet('bjj')">
-            <div class="session-card-dot"></div>
-            <div class="session-card-label">BJJ</div>
-            <div class="session-card-body" id="card-bjj-body">Tap to log</div>
+          <button class="sc-train-card sc-session-card is-empty" id="card-bjj" onclick="openCardSheet('bjj')" aria-label="BJJ — Tap to log">
+            <div class="sc-card-face">
+              <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <pattern id="sc-bjj-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                    <image href="img/Two soldiers, one drill.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                  </pattern>
+                  <clipPath id="sc-bjj-clip"><rect x="0" y="0" width="430" height="358"/></clipPath>
+                </defs>
+                <path fill="url(#sc-bjj-img)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <path fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-bjj-clip)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+              </svg>
+            </div>
+            <div class="sc-card-caption">
+              <div class="sc-card-caption-row">
+                <div class="sc-card-copy">
+                  <div class="sc-label" id="sc-bjj-label">BJJ</div>
+                  <div class="sc-card-meta" id="sc-bjj-meta">Tap to log</div>
+                </div>
+                <div class="sc-card-value-box" id="sc-bjj-value-box"><span class="sc-value" id="sc-bjj-value"></span></div>
+              </div>
+            </div>
           </button>
 
         </div>
         <div id="training-rest-state" class="rest-empty-state" style="display:none">
           <!-- Single orb card — whole card tappable, same height as card grid -->
-          <div id="rest-orb-card" class="rest-orb-card" onclick="openBreathSheet()">
-            <svg id="orb-card-svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <radialGradient id="cOrbFill" cx="38%" cy="38%" r="65%">
-                  <stop offset="0%" stop-color="#FFE8A0"/>
-                  <stop offset="100%" stop-color="#F5C842"/>
-                </radialGradient>
-                <radialGradient id="cOrbGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#F5C842" stop-opacity="0.4"/>
-                  <stop offset="100%" stop-color="#F5C842" stop-opacity="0"/>
-                </radialGradient>
-              </defs>
-              <style>
-                .c-orb-glow{transform-box:fill-box;transform-origin:center}
-                .c-orb-body{transform-box:fill-box;transform-origin:center}
-                .c-tilt-edge{will-change:transform}
-              </style>
-              <circle class="c-orb-glow" cx="200" cy="100" r="95" fill="url(#cOrbGlow)"/>
-              <circle class="c-orb-body" cx="200" cy="100" r="62" fill="url(#cOrbFill)"/>
-              <circle class="c-tilt-edge" cx="200" cy="100" r="63" stroke="#C8F04A" stroke-width="1.8" fill="none" opacity="0.22"/>
-            </svg>
+          <div id="rest-orb-card" class="sc-train-card sc-session-card sc-rest-card has-data" onclick="openBreathSheet()" role="button" tabindex="0" aria-label="Breathing — Tap to begin">
+            <div class="sc-card-face">
+              <svg id="orb-card-svg" viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="sc-rest-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                    <image href="img/The intelligence officer sits.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                  </pattern>
+                  <clipPath id="sc-rest-clip"><rect x="0" y="0" width="430" height="358"/></clipPath>
+                  <radialGradient id="cOrbFill" cx="38%" cy="38%" r="65%">
+                    <stop offset="0%" stop-color="#FFE8A0"/>
+                    <stop offset="100%" stop-color="#F5C842"/>
+                  </radialGradient>
+                  <radialGradient id="cOrbGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#F5C842" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#F5C842" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <path fill="url(#sc-rest-img)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <path fill="rgba(0,0,0,.48)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <path fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" clip-path="url(#sc-rest-clip)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+                <circle class="c-orb-glow" cx="215" cy="190" r="95" fill="url(#cOrbGlow)"/>
+                <circle class="c-orb-body" cx="215" cy="190" r="62" fill="url(#cOrbFill)"/>
+                <circle class="c-tilt-edge" cx="215" cy="190" r="63" stroke="#C8F04A" stroke-width="1.8" fill="none" opacity="0.22"/>
+              </svg>
+            </div>
+            <div class="sc-card-caption">
+              <div class="sc-card-caption-row">
+                <div class="sc-card-copy">
+                  <div class="sc-label">BREATHING</div>
+                  <div class="sc-card-meta">Tap to begin</div>
+                </div>
+                <div class="sc-card-value-box"><span class="sc-value"></span></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1184,15 +1462,51 @@ select.bare{cursor:pointer}
     <div class="card-section">
       <div class="card-section-hdr"><div class="card-section-title">Reflect</div></div>
       <div class="card-grid">
-        <button class="session-card card-has-img" id="card-performance" onclick="openCardSheet('performance')">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">Performance</div>
-          <div class="session-card-body" id="card-performance-body">How did it go?</div>
+        <button class="sc-train-card sc-session-card is-empty" id="card-performance" onclick="openCardSheet('performance')" aria-label="Performance — How did it go?">
+          <div class="sc-card-face">
+            <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <pattern id="sc-performance-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                  <image href="img/The petitioner walks the ring.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                </pattern>
+                <clipPath id="sc-performance-clip"><rect x="0" y="0" width="430" height="358"/></clipPath>
+              </defs>
+              <path fill="url(#sc-performance-img)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+              <path fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-performance-clip)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+            </svg>
+          </div>
+          <div class="sc-card-caption">
+            <div class="sc-card-caption-row">
+              <div class="sc-card-copy">
+                <div class="sc-label" id="sc-performance-label">PERFORMANCE</div>
+                <div class="sc-card-meta" id="sc-performance-meta">How did it go?</div>
+              </div>
+              <div class="sc-card-value-box" id="sc-performance-value-box"><span class="sc-value" id="sc-performance-value"></span></div>
+            </div>
+          </div>
         </button>
-        <button class="session-card card-has-img" id="card-notes" onclick="openCardSheet('notes')">
-          <div class="session-card-dot"></div>
-          <div class="session-card-label">Notes</div>
-          <div class="session-card-body" id="card-notes-body">Anything notable</div>
+        <button class="sc-train-card sc-session-card is-empty" id="card-notes" onclick="openCardSheet('notes')" aria-label="Notes — Anything notable">
+          <div class="sc-card-face">
+            <svg viewBox="0 0 430 380" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <pattern id="sc-notes-img" patternUnits="userSpaceOnUse" width="430" height="380">
+                  <image href="img/The officer marks herself.png" width="430" height="380" preserveAspectRatio="xMidYMid slice"/>
+                </pattern>
+                <clipPath id="sc-notes-clip"><rect x="0" y="0" width="430" height="358"/></clipPath>
+              </defs>
+              <path fill="url(#sc-notes-img)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+              <path fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" clip-path="url(#sc-notes-clip)" d="M0 30C0 24.4772 4.47715 20 10 20H62.8579C65.51 20 68.0536 18.9464 69.9289 17.0711L84.0711 2.92893C85.9464 1.05357 88.49 0 91.1421 0H420C425.523 0 430 4.47715 430 10V350C430 355.523 425.523 360 420 360H353.142C350.49 360 347.946 361.054 346.071 362.929L331.929 377.071C330.054 378.946 327.51 380 324.858 380H10C4.47716 380 0 375.523 0 370V30Z"/>
+            </svg>
+          </div>
+          <div class="sc-card-caption">
+            <div class="sc-card-caption-row">
+              <div class="sc-card-copy">
+                <div class="sc-label" id="sc-notes-label">NOTES</div>
+                <div class="sc-card-meta" id="sc-notes-meta">Anything notable</div>
+              </div>
+              <div class="sc-card-value-box" id="sc-notes-value-box"><span class="sc-value" id="sc-notes-value"></span></div>
+            </div>
+          </div>
         </button>
       </div>
     </div>
@@ -1758,6 +2072,13 @@ const SLEEP_C=['≤5.5h','6h','6.5h','7h','7.5h','8h','≥8.5h'];
 const ENERGY_C=['Drained','Low','Moderate','Good','Charged'];
 const SORENESS_C=['Wrecked','Heavy','Moderate','Mild','Fresh'];
 const PERF_C=['Below par','On track','Exceeded'];
+function perfArrow(v){
+  return {'Below par':'↓','On track':'→','Exceeded':'↑'}[v]||'';
+}
+function perfLabel(v){
+  const arrow=perfArrow(v);
+  return arrow?(arrow+' '+v):(v||'');
+}
 
 let S={phases:PHASES.map(p=>({...p,weeks:2})),phaseIdx:0,mesoStart:'',selectedDate:null,viewWeekOffset:0,isRest:null,activities:[],sleep:'',energy:'',soreness:'',perf:'',notes:'',extra:'',sessions:[],setGoals:{},globalSetGoal:3,apiKey:'',sheetId:'',sheetTab:'Workout_Log',claudeKey:'',scriptUrl:''};
 let undoExStack=null,undoSSStack=null;
@@ -1783,13 +2104,16 @@ function getAct(id){return S.activities.find(a=>a.id===id);}
 function getSets(actId){const a=getAct(actId);return a?(a.supersets||[]):[];}
 
 const td=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
-function ws(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r.setDate(dt.getDate()-day+(day===0?-6:1));return r.toISOString().split('T')[0];}
-function addD(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
+function validDateStr(d){return typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&!Number.isNaN(new Date(d+'T12:00:00').getTime());}
+function safeDateStr(d){return validDateStr(d)?d:td();}
+function ws(d){const dt=new Date(safeDateStr(d)+'T12:00:00'),day=dt.getDay(),r=new Date(dt);r.setDate(dt.getDate()-day+(day===0?-6:1));return r.toISOString().split('T')[0];}
+function addD(d,n){const dt=new Date(safeDateStr(d)+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
 function persist(){localStorage.setItem(activeStorageKey(),JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));}
 function utcDay(s){const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);}
-function mesoWkFor(dateStr){return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(S.mesoStart)))/(7*86400000))+1);}
+function ensureMesoStart(){if(!validDateStr(S.mesoStart))S.mesoStart=ws(td());return S.mesoStart;}
+function mesoWkFor(dateStr){const start=ensureMesoStart();return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(start)))/(7*86400000))+1);}
 function mesoWk(){return mesoWkFor(td());}
 function derivedPhase(){let w=mesoWk(),cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(w<=cum)return{phaseIdx:i,weekInPhase:w-(cum-S.phases[i].weeks)};}return{phaseIdx:S.phases.length-1,weekInPhase:S.phases[S.phases.length-1].weeks};}
 function ph(){return S.phases[derivedPhase().phaseIdx];}
@@ -1843,7 +2167,7 @@ function init(){
 
 function buildChips(id,opts,sel,cb){
   const el=document.getElementById(id);if(!el)return;el.innerHTML='';
-  opts.forEach(o=>{const b=document.createElement('button');b.className='chip'+(o===sel?' on':'');b.textContent=o;
+  opts.forEach(o=>{const b=document.createElement('button');b.className='chip'+(o===sel?' on':'');b.textContent=id==='csheet-chips-perf'?perfLabel(o):o;
     b.onclick=()=>{
       if(id==='chips-sleep'&&o==='Custom'){handleSleep('Custom');return;}
       const isOn=b.classList.contains('on');
@@ -2065,6 +2389,12 @@ function readinessTier(r){
   if(r<75)return'Moderate';
   if(r<95)return'High';
   return'Prime';
+}
+function readinessTierColor(tier){
+  return {Poor:'#d44040',Low:'#d46a20',Moderate:'#e8a020',High:'#7aad2a',Prime:'#9a6fd4'}[tier]||'var(--ink2)';
+}
+function readinessMessage(tier){
+  return {Poor:'Body needs rest',Low:'Take it easy today',Moderate:'Train smart',High:'Ready to train',Prime:"Let's go"}[tier]||'';
 }
 function sessionBrief(){
   const r=computeReadiness();
@@ -2413,8 +2743,10 @@ function buildCurrentSession(){
   S.activities.filter(a=>a.type==='bjj').forEach(a=>{a.bjj=getBJJ(a.id);});
   const dp=derivedPhase();
   const allEx=S.activities.filter(a=>a.type!=='bjj').flatMap(a=>(a.supersets||[]).flatMap(ss=>ss.exercises));
-  const existing=S.sessions.find(s=>s.date===S.selectedDate);
-  return{date:S.selectedDate,week:mesoWk(),phase:ph().name,phaseIdx:dp.phaseIdx,isRest:S.isRest,activities:JSON.parse(JSON.stringify(S.activities)),extra:S.extra||'',notes:S.notes||'',sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:allEx.filter(e=>e.flagged).map(e=>e.name),completed:existing?.completed||false};
+  const date=safeDateStr(S.selectedDate);
+  if(S.selectedDate!==date)S.selectedDate=date;
+  const existing=S.sessions.find(s=>s.date===date);
+  return{date,week:mesoWkFor(date),phase:ph().name,phaseIdx:dp.phaseIdx,isRest:S.isRest,activities:JSON.parse(JSON.stringify(S.activities)),extra:S.extra||'',notes:S.notes||'',sleep:S.sleep,energy:S.energy,soreness:S.soreness,perf:S.perf,flagged:allEx.filter(e=>e.flagged).map(e=>e.name),completed:existing?.completed||false};
 }
 
 const _synced=new Set(JSON.parse(localStorage.getItem('mp7_synced')||'[]'));
@@ -3341,7 +3673,7 @@ function computeCardStates(){
 
   // Performance
   const perfState=S.perf?'done':'not-started';
-  const perfDisplay=S.perf?'↑ '+S.perf:'';
+  const perfDisplay=S.perf?perfLabel(S.perf):'';
 
   // Notes
   const notesTrimmed=(S.notes||'').trim();
@@ -3359,17 +3691,135 @@ function computeCardStates(){
   };
 }
 
-const _CARD_PROMPTS={readiness:'Sleep · Energy · Soreness',resistance:'Tap to start',custom:'Tap to start',bjj:'Tap to log',rest:'Tap to mark rest day',performance:'How did it go?',notes:'Anything notable'};
+const _CARD_PROMPTS={readiness:'Sleep · Energy · Soreness',resistance:'',custom:'',bjj:'',rest:'',performance:'',notes:''};
 
-function renderCards(){
-  const cs=computeCardStates();
-  const isRest=S.isRest===true;
+const _SC_CARD_LABELS={resistance:'Resistance',custom:'Custom',bjj:'BJJ',performance:'Performance',notes:'Notes'};
+function _activityStats(act){
+  const exs=(act?.supersets||[]).flatMap(ss=>ss.exercises||[]);
+  const loggedEx=exs.filter(e=>e.kg||e.reps||e.rir).length;
+  const setTotal=exs.reduce((n,e)=>n+(parseInt(e.sets)||0),0);
+  return {exCount:exs.length,loggedEx,setTotal};
+}
+function _renderScSessionCard(id,cd){
+  const card=document.getElementById('card-'+id);if(!card)return false;
+  if(!card.classList.contains('sc-session-card'))return false;
+  card.querySelector('.card-remove-x')?.remove();
+  const meta=document.getElementById('sc-'+id+'-meta');
+  const value=document.getElementById('sc-'+id+'-value');
+  const valueBox=document.getElementById('sc-'+id+'-value-box');
+  const caption=card.querySelector('.sc-card-caption');
+  let compact=document.getElementById('sc-'+id+'-compact');
+  if(caption&&!compact){
+    compact=document.createElement('div');
+    compact.className='sc-card-collapsed-meta';
+    compact.id='sc-'+id+'-compact';
+    caption.appendChild(compact);
+  }
+  if(!meta)return true;
+  const _actType={resistance:'template',custom:'custom',bjj:'bjj'};
+  let text=_CARD_PROMPTS[id]||'';
+  let val='';
+  if(_removePending&&_actType[id]===_removePending.type){
+    text='Removed — tap to undo';
+    if(!card.querySelector('.card-remove-x')){
+      const x=document.createElement('button');x.className='card-remove-x';
+      x.style.cssText='position:absolute;top:6px;right:8px;background:none;border:none;color:var(--ink3);font-size:15px;cursor:pointer;min-width:24px;min-height:24px;padding:0;line-height:1;-webkit-tap-highlight-color:transparent;z-index:2';
+      x.textContent='×';x.onclick=e=>{e.stopPropagation();_doRemoveConfirm();};
+      card.appendChild(x);
+    }
+    meta.textContent=text;
+    if(compact)compact.textContent='Undo';
+    if(value)value.textContent='';
+    if(valueBox)valueBox.style.display='';
+    card.className='sc-train-card sc-session-card has-data';
+    card.setAttribute('aria-label',(_SC_CARD_LABELS[id]||id)+' — '+text);
+    return true;
+  }
+  if(cd.state==='done')text=cd.display||'Done';
+  else if(cd.state==='in-progress')text='In progress';
+  let compactLabel=cd.state==='done'?'Done':cd.state==='in-progress'?'In progress':'Start';
+  if(id==='resistance'&&(cd.state==='done'||cd.state==='in-progress')){
+    const act=S.activities.find(a=>a.type==='template');
+    const day=act?.gymDay||derivedGymDay(S.selectedDate)||1;
+    const stats=_activityStats(act);
+    val=DAY_LETTER[day-1]||'';
+    compactLabel='Day '+val;
+    text=cd.state==='done'
+      ? (cd.display||`${stats.exCount} exercises · ${stats.setTotal} sets`)
+      : (stats.loggedEx?`${stats.loggedEx}/${stats.exCount} exercises · In progress`:'In progress');
+  }
+  if(id==='custom'&&(cd.state==='done'||cd.state==='in-progress')){
+    const act=S.activities.find(a=>a.type==='custom');
+    const stats=_activityStats(act);
+    const count=stats.loggedEx||stats.exCount||'';
+    val=count?String(count):'';
+    compactLabel=count?(count+' ex'):(cd.state==='done'?'Logged':'In progress');
+    text=cd.state==='done'
+      ? (cd.display||`${count||0} exercises · ${stats.setTotal} sets`)
+      : (count?`${count} exercises · In progress`:'In progress');
+  }
+  if(id==='bjj'&&(cd.state==='done'||cd.state==='in-progress')){
+    const act=S.activities.find(a=>a.type==='bjj');
+    const b=act?.bjj||{};
+    const posCount=(b.positions||[]).length;
+    compactLabel=cd.state==='done'?'Logged':'In progress';
+    text=cd.state==='done'
+      ? (cd.display||b.good||b.desc||'Session logged')
+      : (b.gc||b.desc||b.good||b.drilling||(posCount?`${posCount} position${posCount>1?'s':''} · In progress`:'In progress'));
+  }
+  if(id==='performance'&&cd.state==='done'){
+    text=S.perf||cd.display.replace(/^[↓↑→]\s*/,'');
+    val=perfArrow(S.perf);
+    compactLabel=perfLabel(S.perf);
+  }
+  if(id==='notes'&&cd.state==='done'){
+    compactLabel='Note';
+    text=cd.display||'Note saved';
+  }
+  if(id==='custom'&&cd.state==='done'&&!cd.display&&!text)text='Session logged';
+  if(id==='bjj'&&cd.state==='done'&&!cd.display&&!text)text='Session logged';
+  if(cd.state==='not-started'||cd.state==='disabled'){
+    text='';
+  }
+  meta.textContent=text;
+  if(compact)compact.textContent=compactLabel;
+  if(value)value.textContent=val;
+  if(valueBox)valueBox.style.display=val?'flex':'';
+  let cls='sc-train-card sc-session-card';
+  if(cd.state==='disabled')cls+=' disabled';
+  if(cd.state==='in-progress')cls+=' in-progress';
+  if(cd.state==='done')cls+=' done';
+  cls+=(cd.state==='not-started'||cd.state==='disabled')?' is-empty':' has-data';
+  if(val)cls+=' has-value';
+  card.className=cls;
+  card.setAttribute('aria-label',(_SC_CARD_LABELS[id]||id)+' — '+(text||'Start'));
+  return true;
+}
 
-  // TRAINING section — swap cards grid vs rest empty state
+function _setTrainingRestDom(isRest){
   const trainingGrid=document.getElementById('training-cards-grid');
   const restEmptyState=document.getElementById('training-rest-state');
-  if(trainingGrid)trainingGrid.style.display=isRest?'none':'';
-  if(restEmptyState)restEmptyState.style.display=isRest?'':'none';
+  const restOrbCard=document.getElementById('rest-orb-card');
+  const hdr=document.getElementById('training-section-hdr');
+  if(trainingGrid)trainingGrid.style.display=isRest?'none':'grid';
+  if(restEmptyState)restEmptyState.style.display=isRest?'flex':'none';
+  if(restOrbCard){
+    restOrbCard.style.display=isRest?'flex':'';
+    if(isRest){restOrbCard.style.opacity='';restOrbCard.style.visibility='';}
+  }
+  if(hdr&&!_restConfirmPending){
+    hdr.innerHTML='<div class="card-section-title" id="training-section-title">'+(isRest?'Resting':'Training')+'</div>'
+      +'<button class="section-dot-btn" id="training-hdr-menu-btn" onclick="event.stopPropagation();toggleTrainingHdrMenu()" aria-label="More options">···</button>';
+  }
+}
+
+function renderCards(){
+  const isRest=S.isRest===true;
+
+  // TRAINING section — swap cards grid vs rest empty state first.
+  // This must not depend on card-state/readiness rendering, because rest mode
+  // is a separate existing feature and should survive card experiment errors.
+  _setTrainingRestDom(isRest);
   if(isRest){_initPortalTilt();_startOrbRaf();}else{_stopOrbRaf();}
   // Section header: normal | confirm | resting states
   const hdr=document.getElementById('training-section-hdr');
@@ -3386,12 +3836,15 @@ function renderCards(){
     }
   }
 
+  const cs=computeCardStates();
+
   // REFLECT — hide Performance card on rest
   const perfCard=document.getElementById('card-performance');
   if(perfCard)perfCard.style.display=isRest?'none':'';
 
   function applyCard(id,cd){
     const card=document.getElementById('card-'+id);if(!card)return;
+    if(_renderScSessionCard(id,cd))return;
     const body=document.getElementById('card-'+id+'-body');
     // Removed state — card shows inline undo; tap = undo, × = confirm
     const _actType={resistance:'template',custom:'custom',bjj:'bjj'};
@@ -3859,9 +4312,9 @@ function openReadinessSheet(){
   const sess=S.sessions.find(s=>s.date===d);
   if(sess){S.sleep=sess.sleep||S.sleep||'';S.energy=sess.energy||S.energy||'';S.soreness=sess.soreness||S.soreness||'';}
   const day=derivedGymDay(d);
-  buildChips('rs-chips-sleep',SLEEP_C,S.sleep,v=>{S.sleep=v;_updateRsSheet();});
-  buildChips('rs-chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;_updateRsSheet();});
-  buildChips('rs-chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;_updateRsSheet();});
+  buildChips('rs-chips-sleep',SLEEP_C,S.sleep,v=>{S.sleep=v;_updateRsSheet();if(typeof window.repaintReadinessCard==='function')window.repaintReadinessCard();});
+  buildChips('rs-chips-energy',ENERGY_C,S.energy,v=>{S.energy=v;_updateRsSheet();if(typeof window.repaintReadinessCard==='function')window.repaintReadinessCard();});
+  buildChips('rs-chips-soreness',SORENESS_C,S.soreness,v=>{S.soreness=v;_updateRsSheet();if(typeof window.repaintReadinessCard==='function')window.repaintReadinessCard();});
   _updateRsSheet();
   requestAnimationFrame(()=>{
     document.getElementById('rs-backdrop').classList.add('open');
@@ -3887,9 +4340,8 @@ function _updateRsSheet(){
   }else{
     card.classList.remove('rs-outcome-wave');
     const tier=readinessTier(r);
-    const c={Poor:'#d44040',Low:'#d46a20',Moderate:'#e8a020',High:'#7aad2a',Prime:'#9a6fd4'}[tier]||'var(--ink2)';
-    const msgs={Poor:'Body needs rest',Low:'Take it easy today',Moderate:'Train smart',High:'Ready to train',Prime:'Prime — let\'s go'};
-    card.innerHTML=`<div class="rs-outcome-score" style="color:var(--ink)">${r}</div><div class="rs-outcome-right"><div class="rs-outcome-tier" style="color:${c}">${tier}</div><div class="rs-outcome-msg">${msgs[tier]||''}</div></div>`;
+    const c=readinessTierColor(tier);
+    card.innerHTML=`<div class="rs-outcome-right"><div class="rs-outcome-tier" style="color:${c}">${tier}</div><div class="rs-outcome-msg">${readinessMessage(tier)}</div></div><div class="rs-outcome-score" style="color:var(--ink)">${r}</div>`;
   }
   // Footer buttons — rebuild each time so state is always current
   const footer=document.getElementById('rs-footer');if(!footer)return;
@@ -3977,7 +4429,12 @@ function _applyRestFlag(value){
       perf:'',notes:S.notes||'',extra:S.extra||'',
       week:mesoWk(),phase:ph().name,phaseIdx:derivedPhase().phaseIdx});
   }
+  // Render the training/rest section immediately after the flag flips.
+  // Summary/action-bar work is secondary and must not leave the section stale.
+  _setTrainingRestDom(value===true);
+  renderCards();
   persist();renderSummary();renderActionBar();renderCards();
+  _setTrainingRestDom(value===true);
 }
 
 function confirmRestToggle(){
@@ -4013,8 +4470,8 @@ function toggleTrainingHdrMenu(){
   menu.id='training-hdr-menu';menu.className='ab-menu';
   Object.assign(menu.style,pos);
   menu.innerHTML=S.isRest===true
-    ?`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Train instead</button>`
-    :`<button class="ab-menu-item" onclick="closeTrainingHdrMenu();toggleRestFromHeader()">Rest instead</button>`;
+    ?`<button class="ab-menu-item" onclick="setRestFromHeader(false)">Train instead</button>`
+    :`<button class="ab-menu-item" onclick="setRestFromHeader(true)">Rest instead</button>`;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',_trainingHdrMenuOutside,true),10);
 }
@@ -4028,6 +4485,18 @@ function closeTrainingHdrMenu(){
   const menu=document.getElementById('training-hdr-menu');
   if(menu)menu.remove();
   document.removeEventListener('click',_trainingHdrMenuOutside,true);
+}
+function setRestFromHeader(shouldRest){
+  closeTrainingHdrMenu();
+  if(shouldRest&&_sessionHasTrainingData()){
+    _restConfirmPending=true;
+    renderCards();
+    return;
+  }
+  _setTrainingRestDom(shouldRest);
+  _applyRestFlag(shouldRest?true:null);
+  _setTrainingRestDom(shouldRest);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{_setTrainingRestDom(shouldRest);renderCards();}));
 }
 function toggleRestFromHeader(){
   // Force-close breath sheet instantly if open
@@ -4228,6 +4697,16 @@ let _ambT=0;          // ambient breath phase (seconds, 0–12)
 let _orbRafId=null;
 let _orbLastTs=null;
 
+function _pulseSvgCircleRadius(el,baseR,s){
+  if(!el)return;
+  el.removeAttribute('transform');
+  el.setAttribute('r',(baseR*s).toFixed(2));
+}
+function _translateSvgElement(el,x,y){
+  if(!el)return;
+  el.setAttribute('transform',`translate(${x} ${y})`);
+}
+
 function _orbTick(ts){
   _orbRafId=requestAnimationFrame(_orbTick);
   const dt=_orbLastTs?Math.min((ts-_orbLastTs)/1000,0.05):0.016;
@@ -4239,9 +4718,13 @@ function _orbTick(ts){
   const sheetVis=document.getElementById('breath-sheet')?.style.display!=='none';
   const te=sheetVis
     ?document.getElementById('sheet-tilt-edge')
-    :document.querySelector('.c-tilt-edge');
+    :document.querySelector('#orb-card-svg .c-tilt-edge');
   if(te){
-    te.style.transform=`translate(${_tiltCurrent.x.toFixed(2)}px,${_tiltCurrent.y.toFixed(2)}px)`;
+    if(sheetVis){
+      te.style.transform=`translate(${_tiltCurrent.x.toFixed(2)}px,${_tiltCurrent.y.toFixed(2)}px)`;
+    }else{
+      _translateSvgElement(te,_tiltCurrent.x.toFixed(2),_tiltCurrent.y.toFixed(2));
+    }
     te.style.opacity=Math.hypot(_tiltCurrent.x,_tiltCurrent.y)>0.5?'0.4':'0.22';
   }
 
@@ -4251,10 +4734,11 @@ function _orbTick(ts){
     const phase=2*Math.PI*_ambT/12-Math.PI/2;
     const s=(1.075+0.075*Math.sin(phase)).toFixed(4);
     const g=(0.325+0.175*Math.sin(phase)).toFixed(4);
-    // Card orb
+    // Card orb: radius animation keeps the circle center pinned in SVG space.
     const co=document.querySelector('#orb-card-svg .c-orb-body');
-    if(co)co.style.transform=`scale(${s})`;
+    _pulseSvgCircleRadius(co,62,Number(s));
     const cg=document.querySelector('#orb-card-svg .c-orb-glow');
+    _pulseSvgCircleRadius(cg,95,Number(s));
     if(cg)cg.style.opacity=g;
     // Sheet orb (ambient glow between guided sessions)
     const so=document.getElementById('sheet-orb-circle');
@@ -4634,9 +5118,11 @@ function startApp(){
     init();
     return;
   }
-  // Migration: 'gabriel' was the old main profile key before the alpha gate rename.
-  // Remap any stored 'gabriel' → 'gabriel-main' so existing sessions don't land on the alpha profile.
-  if(localStorage.getItem('mp7_profile')==='gabriel') localStorage.setItem('mp7_profile','gabriel-main');
+  // Migration: 'gabriel' used to mean the main profile, but now it is a valid alpha profile.
+  // Only remap old installs that have main-profile data and no alpha-specific data yet.
+  if(localStorage.getItem('mp7_profile')==='gabriel'&&!localStorage.getItem('mp7_gabriel')&&!localStorage.getItem('mp7_gabriel_pin')&&(localStorage.getItem('mp7')||localStorage.getItem('mp7_pin'))){
+    localStorage.setItem('mp7_profile','gabriel-main');
+  }
   // Default to gabriel-main when nothing is saved
   const saved=localStorage.getItem('mp7_profile');
   const id=(saved&&PROFILE_CFG[saved])?saved:'gabriel-main';
@@ -4676,6 +5162,7 @@ function lockApp(){
   setTimeout(()=>document.getElementById('pin-input').focus(),50);
 }
 function initPin(){
+  bindAlphaGate();
   const hasPin=!!localStorage.getItem(activePinKey());
   const isStandalone=navigator.standalone===true;
   const note=document.getElementById('pin-standalone-note');
@@ -4716,18 +5203,39 @@ function hideAlphaGate(){
   document.getElementById('alpha-err').textContent='';
   document.getElementById('alpha-username').value='';
 }
+function bindAlphaGate(){
+  const form=document.getElementById('alpha-form');
+  const input=document.getElementById('alpha-username');
+  if(form&&!form.dataset.bound){
+    form.dataset.bound='1';
+    form.addEventListener('submit',submitAlphaUsername);
+  }
+  if(input&&!input.dataset.bound){
+    input.dataset.bound='1';
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')submitAlphaUsername(e);});
+  }
+}
 function submitAlphaUsername(e){
-  e.preventDefault();
-  const uname=document.getElementById('alpha-username').value.trim().toLowerCase();
-  const cfg=PROFILE_CFG[uname];
-  if(!cfg||!cfg.isAlpha){document.getElementById('alpha-err').textContent='Unknown username';return;}
-  // Persist profile choice so Erik stays logged in on his device
-  localStorage.setItem('mp7_profile',uname);
-  _applyProfile(uname);
-  hideAlphaGate();
-  const hasPin=!!localStorage.getItem(activePinKey());
-  applyPinMode(hasPin?'unlock':'setup');
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+  if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+  const err=document.getElementById('alpha-err');
+  try{
+    const input=document.getElementById('alpha-username');
+    const uname=(input?.value||'').trim().toLowerCase();
+    const cfg=PROFILE_CFG[uname];
+    if(!uname){err.textContent='Enter your username';return false;}
+    if(!cfg||!cfg.isAlpha){err.textContent='Unknown username';return false;}
+    // Persist profile choice so alpha testers stay on their own local profile.
+    localStorage.setItem('mp7_profile',uname);
+    _applyProfile(uname);
+    hideAlphaGate();
+    const hasPin=!!localStorage.getItem(activePinKey());
+    applyPinMode(hasPin?'unlock':'setup');
+    setTimeout(()=>document.getElementById('pin-input').focus(),50);
+  }catch(ex){
+    if(err)err.textContent='Could not continue. Please refresh and try again.';
+    console.error('Alpha login failed',ex);
+  }
+  return false;
 }
 
 /* DEVICE SETUP TRANSFER */
@@ -4990,6 +5498,87 @@ checkSetupToken();
 startApp();
 
 // ═══════════════════════════════════════════════════════════════
+// S-TrainCards · Golden-ratio notch geometry
+// Widths derive from Fibonacci/golden-ratio proportions:
+// full width -> w/phi -> w/phi^2 -> w/phi^3.
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const PHI = (1 + Math.sqrt(5)) / 2;
+  const NOTCH = 20, CR = 10;
+  const DIAG_X = NOTCH * Math.SQRT2;
+  const BH = DIAG_X / 4, BH2 = DIAG_X * 0.1837, BH1 = DIAG_X * 0.0938;
+  const BV = 2.929, BV2 = 1.054;
+
+  function f(n){ return Number(n).toFixed(3); }
+
+  function buildGoldenNotchPath(w, h){
+    const topApex = w / Math.pow(PHI, 3);
+    const bottomApex = w - (w / Math.pow(PHI, 2));
+    const topElbow = Math.max(CR, topApex - DIAG_X);
+    const bottomElbow = Math.min(w - CR, bottomApex + DIAG_X);
+    return [
+      `M0 ${NOTCH+CR}C0 ${f(NOTCH+CR-CR*0.5523)} ${f(CR*0.4477)} ${NOTCH} ${CR} ${NOTCH}`,
+      `H${f(topElbow)}`,
+      `C${f(topElbow+BH1)} ${NOTCH} ${f(topElbow+BH2)} ${f(NOTCH-BV2)} ${f(topElbow+BH)} ${f(NOTCH-BV)}`,
+      `L${f(topApex-BH)} ${f(BV)}`,
+      `C${f(topApex-BH2)} ${f(BV2)} ${f(topApex-BH1)} 0 ${f(topApex)} 0`,
+      `H${f(w-CR)}C${f(w-CR*0.4477)} 0 ${f(w)} ${f(CR*0.4477)} ${f(w)} ${CR}`,
+      `V${f(h-NOTCH-CR)}`,
+      `C${f(w)} ${f(h-NOTCH-CR*0.4477)} ${f(w-CR*0.4477)} ${f(h-NOTCH)} ${f(w-CR)} ${f(h-NOTCH)}`,
+      `H${f(bottomElbow)}`,
+      `C${f(bottomElbow-BH1)} ${f(h-NOTCH)} ${f(bottomElbow-BH2)} ${f(h-NOTCH+BV2)} ${f(bottomElbow-BH)} ${f(h-NOTCH+BV)}`,
+      `L${f(bottomApex+BH)} ${f(h-BV)}`,
+      `C${f(bottomApex+BH2)} ${f(h-BV2)} ${f(bottomApex+BH1)} ${f(h)} ${f(bottomApex)} ${f(h)}`,
+      `H${CR}C${f(CR*0.4477)} ${f(h)} 0 ${f(h-CR*0.4477)} 0 ${f(h-CR)}`,
+      `V${f(NOTCH+CR)}Z`
+    ].join(' ');
+  }
+
+  function syncCardSvg(face){
+    const svg = face && face.querySelector('svg');
+    if(!svg) return;
+    const rect = face.getBoundingClientRect();
+    if(!rect.width || !rect.height) return;
+    const w = rect.width, h = rect.height;
+    const d = buildGoldenNotchPath(w, h);
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.querySelectorAll('path').forEach(path => path.setAttribute('d', d));
+    svg.querySelectorAll('pattern').forEach(pattern => {
+      pattern.setAttribute('width', w);
+      pattern.setAttribute('height', h);
+    });
+    svg.querySelectorAll('pattern image').forEach(image => {
+      image.setAttribute('width', w);
+      image.setAttribute('height', h);
+    });
+    svg.querySelectorAll('clipPath rect').forEach(rectNode => {
+      rectNode.setAttribute('width', w);
+      rectNode.setAttribute('height', Math.max(0, h - 22));
+    });
+  }
+
+  function initGoldenCardNotches(){
+    const faces = Array.from(document.querySelectorAll('.sc-card-face'));
+    faces.forEach(syncCardSvg);
+    if(typeof ResizeObserver !== 'undefined'){
+      const ro = new ResizeObserver(entries => {
+        entries.forEach(entry => syncCardSvg(entry.target));
+      });
+      faces.forEach(face => ro.observe(face));
+    }
+  }
+
+  window.scBuildGoldenNotchPath = buildGoldenNotchPath;
+  window.scSyncGoldenCardNotches = initGoldenCardNotches;
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initGoldenCardNotches, {once:true});
+  } else {
+    initGoldenCardNotches();
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════
 // S-TrainCards · Readiness card · 260507-q02
 // Hybrid SVG shape + HTML text overlay. Self-contained.
 // ═══════════════════════════════════════════════════════════════
@@ -4997,7 +5586,8 @@ startApp();
   const DUR = 260;
   const SPRING = 'cubic-bezier(0.34,1.1,0.64,1)';
   // Notch geometry constants (CSS px = SVG units after dynamic viewBox)
-  const NOTCH = 20, CR = 10, NOTCH_DIAG = 28.284;
+  const PHI = (1 + Math.sqrt(5)) / 2;
+  const NOTCH = 20, CR = 10, NOTCH_DIAG = NOTCH * Math.SQRT2;
   // Bezier handle offsets for 20px notch at 45°
   const BH=7.071, BH2=5.196, BH1=2.653, BV=2.929, BV2=1.054;
   // Card dimensions + computed elbow positions (set by initGeometry)
@@ -5087,153 +5677,109 @@ startApp();
     return s !== null && s !== undefined;
   }
 
-  // ── Single authoritative render — only place that sets opacity/clipPath/display ──
+  function readinessGuidance(score){
+    if(score === null || score === undefined) return 'How are you feeling?';
+    return readinessMessage(readinessTier(score));
+  }
+
+  // ── Single authoritative render for readiness card caption state ──
   function render(){
+    const card  = document.getElementById('sc-card-readiness');
+    const meta  = document.getElementById('sc-readiness-meta');
+    const score = document.getElementById('sc-readiness-score');
+    const compact = document.getElementById('sc-readiness-collapsed-meta');
+    if(!card || !meta || !score) return;
+
     const isEmpty = !hasReadinessData();
-    const lbl   = document.getElementById('sc-readiness-label');
-    const def   = document.getElementById('sc-readiness-default');
-    const cta   = document.getElementById('sc-readiness-cta');
-    const expEl = document.getElementById('sc-readiness-expanded');
-    if(!lbl || !def || !cta || !expEl) return;
+    const d = readinessDisplay();
+    const scoreValue = d.score === '--' ? null : Number(d.score);
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
 
-    if(!isEmpty){
-      const d = readinessDisplay();
-      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-      set('sc-readiness-score',    d.score);
-      set('sc-readiness-tier',     d.tier);
-      set('sc-readiness-sleep',    d.sleep);
-      set('sc-readiness-energy',   d.energy);
-      set('sc-readiness-soreness', d.soreness);
-    }
-
-    lbl.style.clipPath = CLIP_NONE;
+    card.classList.toggle('is-empty', isEmpty);
+    card.classList.toggle('has-data', !isEmpty);
+    card.classList.toggle('is-peeking', exp && !isEmpty);
 
     if(isEmpty){
-      def.style.display    = 'none';
-      def.style.opacity    = '1';
-      def.style.clipPath   = CLIP_NONE;
-      cta.style.display    = 'flex';
-      cta.style.clipPath   = CLIP_NONE;
-      expEl.style.opacity  = '0';
-      expEl.style.clipPath = CLIP_RIGHT;
-    } else if(exp){
-      def.style.display    = '';
-      def.style.opacity    = '0';
-      def.style.clipPath   = CLIP_NONE;
-      cta.style.display    = 'none';
-      expEl.style.opacity  = '1';
-      expEl.style.clipPath = CLIP_NONE;
+      meta.innerHTML = '<span class="sc-guidance" id="sc-readiness-guidance">How are you feeling?</span>';
+      score.textContent = '--';
+      if(compact) compact.textContent = 'Start';
+      return;
+    }
+
+    set('sc-readiness-score', d.score);
+    const tierText = d.tier.charAt(0) + d.tier.slice(1).toLowerCase();
+    const tierColor = readinessTierColor(tierText);
+    if(compact){
+      compact.innerHTML = [
+        `<span class="sc-tier-compact" style="color:inherit">${tierText}</span>`,
+        '<span class="sc-sep">·</span>',
+        `<span>${d.score}</span>`
+      ].join('');
+    }
+
+    if(exp){
+      meta.innerHTML = [
+        `<span class="sc-key">sleep</span><span class="sc-val">${d.sleep}</span>`,
+        '<span class="sc-sep">·</span>',
+        `<span class="sc-key">energy</span><span class="sc-val">${d.energy}</span>`,
+        '<span class="sc-sep">·</span>',
+        `<span class="sc-key">soreness</span><span class="sc-val">${d.soreness}</span>`
+      ].join('');
     } else {
-      def.style.display    = '';
-      def.style.opacity    = '1';
-      def.style.clipPath   = CLIP_NONE;
-      cta.style.display    = 'none';
-      expEl.style.opacity  = '0';
-      expEl.style.clipPath = CLIP_RIGHT;
+      meta.innerHTML = [
+        `<span class="sc-tier" id="sc-readiness-tier" style="color:${tierColor}">${tierText}</span>`,
+        '<span class="sc-sep">·</span>',
+        `<span class="sc-guidance" id="sc-readiness-guidance">${readinessGuidance(scoreValue)}</span>`
+      ].join('');
     }
   }
 
-  // ── Entrance animation — slides label + active status in from left (runs once at boot) ──
+  // ── Entrance animation mirrors the Figma hover reveal without changing card state ──
   function _runEntrance(){
-    const isEmpty  = !hasReadinessData();
-    const lbl      = document.getElementById('sc-readiness-label');
-    const bottomEl = document.getElementById(isEmpty ? 'sc-readiness-cta' : 'sc-readiness-default');
-    if(!lbl || !bottomEl) return;
-    lbl.style.clipPath      = CLIP_LEFT;
-    bottomEl.style.clipPath = CLIP_LEFT;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      lbl.animate([{clipPath:CLIP_LEFT},{clipPath:CLIP_NONE}],{duration:DUR,easing:SPRING})
-        .onfinish = () => { lbl.style.clipPath = CLIP_NONE; };
-      setTimeout(() => {
-        bottomEl.animate([{clipPath:CLIP_LEFT},{clipPath:CLIP_NONE}],{duration:DUR,easing:SPRING})
-          .onfinish = () => { bottomEl.style.clipPath = CLIP_NONE; };
-      }, 30);
-    }));
+    const card = document.getElementById('sc-card-readiness');
+    if(!card) return;
+    card.classList.add('is-revealed');
+    setTimeout(() => { card.classList.remove('is-revealed'); }, 900);
   }
 
-  // ── Expand / collapse — path morph + cross-fade, commits state via render() ──
+  // ── Peek state: long-press swaps the caption from score/tier to sub-metrics ──
   let exp = false, busy = false, _rafId = null;
 
   function toggle(toExpand){
-    if(busy || toExpand === exp) return;
+    if(toExpand === exp) return;
     if(toExpand && !hasReadinessData()) return;
-    busy = true;
-    const fp    = document.getElementById('sc-readiness-fill');
-    const bp    = document.getElementById('sc-readiness-border');
-    const def   = document.getElementById('sc-readiness-default');
-    const expEl = document.getElementById('sc-readiness-expanded');
-    if(!fp || !bp || !def || !expEl){ busy = false; return; }
-
-    const fromBrE = toExpand ? _brElbow_col : _brElbow_exp;
-    const fromBrA = toExpand ? _brApex_col  : _brApex_exp;
-    const toBrE   = toExpand ? _brElbow_exp : _brElbow_col;
-    const toBrA   = toExpand ? _brApex_exp  : _brApex_col;
-
-    cancelAnims(def);
-    cancelAnims(expEl);
-
-    animatePaths(fp, bp, fromBrE, toBrE, fromBrA, toBrA, DUR, () => { exp = toExpand; busy = false; render(); });
-
-    if(toExpand){
-      def.animate([{opacity:1},{opacity:0}],{duration:80}).onfinish = () => { def.style.opacity = '0'; };
-      expEl.style.opacity  = '1';
-      expEl.style.clipPath = CLIP_RIGHT;
-      setTimeout(() => {
-        cancelAnims(expEl);
-        expEl.animate([{clipPath:CLIP_RIGHT},{clipPath:CLIP_NONE}],{duration:100,easing:SPRING})
-          .onfinish = () => { expEl.style.clipPath = CLIP_NONE; };
-      }, 160);
-    } else {
-      expEl.animate([{opacity:1},{opacity:0}],{duration:80}).onfinish = () => {
-        expEl.style.opacity  = '0';
-        expEl.style.clipPath = CLIP_RIGHT;
-      };
-      def.style.opacity = '0';
-      setTimeout(() => {
-        cancelAnims(def);
-        def.animate([{opacity:0},{opacity:1}],{duration:100}).onfinish = () => { def.style.opacity = '1'; };
-      }, 80);
-    }
+    exp = toExpand;
+    render();
   }
 
   function updateNotches(){
     if(!_cardW) return;
-    const lbl = document.getElementById('sc-readiness-label');
-    const cta = document.getElementById('sc-readiness-cta');
-    const def = document.getElementById('sc-readiness-default');
-    const expEl = document.getElementById('sc-readiness-expanded');
-    const activeEl = (cta && cta.style.display !== 'none') ? cta : def;
-    const lblW    = lbl      ? lbl.getBoundingClientRect().width      : 0;
-    const activeW = activeEl ? activeEl.getBoundingClientRect().width  : 0;
-    const expW    = expEl    ? expEl.getBoundingClientRect().width     : 0;
-    _tlElbow = lblW;            _tlApex = _tlElbow + NOTCH_DIAG;
-    _brElbow_col = _cardW - activeW; _brApex_col = _brElbow_col - NOTCH_DIAG;
-    _brElbow_exp = _cardW - expW;    _brApex_exp = _brElbow_exp - NOTCH_DIAG;
-    if(!busy){
-      const fp = document.getElementById('sc-readiness-fill');
-      const bp = document.getElementById('sc-readiness-border');
-      if(fp && bp){
-        const d = buildPath(_tlElbow, _tlApex,
-          exp ? _brElbow_exp : _brElbow_col,
-          exp ? _brApex_exp  : _brApex_col);
-        fp.setAttribute('d', d); bp.setAttribute('d', d);
-      }
+    _tlApex = _cardW / Math.pow(PHI, 3);
+    _tlElbow = Math.max(CR, _tlApex - NOTCH_DIAG);
+    _brApex_col = _cardW - (_cardW / Math.pow(PHI, 2));
+    _brElbow_col = Math.min(_cardW - CR, _brApex_col + NOTCH_DIAG);
+    _brElbow_exp = _brElbow_col; _brApex_exp = _brApex_col;
+    const fp = document.getElementById('sc-readiness-fill');
+    const bp = document.getElementById('sc-readiness-border');
+    if(fp && bp){
+      const d = buildPath(_tlElbow, _tlApex, _brElbow_col, _brApex_col);
+      fp.setAttribute('d', d); bp.setAttribute('d', d);
     }
   }
 
   function initGeometry(){
-    const card = document.getElementById('sc-card-readiness');
-    if(!card) return;
-    const svg  = card.querySelector('svg');
+    const face = document.getElementById('sc-readiness-face');
+    if(!face) return;
+    const svg  = face.querySelector('svg');
     const patt = document.getElementById('sc-readiness-img');
     const img  = patt && patt.querySelector('image');
-    const rect = card.getBoundingClientRect();
+    const rect = face.getBoundingClientRect();
     _cardW = rect.width; _cardH = rect.height;
     if(svg)  svg.setAttribute('viewBox', `0 0 ${_cardW} ${_cardH}`);
     if(patt){ patt.setAttribute('width', _cardW); patt.setAttribute('height', _cardH); }
     if(img) { img.setAttribute('width',  _cardW); img.setAttribute('height',  _cardH); }
     const bcr = document.getElementById('sc-border-top-rect');
-    if(bcr){ bcr.setAttribute('width', String(_cardW)); bcr.setAttribute('height', String(_cardH - 22)); }
+    if(bcr){ bcr.setAttribute('width', String(_cardW)); bcr.setAttribute('height', String(_cardH)); }
     updateNotches();
   }
 
@@ -5243,10 +5789,7 @@ startApp();
 
     render();
 
-    // Desktop hover — guard with (hover:hover) to suppress iOS ghost mouseenter after tap
-    const canHover = window.matchMedia('(hover:hover)');
-    card.addEventListener('mouseenter', () => { if(canHover.matches) toggle(true); });
-    card.addEventListener('mouseleave', () => { if(canHover.matches) toggle(false); });
+    // Desktop hover is handled in CSS: caption reveal + image zoom. Long-press owns peek.
 
     // Gesture state machine: tap=open sheet, long-press=peek, swipe=cancel, scroll-then-rest=peek
     let _t0=0, _x0=0, _y0=0, _lpTimer=null, _restTimer=null,
@@ -5262,8 +5805,6 @@ startApp();
       if(_rafId){ cancelAnimationFrame(_rafId); _rafId=null; }
       cancelAnims(document.getElementById('sc-readiness-fill'));
       cancelAnims(document.getElementById('sc-readiness-border'));
-      cancelAnims(document.getElementById('sc-readiness-default'));
-      cancelAnims(document.getElementById('sc-readiness-expanded'));
       busy=false; exp=false;
       render();
     }

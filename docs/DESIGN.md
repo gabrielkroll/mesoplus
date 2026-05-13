@@ -160,6 +160,25 @@ iOS-style bottom sheet:
 - Backdrop: `rgba(0,0,0,.45)` + `backdrop-filter: blur(3px)`
 - Inputs: 26px font, `--surf` background, 8px border-radius, 14px vertical padding
 
+### Image training cards (`.sc-train-card`)
+
+Used for the Check-in, Training, Reflect, and Rest cards. Cards are built from an SVG image face plus an HTML caption footer.
+
+Implementation notes:
+- Image face uses runtime SVG geometry. Notch widths follow the golden-ratio sketch from Figma: top notch apex at `width / phi^3`, bottom-right notch apex offset at `width / phi^2`. Notch depth (`20px`) and corner radius (`10px`) remain fixed tokens for now, so card width changes scale notch width without making the cutouts chunkier.
+- Caption footer is `73px` high in filled states and `54px` for empty readiness.
+- Footer content starts at `top:20px`; the animated row starts at `left:-20px` and moves `translateX(20px)` on hover/reveal.
+- Left vector line is `33px` for filled/two-line footer states: `14px` label + `5px` gap + `14px` metadata. Empty readiness keeps the vector at `14px`.
+- Labels and metadata use DM Mono `11px / 14px` with `0.72px` letter spacing.
+- Large serif values use Instrument Serif Italic `50px / 40px`, live in an `83px × 43px` value box, are right-aligned, and shift up `-10px` so their bottom aligns with the metadata baseline while the glyphs visually extend above the footer text stack.
+- Right-side compact readiness metadata uses `20px` right padding. Large score/value boxes also use `20px` horizontal padding.
+- Compact readiness metadata exits quickly (`90ms`) with no delay during hover/reveal and returns quickly after a delay (`420ms`) so it does not overlap the large score animation.
+- Non-readiness session cards also get a shared `.sc-card-collapsed-meta` layer appended by `_renderScSessionCard()`. Empty cards show only `Start` on the right and keep the left footer to the label line. Filled or in-progress cards use the left reveal for details such as `Day A · In progress`, exercise/set counts, BJJ outcome, performance, or the first note line, while the compact right side shows the short status.
+- Filled compact labels should be information-bearing, not generic `Done`: Resistance uses `Day A`, Custom uses an exercise count, BJJ uses `Logged`/`In progress`, Performance uses the arrow label, and Notes uses `Note`.
+- Performance follows the readiness value pattern: compact state shows the full arrow label on the right (`→ On track`), while hover/reveal shows `PERFORMANCE` with the text-only label (`On track`) on the left and the large serif arrow (`→`) in the right value lane.
+- Readiness card and readiness sheet share copy through `readinessMessage(tier)` so card guidance and sheet guidance stay identical.
+- Performance labels use the same arrow mapping in the sheet chips and the quick card: `↓ Below par`, `→ On track`, `↑ Exceeded`. Keep this centralized in `perfLabel(v)`.
+
 ---
 
 ## Layout

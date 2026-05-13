@@ -7,7 +7,13 @@
 
 ## Now
 
-**Next: S8** — Insights → Weekly Review Flow (AC not yet discussed).
+**Active experiment: S-TrainCards / shared card primitive** — working in `feature/codex-experiments` worktree. Gabriel is testing locally on `localhost:3001`.
+
+Current agreed direction: keep the clipped image shape as the expressive object; do not put text in the notches or over the image. Card title/status live in an 83px caption band below the image. Hover reveals the caption row from `x=-20` to `x=0` over 600ms ease-out and zooms the image inside the clipped shape. Left caption flex-fills; score stays fixed on the right. Readiness tier colour must be shared between the sheet tier label and the card quick-view tier word (`Poor #d44040`, `Low #d46a20`, `Moderate #e8a020`, `High #7aad2a`, `Prime #9a6fd4`). The readiness sheet score uses the same fixed score-lane structure as the card quick view: 83px lane with 20px left inset.
+
+The Readiness anatomy has been extracted into `.sc-train-card` / `.sc-card-face` / `.sc-card-caption` and applied to `Resistance`, `Custom`, `BJJ`, `Performance`, `Notes`, and the large rest orb card. The rest/training toggle regression was fixed by `_setTrainingRestDom(isRest)` and `setRestFromHeader(true/false)`. The rest orb now stays centered, pulses by animating SVG circle radius, and keeps the reverse-parallax ring. Performance quick view follows the readiness value pattern. Remaining design decision: refine filled-card quick-view semantics so hover/peek adds real glanceable value instead of repeating the compact state.
+
+**Next after card experiment:** S8 — Insights → Weekly Review Flow (AC not yet discussed).
 
 S11.5-3 (extra session card) has been retired as originally scoped. Extra sessions need proper product design before implementation — see roadmap item S-ExtraSess below.
 
@@ -57,7 +63,7 @@ S11.5-3 (extra session card) has been retired as originally scoped. Extra sessio
 | S-Rest-5b | Sheet Spring Animation | ✓ Done — `0b66f3d` | S-Rest-5a |
 | 8 | Insights → Weekly Review Flow | Surface weekly volume, sessions, readiness in Insights tab. | 4, 5 |
 | S-ExtraSess | Extra Sessions — Proper Integration | BJJ + Custom sessions are real training, not footnotes. Needs product design: how they count toward weekly load, how they surface in Summary, whether session count (0/4) should ever reflect them. "+ 1 extra session" text removed from SESSIONS card 2026-05-03 — concept deferred to this slice. Options being considered: (A) separate session type with its own planned target, (B) surface in SETS card alongside resistance volume, (C) new "Activity" card on Summary. | 11, 8 |
-| S-TrainCards | Train Tab Card Redesign + Carousel View | Card look & feel redesign per Gabriel's design direction. Carousel as primary view: full-width, one card at a time, swipeable with animation. Grid view as alternate. Toggle in UI; user can set default in preferences (default = carousel). Preference persisted to localStorage. AC and design direction to be discussed before implementation. | S11 |
+| S-TrainCards | Train Tab Card Redesign + Carousel View | In progress in `feature/codex-experiments`: first slice is the Readiness card. Direction: clipped image-only shape, caption/status below, Figma hover reveal (`-20px → 0`, 600ms ease-out), image zoom on hover, responsive caption row. Carousel/grid preference still deferred. | S11 |
 | 9 | RIR → Stimulus Signal | RIR trends per muscle group as fatigue signal. | existing data |
 | 10 | Summary Upgrade | Richer summary using S9 signal data. | 5, 9 |
 | S-Summary-Detail | Summary Card Drill-downs | Two distinct tap zones per card: title tap → historical data view; data tap → today's detail / filter. AC not yet discussed. | S10 |
@@ -80,9 +86,13 @@ S11.5-3 (extra session card) has been retired as originally scoped. Extra sessio
 - ?profile= URL param is session-only — never writes to localStorage (fixed 4be72b6)
 - **Only implement what was explicitly discussed and scoped — never change working features on the fly**
 - **S11: Train tab → card dashboard. See docs/S11-SPEC.md for full design spec.**
+- **S-TrainCards Readiness experiment (2026-05-12)**: Old notch-text model is retired for this experiment. New rule: image shape is expressive only; notches are silhouette only; no text over image; title/status live in caption band below. Figma animation node `197:2397`: caption row `x=-20 → 0`, 600ms ease-out; left stroke at row x=0; left copy flex-fills; score frame fixed right (`83px`); score typography Instrument Serif Italic 50px at muted 60% gray. Tier colour is semantic and shared between readiness sheet + quick view. Sheet score should align to the same 83px / 20px-inset score-lane structure.
+- **S-TrainCards notch geometry (2026-05-13)**: Figma ratio node `234:2065` defines notch widths with golden-ratio/Fibonacci proportions (`430 → 266 → 164 → 102`). Runtime SVG geometry now sets the top notch apex to `width / phi^3` and the bottom-right notch apex offset to `width / phi^2`; depth and corner radius stay fixed px tokens until a height-ratio AC exists.
+- **S-TrainCards containment rule (2026-05-12)**: Readiness-card selectors should stay scoped to `.sc-train-card`. Rest/training state is out of scope for this slice; keep the main branch implementation for `renderCards()`, `_applyRestFlag()`, `confirmRestToggle()`, and `toggleRestFromHeader()` unless a separate rest-state slice is opened.
+- **S-TrainCards primitive extraction (2026-05-12)**: Readiness card anatomy is now a shared notched card primitive. Training cards (`Resistance`, `Custom`, `BJJ`) use the same image face, caption band, hover zoom, `-20px → 0` reveal row, optional value lane, and state mapper while preserving existing IDs/click handlers for sheets.
 - **Gabriel does the testing** — do not use preview tools to click through and test features. Write code and commit; Gabriel tests on his device.
 - Alpha tester login shipped (2442bc4): username gate → password → isAlpha profile flag, mp7_erik storage key, UI restrictions
-- **Profile keys**: gabriel-main → mp7 (main), gabriel → mp7_gabriel (alpha), erik → mp7_erik (alpha). Migration runs on load: mp7_profile='gabriel' remapped to 'gabriel-main' (commit 821d32f).
+- **Profile keys**: gabriel-main → mp7 (main), gabriel → mp7_gabriel (alpha), erik → mp7_erik (alpha). Legacy migration only remaps `mp7_profile='gabriel'` to `gabriel-main` when no alpha-specific Gabriel data/PIN exists, so the alpha profile survives reload.
 - **S11.5 scope agreed**: (1) page titles IA, (2) profile top-right mobile. (3) extra session card retired — see S-ExtraSess in roadmap.
 - **Data roadmap**: V1=localStorage+Sheets write-only, V2=CSV download, V3=Sheets bidirectional, V4=real accounts+multi-device.
 - **Extended hit area pattern** (Apple HIG term): use padding + negative margin (not min-height) to extend the interactive hit area beyond visual bounds without inflating layout height. On mobile the hit area can bleed over adjacent elements intentionally. Background highlight suppressed in those cases to avoid visual bleed over cards.

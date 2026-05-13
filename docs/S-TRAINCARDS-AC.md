@@ -5,6 +5,26 @@ No implementation, refactor, or fix may violate these. When in doubt: check here
 
 ---
 
+## 2026-05-12 Readiness Card Redesign Experiment
+
+The original notch-text AC below is now legacy context for the pre-redesign readiness card. For the active `feature/codex-experiments` slice, use this direction instead:
+
+- The clipped image shape stays, including the top-left and bottom-right silhouette notches.
+- Notches are **visual silhouette only**. Do not put title, status, CTA, or peek text inside them.
+- Do not place text over the image. The image should stay unobstructed.
+- Card title and quick-view data live in the caption band below the image.
+- Figma source: `Meso-`, node `197:2397` (`Animation`).
+- Animation: hover uses Smart Animate semantics, `600ms ease-out`; caption row moves from `x=-20` to `x=0`; image zooms subtly inside the clipped SVG shape.
+- Caption geometry from Figma: image `430x380`; caption band `430x83`; caption row y `20`, h `43`; left stroke `1x43` at row x `0`; left copy has `20px` inset and flex-fills; score frame is fixed `83px` on the right.
+- Typography from Figma: title/status use DM Mono 11px, letter spacing `0.72px`; score uses Instrument Serif Italic 50px, muted gray at 60% opacity.
+- Readiness tier colour is semantic and shared wherever that tier word appears: `Poor #d44040`, `Low #d46a20`, `Moderate #e8a020`, `High #7aad2a`, `Prime #9a6fd4`.
+- The readiness sheet score should use the same score-lane structure as the card quick view: fixed `83px` lane with a `20px` left inset, so sheet and card read as one system.
+- Interaction still matters: tap opens readiness sheet; long-press can still peek sleep/energy/soreness, but the visual surface for that peek is the caption band, not the notch.
+
+The sections below are retained as legacy reference until the experiment is either accepted and rewritten as final AC or discarded.
+
+---
+
 ## 1. Shape & Geometry
 
 - The card has two corner cut-out notches — top-left (label) and bottom-right (status)
