@@ -5754,17 +5754,23 @@ startApp();
 
   function updateNotches(){
     if(!_cardW) return;
+    const fp = document.getElementById('sc-readiness-fill');
+    const bp = document.getElementById('sc-readiness-border');
+    if(!fp || !bp) return;
+
+    if(typeof window.scBuildGoldenNotchPath === 'function'){
+      const d = window.scBuildGoldenNotchPath(_cardW, _cardH);
+      fp.setAttribute('d', d); bp.setAttribute('d', d);
+      return;
+    }
+
     _tlApex = _cardW / Math.pow(PHI, 3);
     _tlElbow = Math.max(CR, _tlApex - NOTCH_DIAG);
     _brApex_col = _cardW - (_cardW / Math.pow(PHI, 2));
     _brElbow_col = Math.min(_cardW - CR, _brApex_col + NOTCH_DIAG);
     _brElbow_exp = _brElbow_col; _brApex_exp = _brApex_col;
-    const fp = document.getElementById('sc-readiness-fill');
-    const bp = document.getElementById('sc-readiness-border');
-    if(fp && bp){
-      const d = buildPath(_tlElbow, _tlApex, _brElbow_col, _brApex_col);
-      fp.setAttribute('d', d); bp.setAttribute('d', d);
-    }
+    const d = buildPath(_tlElbow, _tlApex, _brElbow_col, _brApex_col);
+    fp.setAttribute('d', d); bp.setAttribute('d', d);
   }
 
   function initGeometry(){

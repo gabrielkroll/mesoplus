@@ -98,6 +98,7 @@ Recent refinements applied:
 - Quick-view tier color now shares the same tier color map as the readiness sheet.
 - Readiness sheet score now uses an `83px` score lane with `20px` left inset to echo the card quick view.
 - Caption row uses `left:-20px`, `width:100%`, and reveals with `translateX(20px)` so the animation is preserved without overflowing right.
+- Readiness now uses the same shared golden-ratio notch path builder as the other image cards, so notch widths scale from the live card width while notch depth and corner radius stay fixed.
 - Performance quick view follows the readiness pattern: compact `→ On track`, hover left `On track`, large serif `→`.
 - Rest orb card stays centered, slowly pulses by animating SVG circle radius, and keeps reverse-parallax ring behavior.
 - Readiness sheet `×` hover now matches other sheet close buttons.
