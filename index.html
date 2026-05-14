@@ -5504,33 +5504,36 @@ startApp();
 // ═══════════════════════════════════════════════════════════════
 (function(){
   const PHI = (1 + Math.sqrt(5)) / 2;
-  const NOTCH = 20, CR = 10;
-  const DIAG_X = NOTCH * Math.SQRT2;
-  const BH = DIAG_X / 4, BH2 = DIAG_X * 0.1837, BH1 = DIAG_X * 0.0938;
-  const BV = 2.929, BV2 = 1.054;
+  const TOP_NOTCH = 15, BOTTOM_NOTCH = 20, CR = 10;
+  const TOP_DIAG_X = TOP_NOTCH * Math.SQRT2;
+  const BOTTOM_DIAG_X = BOTTOM_NOTCH * Math.SQRT2;
+  const TOP_BH = TOP_DIAG_X / 4, TOP_BH2 = TOP_DIAG_X * 0.1837, TOP_BH1 = TOP_DIAG_X * 0.0938;
+  const BOTTOM_BH = BOTTOM_DIAG_X / 4, BOTTOM_BH2 = BOTTOM_DIAG_X * 0.1837, BOTTOM_BH1 = BOTTOM_DIAG_X * 0.0938;
+  const TOP_BV = TOP_NOTCH * (2.929 / 20), TOP_BV2 = TOP_NOTCH * (1.054 / 20);
+  const BOTTOM_BV = 2.929, BOTTOM_BV2 = 1.054;
 
   function f(n){ return Number(n).toFixed(3); }
 
   function buildGoldenNotchPath(w, h){
     const topApex = w / Math.pow(PHI, 3);
     const bottomApex = w - (w / Math.pow(PHI, 2));
-    const topElbow = Math.max(CR, topApex - DIAG_X);
-    const bottomElbow = Math.min(w - CR, bottomApex + DIAG_X);
+    const topElbow = Math.max(CR, topApex - TOP_DIAG_X);
+    const bottomElbow = Math.min(w - CR, bottomApex + BOTTOM_DIAG_X);
     return [
-      `M0 ${NOTCH+CR}C0 ${f(NOTCH+CR-CR*0.5523)} ${f(CR*0.4477)} ${NOTCH} ${CR} ${NOTCH}`,
+      `M0 ${TOP_NOTCH+CR}C0 ${f(TOP_NOTCH+CR-CR*0.5523)} ${f(CR*0.4477)} ${TOP_NOTCH} ${CR} ${TOP_NOTCH}`,
       `H${f(topElbow)}`,
-      `C${f(topElbow+BH1)} ${NOTCH} ${f(topElbow+BH2)} ${f(NOTCH-BV2)} ${f(topElbow+BH)} ${f(NOTCH-BV)}`,
-      `L${f(topApex-BH)} ${f(BV)}`,
-      `C${f(topApex-BH2)} ${f(BV2)} ${f(topApex-BH1)} 0 ${f(topApex)} 0`,
+      `C${f(topElbow+TOP_BH1)} ${TOP_NOTCH} ${f(topElbow+TOP_BH2)} ${f(TOP_NOTCH-TOP_BV2)} ${f(topElbow+TOP_BH)} ${f(TOP_NOTCH-TOP_BV)}`,
+      `L${f(topApex-TOP_BH)} ${f(TOP_BV)}`,
+      `C${f(topApex-TOP_BH2)} ${f(TOP_BV2)} ${f(topApex-TOP_BH1)} 0 ${f(topApex)} 0`,
       `H${f(w-CR)}C${f(w-CR*0.4477)} 0 ${f(w)} ${f(CR*0.4477)} ${f(w)} ${CR}`,
-      `V${f(h-NOTCH-CR)}`,
-      `C${f(w)} ${f(h-NOTCH-CR*0.4477)} ${f(w-CR*0.4477)} ${f(h-NOTCH)} ${f(w-CR)} ${f(h-NOTCH)}`,
+      `V${f(h-BOTTOM_NOTCH-CR)}`,
+      `C${f(w)} ${f(h-BOTTOM_NOTCH-CR*0.4477)} ${f(w-CR*0.4477)} ${f(h-BOTTOM_NOTCH)} ${f(w-CR)} ${f(h-BOTTOM_NOTCH)}`,
       `H${f(bottomElbow)}`,
-      `C${f(bottomElbow-BH1)} ${f(h-NOTCH)} ${f(bottomElbow-BH2)} ${f(h-NOTCH+BV2)} ${f(bottomElbow-BH)} ${f(h-NOTCH+BV)}`,
-      `L${f(bottomApex+BH)} ${f(h-BV)}`,
-      `C${f(bottomApex+BH2)} ${f(h-BV2)} ${f(bottomApex+BH1)} ${f(h)} ${f(bottomApex)} ${f(h)}`,
+      `C${f(bottomElbow-BOTTOM_BH1)} ${f(h-BOTTOM_NOTCH)} ${f(bottomElbow-BOTTOM_BH2)} ${f(h-BOTTOM_NOTCH+BOTTOM_BV2)} ${f(bottomElbow-BOTTOM_BH)} ${f(h-BOTTOM_NOTCH+BOTTOM_BV)}`,
+      `L${f(bottomApex+BOTTOM_BH)} ${f(h-BOTTOM_BV)}`,
+      `C${f(bottomApex+BOTTOM_BH2)} ${f(h-BOTTOM_BV2)} ${f(bottomApex+BOTTOM_BH1)} ${f(h)} ${f(bottomApex)} ${f(h)}`,
       `H${CR}C${f(CR*0.4477)} ${f(h)} 0 ${f(h-CR*0.4477)} 0 ${f(h-CR)}`,
-      `V${f(NOTCH+CR)}Z`
+      `V${f(TOP_NOTCH+CR)}Z`
     ].join(' ');
   }
 

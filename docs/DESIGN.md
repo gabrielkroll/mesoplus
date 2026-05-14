@@ -165,7 +165,7 @@ iOS-style bottom sheet:
 Used for the Check-in, Training, Reflect, and Rest cards. Cards are built from an SVG image face plus an HTML caption footer.
 
 Implementation notes:
-- Image face uses runtime SVG geometry. Notch widths follow the golden-ratio sketch from Figma: top notch apex at `width / phi^3`, bottom-right notch apex offset at `width / phi^2`. Notch depth (`20px`) and corner radius (`10px`) remain fixed tokens for now, so card width changes scale notch width without making the cutouts chunkier.
+- Image face uses runtime SVG geometry. Notch widths follow the golden-ratio sketch from Figma: top notch apex at `width / phi^3`, bottom-right notch apex offset at `width / phi^2`. Current depth test: top notch `15px`, bottom notch `20px`; corner radius stays `10px`. Card width changes scale notch width without making the cutouts chunkier.
 - Caption footer is `73px` high in filled states and `54px` for empty readiness.
 - Footer content starts at `top:20px`; the animated row starts at `left:-20px` and moves `translateX(20px)` on hover/reveal.
 - Left vector line is `33px` for filled/two-line footer states: `14px` label + `5px` gap + `14px` metadata. Empty readiness keeps the vector at `14px`.
