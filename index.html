@@ -2089,6 +2089,7 @@ function addD(d,n){const dt=new Date(safeDateStr(d)+'T12:00:00');dt.setDate(dt.g
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
 function persist(){
+  if(!validDateStr(S.mesoStart))return;
   localStorage.setItem(activeStorageKey(),JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));
   if(_SUPABASE_READS&&_AUTH_SESSION&&!_MIGRATING_HISTORY)queueSupabaseAllSessionsWrite();
 }
