@@ -2270,7 +2270,7 @@ function renderWeekNav(){
   const pills=document.getElementById('day-pills');pills.innerHTML='';
   DAYS.forEach((day,i)=>{
     const date=addD(vs,i),isToday=date===t,isFuture=date>t,isSel=date===S.selectedDate;
-    const hasLog=S.sessions.some(s=>s.date===date&&sessionHasData(s));
+    const hasLog=S.sessions.some(s=>s.date===date);
     let cls='dpill';
     if(isFuture)cls+=' future';else if(isSel)cls+=' on';else if(isToday)cls+=' today';
     if(hasLog&&!isSel)cls+=' logged';
@@ -3294,7 +3294,7 @@ function renderCardThisWeek(){
 
 // ── CARD B: LAST SESSION ──────────────────────────────────────────────────────
 function renderCardLastSession(){
-  const sorted=[...S.sessions].filter(s=>sessionHasData(s)).sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted=[...S.sessions].filter(s=>s.isRest||(s.activities||[]).length>0||s.dtype).sort((a,b)=>b.date.localeCompare(a.date));
   const last=sorted[0];
   if(!last){
     document.getElementById('ls-when').textContent='—';
@@ -3314,7 +3314,7 @@ function renderCardLastSession(){
 
 // ── DETAIL: LAST SESSION ──────────────────────────────────────────────────────
 function renderLastSessionDetail(){
-  const sorted=[...S.sessions].filter(s=>sessionHasData(s)).sort((a,b)=>b.date.localeCompare(a.date));
+  const sorted=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
   const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10);
   const recent=sorted.filter(s=>s.date>=cutoff),older=sorted.filter(s=>s.date<cutoff);
   let html=recent.length?recent.map(sessionRowHtml).join(''):'<div style="color:var(--ink3);font-size:11px;padding:6px 0">No sessions in the last 2 weeks.</div>';
