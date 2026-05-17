@@ -2299,12 +2299,14 @@ function loadSess(sess){
   renderSession();
   renderCards();
   renderActionBar();
+  if(typeof window.repaintReadinessCard==='function')window.repaintReadinessCard();
 }
 function resetForm(){
   _restConfirmPending=false;
   S.isRest=null;S.activities=[];S.sleep='';S.energy='';S.soreness='';S.perf='';S.extra='';S.notes='';
   renderCards();
   renderActionBar();
+  if(typeof window.repaintReadinessCard==='function')window.repaintReadinessCard();
 }
 function shiftWeek(d){
   if(d<0&&S.viewWeekOffset<=minWeekOffset())return;
