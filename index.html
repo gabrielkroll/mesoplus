@@ -2016,7 +2016,7 @@ const PROFILE_CFG={
 let _ACTIVE_PROFILE='gabriel-main';
 function profileCfg(){return PROFILE_CFG[_ACTIVE_PROFILE];}
 function activeDays(){return profileCfg().days;}
-function activeStorageKey(){return LEGACY_STORAGE_KEY[_AUTH_EMAIL]||'mp7';}
+function activeStorageKey(){return LEGACY_STORAGE_KEY[_AUTH_EMAIL]||(_AUTH_SESSION?'mp7_u_'+_AUTH_SESSION.user.id:'mp7');}
 let TEMPLATES=GABRIEL_TEMPLATES;
 let DAY_FOCUS={1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'};
 let DAY_LETTER=['A','B','C','D'];
