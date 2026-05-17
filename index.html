@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -25,18 +26,24 @@
   :root{--ink:#e8e8e8;--ink2:#aaa;--ink3:#666;--line:#2a2a2a;--line2:#444;--surf:#1e1e1e;--lift:#141414;--danger-bg:#2a0808;}
 }
 body{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4;background:var(--lift);min-height:100vh;color-scheme:dark}
-/* PASSWORD / PROFILE GATE */
-#pin-gate,#profile-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center}
-#pin-gate.hidden,#profile-gate.hidden{display:none}
+/* SUPABASE AUTH GATE */
+#auth-gate{position:fixed;inset:0;background:var(--lift);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .12s}
+#auth-gate.hidden{display:none}
+#app{display:none;opacity:0;transition:opacity .12s}
 .pin-box{text-align:center;max-width:300px;width:100%;padding:0 24px;display:flex;flex-direction:column;align-items:center}
 .pin-title{font-family:var(--serif);font-style:italic;font-size:52px;color:var(--ink);margin-bottom:0;letter-spacing:-.02em}
 .pin-title sup{font-size:22px;font-style:normal;color:var(--accent);font-family:var(--mono);vertical-align:super}
 .pin-form-wrap{width:100%;margin-top:32px}
-.pin-field{width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:14px;color:var(--ink);outline:none;margin-bottom:0;transition:border-color .12s;text-align:left}
+.pin-field{width:100%;background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:16px;color:var(--ink);outline:none;margin-bottom:0;transition:border-color .12s;text-align:left}
 .pin-field:focus{border-color:var(--line2)}
 .pin-err{font-size:11px;color:var(--danger);min-height:0;margin:4px 0 0;text-align:left}
 .pin-toggle-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:10px;margin-top:28px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;outline:none;line-height:1.6}
 .pin-toggle-btn:hover{color:var(--ink2)}
+.auth-form{display:none;width:100%}
+.auth-form.on{display:block}
+.auth-field-wrap{position:relative;margin-top:8px}
+.auth-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);min-width:44px;min-height:44px;border:0;background:none;color:var(--ink3);font-family:var(--mono);font-size:12px;cursor:pointer}
+.auth-submit{width:100%;min-height:44px;margin-top:12px}
 #setup-import-gate{position:fixed;inset:0;background:var(--lift);z-index:9998;display:flex;align-items:center;justify-content:center}
 #setup-import-gate.hidden{display:none}
 .setup-export-result{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -1129,47 +1136,35 @@ select.bare{cursor:pointer}
 </head>
 <body>
 
-<!-- PROFILE GATE -->
-<div id="profile-gate" class="hidden">
+<!-- SUPABASE AUTH GATE -->
+<div id="auth-gate">
   <div class="pin-box">
     <div class="pin-title">Meso<sup>+</sup></div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em">Select profile</div>
-    <div style="display:flex;gap:12px;margin-top:28px;width:100%">
-      <button class="btn-s" onclick="selectProfile('gabriel-main')" style="flex:1">Gabriel</button>
-      <button class="btn-s" onclick="selectProfile('erik')" style="flex:1">Erik</button>
-    </div>
-  </div>
-</div>
-
-<!-- LOGIN GATE -->
-<div id="pin-gate">
-  <div class="pin-box">
-    <div class="pin-title">Meso<sup>+</sup></div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em" id="pin-subtitle">Your personal training log</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em">Meso+ now uses full accounts — sign up below</div>
     <div class="pin-form-wrap">
-      <form id="pin-form" onsubmit="submitPassword(event)" autocomplete="on">
-        <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
-        <input class="pin-field" type="password" id="pin-input" name="password" placeholder="Enter password" autocomplete="current-password">
-        <input id="pin-confirm-input" class="pin-field" type="password" name="new-password-confirm" placeholder="Confirm password" autocomplete="new-password" style="display:none;margin-top:8px">
-        <div class="pin-err" id="pin-err"></div>
-        <button type="submit" class="btn-s" style="width:100%;margin-top:10px" id="pin-submit">Log in</button>
+      <form id="signup-form" class="auth-form on" onsubmit="submitSignup(event)" autocomplete="on">
+        <label class="field-lbl" for="signup-email">Email</label>
+        <input class="pin-field" type="email" id="signup-email" placeholder="Email" autocomplete="email" inputmode="email" autofocus>
+        <div class="auth-field-wrap">
+          <label class="field-lbl" for="signup-password">Password</label>
+          <input class="pin-field" type="password" id="signup-password" placeholder="Password" autocomplete="new-password" style="padding-right:52px">
+          <button type="button" class="auth-eye" onclick="toggleAuthPassword('signup-password',this)">Show</button>
+        </div>
+        <button type="submit" class="btn-s auth-submit" id="signup-submit">Create account</button>
+        <button type="button" class="pin-toggle-btn" onclick="setAuthMode('login')">Already have an account? Log in</button>
       </form>
-    </div>
-    <button type="button" id="pin-toggle" class="pin-toggle-btn" onclick="togglePinMode()">New device? Create a password</button>
-    <div id="pin-standalone-note" style="display:none;margin-top:16px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--ink3);line-height:1.7;text-align:left;max-width:260px">
-      <span style="color:var(--ink2);display:block;margin-bottom:4px">Home screen app detected</span>
-      This is a separate session from Safari — your Safari password won't work here yet.<br><br>
-      <strong style="color:var(--ink2)">Option 1:</strong> Open a setup transfer link from Setup → Transfer to another device.<br>
-      <strong style="color:var(--ink2)">Option 2:</strong> Create a new password below — then import your data from Sheets.
-    </div>
-    <button type="button" id="pin-alpha-link" class="pin-toggle-btn" onclick="showAlphaGate()" style="margin-top:20px">Alpha tester? →</button>
-    <div id="pin-alpha-form" style="display:none;width:100%;margin-top:16px">
-      <form id="alpha-form" onsubmit="return submitAlphaUsername(event)" autocomplete="off">
-        <input class="pin-field" type="text" id="alpha-username" placeholder="Username" autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <div class="pin-err" id="alpha-err"></div>
-        <button type="submit" id="alpha-submit" class="btn-s" style="width:100%;margin-top:10px">Continue</button>
+      <form id="login-form" class="auth-form" onsubmit="submitLogin(event)" autocomplete="on">
+        <label class="field-lbl" for="login-email">Email</label>
+        <input class="pin-field" type="email" id="login-email" placeholder="Email" autocomplete="email" inputmode="email">
+        <div class="auth-field-wrap">
+          <label class="field-lbl" for="login-password">Password</label>
+          <input class="pin-field" type="password" id="login-password" placeholder="Password" autocomplete="current-password" style="padding-right:52px">
+          <button type="button" class="auth-eye" onclick="toggleAuthPassword('login-password',this)">Show</button>
+        </div>
+        <button type="submit" class="btn-s auth-submit" id="login-submit">Log in</button>
+        <button type="button" class="pin-toggle-btn" onclick="setAuthMode('signup')">Need an account? Sign up</button>
       </form>
-      <button type="button" class="pin-toggle-btn" onclick="hideAlphaGate()" style="margin-top:16px">← Back</button>
+      <div class="pin-err" id="auth-error" role="alert"></div>
     </div>
   </div>
 </div>
@@ -1181,16 +1176,15 @@ select.bare{cursor:pointer}
     <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px;letter-spacing:.04em">Device setup detected</div>
     <div class="pin-form-wrap">
       <form onsubmit="importFromToken(event)" autocomplete="on">
-        <input type="text" name="username" value="mesoplus" autocomplete="username" style="display:none">
-        <input type="password" id="import-pw" class="pin-field" name="password" placeholder="Enter your password to import" autocomplete="current-password">
         <div class="pin-err" id="import-err"></div>
-        <button type="submit" class="btn-s" style="width:100%;margin-top:10px">Import &amp; set up this device</button>
+        <button type="submit" class="btn-s" style="width:100%;margin-top:10px">Import setup</button>
       </form>
     </div>
     <button type="button" class="pin-toggle-btn" onclick="dismissSetupImport()">Set up manually instead</button>
   </div>
 </div>
 
+<div id="app">
 <!-- BOTTOM NAV (mobile only) -->
 <nav class="bottom-nav" id="bottom-nav">
   <div class="bottom-nav-inner">
@@ -1234,10 +1228,6 @@ select.bare{cursor:pointer}
     <button class="psheet-row" onclick="psheetNav('v-progress','Stats')"><span class="psheet-row-label">Stats</span><span class="psheet-row-chevron">›</span></button>
     <div class="psheet-row-divider"></div>
     <button class="psheet-row" onclick="psheetNav('v-setup','Setup')"><span class="psheet-row-label">Setup</span><span class="psheet-row-chevron">›</span></button>
-    <div class="psheet-row-divider" style="margin:8px 16px"></div>
-    <button class="psheet-row" onclick="closeProfileSheet();showProfileGate()"><span class="psheet-row-label">Switch profile</span></button>
-    <div class="psheet-row-divider"></div>
-    <button class="psheet-row danger" onclick="closeProfileSheet();lockApp()"><span class="psheet-row-label">Log out</span></button>
   </div>
   <div id="psheet-detail">
     <div class="psheet-back-row">
@@ -1717,31 +1707,7 @@ select.bare{cursor:pointer}
       </button>
     </div>
     <div class="settings-nav-table">
-      <button class="settings-nav-row" onclick="toggleChangePw()">
-        <div class="settings-nav-content">
-          <div class="settings-nav-label">Change password</div>
-        </div>
-        <div class="settings-nav-chevron" id="cpw-chevron">›</div>
-      </button>
-    </div>
-    <div id="change-pw-panel" class="hidden" style="border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:12px">
-      <div style="font-size:12px;color:var(--ink2);margin-bottom:12px">Enter your current password and choose a new one.</div>
-      <div style="margin-bottom:10px"><div class="field-lbl">Current password</div><input class="bare" type="password" id="cpw-old" placeholder="Current password" autocomplete="current-password"></div>
-      <div style="margin-bottom:10px"><div class="field-lbl">New password</div><input class="bare" type="password" id="cpw-new" placeholder="New password" autocomplete="new-password"></div>
-      <div style="margin-bottom:10px"><div class="field-lbl">Confirm new password</div><input class="bare" type="password" id="cpw-confirm" placeholder="Confirm new password" autocomplete="new-password"></div>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
-        <button class="btn-s" onclick="doChangePw()">Update password</button>
-        <button class="btn-t" onclick="toggleChangePw()">Cancel</button>
-      </div>
-      <div id="cpw-msg" style="font-size:11px;margin-top:8px;min-height:16px"></div>
-    </div>
-    <div class="settings-nav-table hub-only">
-      <button class="settings-nav-row" onclick="showProfileGate()">
-        <div class="settings-nav-content">
-          <div class="settings-nav-label">Switch profile</div>
-        </div>
-      </button>
-      <button class="settings-nav-row danger" onclick="lockApp()">
+      <button class="settings-nav-row danger" onclick="logOut()">
         <div class="settings-nav-content">
           <div class="settings-nav-label">Log out</div>
         </div>
@@ -1823,12 +1789,10 @@ select.bare{cursor:pointer}
     </div>
     <div style="height:28px"></div>
     <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);margin-bottom:4px">Transfer to another device</div>
-    <div style="font-size:11px;color:var(--ink3);margin-bottom:14px">Generates a 2-minute password-protected link. Scan the QR or copy the link on the new device. Expires automatically — one use only.</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:14px">Generates a 2-minute setup link. Scan the QR or copy the link on the new device. Expires automatically — one use only.</div>
     <div class="s-row">
-      <div class="s-lbl">Generate transfer<div class="s-note">Your password is required. The link is signed and encrypted — useless without it.</div></div>
+      <div class="s-lbl">Generate transfer<div class="s-note">Requires an active Supabase session. Import returns the device to the login screen.</div></div>
       <div>
-        <div class="field-lbl">Confirm password</div>
-        <input class="bare" type="password" id="export-pw" placeholder="Your password" autocomplete="current-password">
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <button class="btn-s" onclick="generateSetupToken('v1')">Generate QR + link</button>
           <button class="btn-o" onclick="generateSetupToken('v2')">For V2 →</button>
@@ -1849,6 +1813,21 @@ select.bare{cursor:pointer}
 </div>
 
 <script>
+const SUPABASE_URL = 'https://tztpbyyqzmgkinfvzbmv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6dHBieXlxem1na2luZnZ6Ym12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NjM5NDMsImV4cCI6MjA5NDMzOTk0M30.NN_UfViKL23EWfdM5Adc_sJLLP0br7xhglAB-3NY-PQ';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const LEGACY_STORAGE_KEY = {
+  'gabriel.kroll@me.com':'mp7',
+  'erik@edman.co.th':'mp7_erik',
+};
+let _AUTH_EMAIL = '';
+let _AUTH_SESSION = null;
+let _authBound = false;
+let _appReady = false;
+let _SUPABASE_READS = false;
+let _MIGRATING_HISTORY = false;
+let _sbWriteTimer = null;
+
 const PHASES=[
   {id:'calibration',name:'Calibration',abbr:'Calib.',rir:'≈2',rirNum:2,load:'Establish baseline weights',note:'Lock in technique, tempo, setup. These numbers define your meso.',color:'#4a9fd4'},
   {id:'overload',name:'Small Overload',abbr:'Overload',rir:'1–2',rirNum:1.5,load:'+2.5–5% load OR +1 rep',note:'Better performance at same RIR. First real progression.',color:'#7aad2a'},
@@ -2020,15 +1999,15 @@ const ERIK_TEMPLATES={
   ]
 };
 const PROFILE_CFG={
-  'gabriel-main':{id:'gabriel-main',name:'Gabriel',storageKey:'mp7',pinKey:'mp7_pin',days:4,
+  'gabriel-main':{id:'gabriel-main',name:'Gabriel',storageKey:'mp7',days:4,
     dayLetters:['A','B','C','D'],
     dayFocus:{1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'},
     templates:GABRIEL_TEMPLATES,programLabel:'Full Body ABCD',sessionType:'Full Body'},
-  gabriel:{id:'gabriel',name:'Gabriel',storageKey:'mp7_gabriel',pinKey:'mp7_gabriel_pin',days:4,
+  gabriel:{id:'gabriel',name:'Gabriel',storageKey:'mp7_gabriel',days:4,
     dayLetters:['A','B','C','D'],
     dayFocus:{1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'},
     templates:GABRIEL_TEMPLATES,programLabel:'Full Body ABCD',sessionType:'Full Body',isAlpha:true},
-  erik:{id:'erik',name:'Erik',storageKey:'mp7_erik',pinKey:'mp7_pin_erik',days:5,
+  erik:{id:'erik',name:'Erik',storageKey:'mp7_erik',days:5,
     dayLetters:['A','B','C','D','E'],
     dayFocus:{1:'Legs',2:'Upper — Chest & Triceps',3:'Pull — Back & Biceps',4:'Lower — Hamstrings',5:'Isolation — Arms & Chest'},
     templates:ERIK_TEMPLATES,programLabel:'ABCDE Split',sessionType:'',isAlpha:true}
@@ -2036,8 +2015,7 @@ const PROFILE_CFG={
 let _ACTIVE_PROFILE='gabriel-main';
 function profileCfg(){return PROFILE_CFG[_ACTIVE_PROFILE];}
 function activeDays(){return profileCfg().days;}
-function activePinKey(){return profileCfg().pinKey;}
-function activeStorageKey(){return profileCfg().storageKey;}
+function activeStorageKey(){return LEGACY_STORAGE_KEY[_AUTH_EMAIL]||'mp7';}
 let TEMPLATES=GABRIEL_TEMPLATES;
 let DAY_FOCUS={1:'Posterior & Biceps',2:'Quads & Chest',3:'Posterior & Biceps',4:'Quads & Chest'};
 let DAY_LETTER=['A','B','C','D'];
@@ -2110,7 +2088,10 @@ function ws(d){const dt=new Date(safeDateStr(d)+'T12:00:00'),day=dt.getDay(),r=n
 function addD(d,n){const dt=new Date(safeDateStr(d)+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0];}
 function fmt(d){return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'});}
 function iw(d){const dt=new Date(d+'T12:00:00'),j=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
-function persist(){localStorage.setItem(activeStorageKey(),JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));}
+function persist(){
+  localStorage.setItem(activeStorageKey(),JSON.stringify({phases:S.phases.map(p=>({id:p.id,weeks:p.weeks})),phaseIdx:S.phaseIdx,mesoStart:S.mesoStart,sessions:S.sessions,setGoals:S.setGoals,globalSetGoal:S.globalSetGoal}));
+  if(_SUPABASE_READS&&_AUTH_SESSION&&!_MIGRATING_HISTORY)queueSupabaseAllSessionsWrite();
+}
 function utcDay(s){const[y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);}
 function ensureMesoStart(){if(!validDateStr(S.mesoStart))S.mesoStart=ws(td());return S.mesoStart;}
 function mesoWkFor(dateStr){const start=ensureMesoStart();return Math.max(1,Math.floor((utcDay(ws(dateStr))-utcDay(ws(start)))/(7*86400000))+1);}
@@ -2118,11 +2099,16 @@ function mesoWk(){return mesoWkFor(td());}
 function derivedPhase(){let w=mesoWk(),cum=0;for(let i=0;i<S.phases.length;i++){cum+=S.phases[i].weeks;if(w<=cum)return{phaseIdx:i,weekInPhase:w-(cum-S.phases[i].weeks)};}return{phaseIdx:S.phases.length-1,weekInPhase:S.phases[S.phases.length-1].weeks};}
 function ph(){return S.phases[derivedPhase().phaseIdx];}
 
-function init(){
+async function init(){
+  bindAuthState();
+  showLoading();
+}
+
+function renderApp(opts={}){
   const days=activeDays();
   Array.from({length:days},(_,i)=>i+1).forEach(d=>{if(!S.setGoals[d])S.setGoals[d]={};});
   const saved=localStorage.getItem(activeStorageKey());
-  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());S.sessions=p.sessions||[];if(p.setGoals){Array.from({length:days},(_,i)=>i+1).forEach(d=>{S.setGoals[d]={...S.setGoals[d],...(p.setGoals[d]||{})}});}
+  if(saved){const p=JSON.parse(saved);if(p.phases)p.phases.forEach(sp=>{const x=S.phases.find(y=>y.id===sp.id);if(x)x.weeks=sp.weeks||2;});S.phaseIdx=p.phaseIdx||0;S.mesoStart=ws(p.mesoStart||td());if(!opts.keepSessions)S.sessions=p.sessions||[];if(p.setGoals){Array.from({length:days},(_,i)=>i+1).forEach(d=>{S.setGoals[d]={...S.setGoals[d],...(p.setGoals[d]||{})}});}
     if(p.globalSetGoal!=null)S.globalSetGoal=p.globalSetGoal;
     S.sessions.forEach(s=>{
       if(s.perf)s.perf=s.perf.replace(/^[↓↑→]\s*/,'');
@@ -2880,6 +2866,177 @@ function sessionHasData(s){
   if((s.customSets||[]).some(ss=>ss.exercises.some(e=>e.kg||e.reps||e.rir)))return true;
   if(s.sleep||s.energy||s.soreness||s.perf||s.extra||s.notes)return true;
   return false;
+}
+
+function sbScore(map,value){return value?map[value]||null:null;}
+function sbNum(value){const n=parseFloat(value);return Number.isFinite(n)?n:null;}
+function sbInt(value){const n=parseInt(value,10);return Number.isFinite(n)?n:null;}
+function localSessionToSupabaseRows(session){
+  const flaggedNames=session.flagged||[];
+  const sessionRow={
+    date:session.date,
+    week:sbInt(session.week)||1,
+    phase:session.phase||'',
+    phase_idx:sbInt(session.phaseIdx)||0,
+    is_rest:session.dtype==='Rest'||session.isRest===true,
+    sleep:session.sleep||null,
+    sleep_score:sbScore(SLEEP_SCORE,session.sleep),
+    energy:session.energy||null,
+    energy_score:sbScore({'Drained':1,'Low':2,'Moderate':3,'Good':4,'Charged':5},session.energy),
+    soreness:session.soreness||null,
+    soreness_score:sbScore({'Wrecked':1,'Heavy':2,'Moderate':3,'Mild':4,'Fresh':5},session.soreness),
+    perf:session.perf||null,
+    perf_score:sbScore({'Below par':1,'On track':2,'Exceeded':3},session.perf),
+    extra:session.extra||null,
+    notes:session.notes||null,
+    completed:session.completed===true
+  };
+  const activities=[];
+  const supersets=[];
+  const exercises=[];
+  const bjj_sessions=[];
+  if(!sessionRow.is_rest){
+    (session.activities||[]).forEach((activity,ai)=>{
+      activities.push({local_index:ai,type:activity.type,gym_day:sbInt(activity.gymDay),sort_order:ai});
+      if(activity.type==='bjj'){
+        const b=activity.bjj||{};
+        bjj_sessions.push({activity_local_index:ai,gc:b.gc||null,description:b.desc||null,positions:b.positions||[],partner:b.partner||null,drilling:b.drilling||null,good:b.good||null,bad:b.bad||null,submissions:b.subs||null,next_focus:b.next||null});
+        return;
+      }
+      (activity.supersets||[]).forEach((ss,si)=>{
+        supersets.push({activity_local_index:ai,local_index:si,label:ss.label||'',sort_order:si});
+        (ss.exercises||[]).forEach((ex,ei)=>{
+          exercises.push({
+            activity_local_index:ai,superset_local_index:si,local_index:ei,
+            name:ex.name||'',muscle:ex.muscle||null,muscle2:ex.muscle2||null,resistance:ex.res||null,side:ex.side||'Both',
+            rep_floor:sbInt(ex.rf),rep_ceiling:sbInt(ex.rc),sets:sbInt(ex.sets),
+            kg:sbNum(ex.kg),reps:sbInt(ex.reps),rir:sbNum(ex.rir),
+            flagged:ex.flagged===true||flaggedNames.includes(ex.name),sort_order:ei
+          });
+        });
+      });
+    });
+  }
+  return{session:sessionRow,activities,supersets,exercises,bjj_sessions};
+}
+
+function uuidFromString(input){
+  function fnv(str,seed){let h=2166136261^seed;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16).padStart(8,'0');}
+  const hex=(fnv(input,1)+fnv(input,2)+fnv(input,3)+fnv(input,4)).slice(0,32).split('');
+  hex[12]='4';
+  hex[16]=(8+(parseInt(hex[16],16)%4)).toString(16);
+  const s=hex.join('');
+  return`${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`;
+}
+function migrationFlagKey(){return activeStorageKey()==='mp7'?'mp7_migrated':activeStorageKey()+'_migrated';}
+function normalizeSupabaseSession(row){
+  const activities=(row.activities||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(activity=>{
+    if(activity.type==='bjj'){
+      const b=(activity.bjj_sessions||[])[0]||{};
+      return{id:activity.id,type:'bjj',gymDay:activity.gym_day||'',completed:true,bjj:{gc:b.gc||'',desc:b.description||'',positions:b.positions||[],partner:b.partner||'',drilling:b.drilling||'',good:b.good||'',bad:b.bad||'',subs:b.submissions||'',next:b.next_focus||''}};
+    }
+    const supersets=(activity.supersets||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(ss=>({
+      label:ss.label||'',
+      exercises:(ss.exercises||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(ex=>({name:ex.name||'',muscle:ex.muscle||'',muscle2:ex.muscle2||'',res:ex.resistance||'',side:ex.side||'Both',rf:ex.rep_floor||'',rc:ex.rep_ceiling||'',sets:ex.sets??'',kg:ex.kg??'',reps:ex.reps??'',rir:ex.rir??'',flagged:ex.flagged===true}))
+    }));
+    return{id:activity.id,type:activity.type,gymDay:activity.gym_day||'',supersets,completed:true,bjj:{}};
+  });
+  const flagged=activities.filter(a=>a.type!=='bjj').flatMap(a=>(a.supersets||[]).flatMap(ss=>(ss.exercises||[]).filter(ex=>ex.flagged).map(ex=>ex.name)));
+  return{date:row.date,week:row.week,phase:row.phase,phaseIdx:row.phase_idx,isRest:row.is_rest===true,activities,extra:row.extra||'',notes:row.notes||'',sleep:row.sleep||'',energy:row.energy||'',soreness:row.soreness||'',perf:row.perf||'',flagged,completed:row.completed===true};
+}
+async function loadSupabaseSessions(authSession){
+  const {data,error}=await _supabase.from('sessions').select('*,activities(*,supersets(*,exercises(*)),bjj_sessions(*))').eq('profile_id',authSession.user.id).order('date',{ascending:true});
+  if(error)throw error;
+  S.sessions=(data||[]).map(normalizeSupabaseSession).filter(sessionHasData);
+}
+async function upsertSupabaseSessions(sessions,authSession){
+  const profileId=authSession.user.id;
+  const clean=sessions.filter(sessionHasData);
+  for(const sess of clean){
+    const rows=localSessionToSupabaseRows(sess);
+    const {data:sessionData,error:sessionErr}=await _supabase.from('sessions').upsert([{...rows.session,profile_id:profileId}],{onConflict:'profile_id,date'}).select('id').single();
+    if(sessionErr)throw sessionErr;
+    const sessionId=sessionData.id;
+    const activityIds={};
+    const {error:deleteErr}=await _supabase.from('activities').delete().eq('session_id',sessionId);
+    if(deleteErr)throw deleteErr;
+    const activityPayloads=rows.activities.map(a=>{
+      const id=uuidFromString(`${profileId}:${sess.date}:activity:${a.local_index}`);
+      activityIds[a.local_index]=id;
+      return{id,session_id:sessionId,type:a.type,gym_day:a.gym_day,sort_order:a.sort_order};
+    });
+    if(activityPayloads.length){
+      const {error}=await _supabase.from('activities').upsert(activityPayloads,{onConflict:'id'});
+      if(error)throw error;
+    }
+    const supersetIds={};
+    const supersetPayloads=rows.supersets.map(ss=>{
+      const id=uuidFromString(`${profileId}:${sess.date}:activity:${ss.activity_local_index}:superset:${ss.local_index}`);
+      supersetIds[`${ss.activity_local_index}:${ss.local_index}`]=id;
+      return{id,activity_id:activityIds[ss.activity_local_index],label:ss.label,sort_order:ss.sort_order};
+    });
+    if(supersetPayloads.length){
+      const {error}=await _supabase.from('supersets').upsert(supersetPayloads,{onConflict:'id'});
+      if(error)throw error;
+    }
+    const exercisePayloads=rows.exercises.map(ex=>({
+      id:uuidFromString(`${profileId}:${sess.date}:activity:${ex.activity_local_index}:superset:${ex.superset_local_index}:exercise:${ex.local_index}`),
+      superset_id:supersetIds[`${ex.activity_local_index}:${ex.superset_local_index}`],
+      name:ex.name,muscle:ex.muscle,muscle2:ex.muscle2,resistance:ex.resistance,side:ex.side,rep_floor:ex.rep_floor,rep_ceiling:ex.rep_ceiling,sets:ex.sets,kg:ex.kg,reps:ex.reps,rir:ex.rir,flagged:ex.flagged,sort_order:ex.sort_order
+    }));
+    if(exercisePayloads.length){
+      const {error}=await _supabase.from('exercises').upsert(exercisePayloads,{onConflict:'id'});
+      if(error)throw error;
+    }
+    const bjjPayloads=rows.bjj_sessions.map(b=>({id:uuidFromString(`${profileId}:${sess.date}:activity:${b.activity_local_index}:bjj`),activity_id:activityIds[b.activity_local_index],gc:b.gc,description:b.description,positions:b.positions,partner:b.partner,drilling:b.drilling,good:b.good,bad:b.bad,submissions:b.submissions,next_focus:b.next_focus}));
+    if(bjjPayloads.length){
+      const {error}=await _supabase.from('bjj_sessions').upsert(bjjPayloads,{onConflict:'activity_id'});
+      if(error)throw error;
+    }
+  }
+}
+async function verifySupabaseMigration(authSession,localSessions){
+  const localCount=localSessions.length;
+  const {count,error:countErr}=await _supabase.from('sessions').select('*',{count:'exact',head:true}).eq('profile_id',authSession.user.id);
+  if(countErr)throw countErr;
+  if((count||0)<localCount)throw new Error('count mismatch');
+  const {data:recent,error:recentErr}=await _supabase.from('sessions').select('date').eq('profile_id',authSession.user.id).order('date',{ascending:false}).limit(3);
+  if(recentErr)throw recentErr;
+  const localDates=localSessions.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(s=>s.date);
+  const match=(recent||[]).every((r,i)=>r.date===localDates[i]);
+  if(!match)throw new Error('spot-check failed');
+}
+async function migrateHistoryToSupabase(authSession){
+  if(localStorage.getItem(migrationFlagKey())){_SUPABASE_READS=true;await loadSupabaseSessions(authSession);return true;}
+  const source=JSON.parse(localStorage.getItem(activeStorageKey())||'{}');
+  const localSessions=(source.sessions||[]).filter(sessionHasData);
+  if(!localSessions.length){localStorage.setItem(migrationFlagKey(),'true');_SUPABASE_READS=true;await loadSupabaseSessions(authSession);return true;}
+  _MIGRATING_HISTORY=true;showMigrationIndicator(true);
+  try{
+    for(let i=0;i<localSessions.length;i+=50){
+      await upsertSupabaseSessions(localSessions.slice(i,i+50),authSession);
+      await new Promise(r=>setTimeout(r,0));
+    }
+    await verifySupabaseMigration(authSession,localSessions);
+    localStorage.setItem(migrationFlagKey(),'true');
+    _SUPABASE_READS=true;
+    await loadSupabaseSessions(authSession);
+    return true;
+  }catch(e){
+    console.error('[supabase migration] failed',e);
+    _SUPABASE_READS=false;
+    return false;
+  }finally{
+    _MIGRATING_HISTORY=false;showMigrationIndicator(false);
+  }
+}
+function queueSupabaseAllSessionsWrite(){
+  clearTimeout(_sbWriteTimer);
+  _sbWriteTimer=setTimeout(async()=>{
+    if(!_SUPABASE_READS||!_AUTH_SESSION||_MIGRATING_HISTORY)return;
+    try{await upsertSupabaseSessions(S.sessions,_AUTH_SESSION);}
+    catch(e){console.error('[supabase dual-write] failed',e);}
+  },800);
 }
 function toRows(s){
   const wk='W'+(s.week||1);
@@ -5082,7 +5239,7 @@ function closeProfileDetail(){
   document.getElementById('psheet-detail').classList.remove('open');
 }
 
-/* PROFILE SELECTION */
+/* SUPABASE AUTH + PROFILE MAPPING */
 function _applyProfile(id){
   _ACTIVE_PROFILE=id;
   const cfg=PROFILE_CFG[id];
@@ -5098,154 +5255,157 @@ function _applyAlphaUI(){
   const sh=document.getElementById('sheets-setup-section');if(sh)sh.style.display=alpha?'none':'';
   const an=document.getElementById('alpha-notice');if(an)an.style.display=alpha?'block':'none';
 }
-function selectProfile(id){
-  localStorage.setItem('mp7_profile',id);
-  _applyProfile(id);
-  document.getElementById('profile-gate').classList.add('hidden');
-  initPin();
-  init();
+function _applyProfileForEmail(email){
+  _AUTH_EMAIL=(email||'').trim().toLowerCase();
+  const storageKey=activeStorageKey();
+  _applyProfile(storageKey==='mp7_erik'?'erik':'gabriel-main');
 }
-function showProfileGate(){
-  document.getElementById('profile-gate').classList.remove('hidden');
-  document.getElementById('pin-gate').classList.add('hidden');
+function appShellNodes(){
+  const nodes=[document.getElementById('app')];
+  return nodes.filter(Boolean);
 }
-function startApp(){
-  // ?profile= is session-only — never persists to localStorage
-  const urlProfile=new URLSearchParams(window.location.search).get('profile');
-  if(urlProfile&&PROFILE_CFG[urlProfile]){
-    _applyProfile(urlProfile);
-    initPin();
-    init();
-    return;
+function showLoading(){
+  const auth=document.getElementById('auth-gate');if(auth)auth.classList.add('hidden');
+  const setup=document.getElementById('setup-import-gate');if(setup)setup.classList.add('hidden');
+  appShellNodes().forEach(el=>{el.style.opacity='0';el.style.display='none';});
+}
+function showAuth(message=''){
+  const setup=document.getElementById('setup-import-gate');if(setup)setup.classList.add('hidden');
+  appShellNodes().forEach(el=>{el.style.opacity='0';el.style.display='none';});
+  const auth=document.getElementById('auth-gate');if(auth){auth.style.opacity='0';auth.classList.remove('hidden');requestAnimationFrame(()=>{auth.style.opacity='1';});}
+  document.getElementById('profile-sheet')?.classList.remove('open');
+  document.getElementById('psheet-overlay')?.classList.remove('open');
+  showAuthError(message);
+  setTimeout(()=>document.getElementById('signup-email')?.focus(),50);
+}
+function showApp(){
+  const auth=document.getElementById('auth-gate');if(auth){auth.style.opacity='0';setTimeout(()=>auth.classList.add('hidden'),120);}
+  const setup=document.getElementById('setup-import-gate');if(setup)setup.classList.add('hidden');
+  appShellNodes().forEach(el=>{el.style.display='block';el.style.opacity='0';requestAnimationFrame(()=>{el.style.opacity='1';});});
+}
+function showSetupImport(){
+  const auth=document.getElementById('auth-gate');if(auth)auth.classList.add('hidden');
+  const setup=document.getElementById('setup-import-gate');if(setup)setup.classList.remove('hidden');
+  appShellNodes().forEach(el=>{el.style.opacity='0';el.style.display='none';});
+}
+function showMigrationIndicator(show){
+  let el=document.getElementById('migration-indicator');
+  if(show&&!el){
+    el=document.createElement('div');
+    el.id='migration-indicator';
+    el.textContent='Syncing your history…';
+    el.style.cssText='position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:10000;background:var(--surf);border:1px solid var(--line);border-radius:6px;padding:8px 12px;color:var(--ink2);font-family:var(--mono);font-size:11px;pointer-events:none';
+    document.body.appendChild(el);
   }
-  // Migration: 'gabriel' used to mean the main profile, but now it is a valid alpha profile.
-  // Only remap old installs that have main-profile data and no alpha-specific data yet.
-  if(localStorage.getItem('mp7_profile')==='gabriel'&&!localStorage.getItem('mp7_gabriel')&&!localStorage.getItem('mp7_gabriel_pin')&&(localStorage.getItem('mp7')||localStorage.getItem('mp7_pin'))){
-    localStorage.setItem('mp7_profile','gabriel-main');
-  }
-  // Default to gabriel-main when nothing is saved
-  const saved=localStorage.getItem('mp7_profile');
-  const id=(saved&&PROFILE_CFG[saved])?saved:'gabriel-main';
-  _applyProfile(id);
-  initPin();
-  init();
+  if(el)el.style.display=show?'block':'none';
 }
-
-/* PASSWORD GATE */
-let pinMode='unlock';
-function hashPw(pw){const s=pw+'mp7salt';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
-function submitPassword(e){
-  e.preventDefault();
-  const pw=document.getElementById('pin-input').value;
-  const err=document.getElementById('pin-err');
-  if(!pw){err.textContent='Enter your password';return;}
-  if(pinMode==='setup'){
-    const confirm=document.getElementById('pin-confirm-input').value;
-    if(!confirm){err.textContent='Confirm your password';return;}
-    if(pw!==confirm){err.textContent='Passwords don\'t match';return;}
-    localStorage.setItem(activePinKey(),hashPw(pw));
-    unlockApp();
-  } else {
-    if(hashPw(pw)===localStorage.getItem(activePinKey())){unlockApp();}
-    else{err.textContent='Wrong password';document.getElementById('pin-input').value='';}
-  }
+function showAuthError(message){
+  const err=document.getElementById('auth-error');
+  if(err)err.textContent=message||'';
 }
-function unlockApp(){
-  document.getElementById('pin-gate').classList.add('hidden');
-  document.getElementById('pin-input').value='';
-  document.getElementById('pin-confirm-input').value='';
-  document.getElementById('pin-err').textContent='';
+function mapAuthError(error){
+  const msg=(error?.message||'').toLowerCase();
+  if(!msg)return '';
+  if(msg.includes('verify')||msg.includes('confirm')||msg.includes('email not confirmed'))return 'Check your inbox and click the verification link before signing in.';
+  if(msg.includes('invalid login')||msg.includes('password'))return 'That password doesn\'t match. Try again or reset your password.';
+  if(msg.includes('user not found')||msg.includes('not found'))return 'No account with that email';
+  if(msg.includes('already')||msg.includes('registered')||msg.includes('exists'))return 'An account with that email already exists. Sign in instead.';
+  if(msg.includes('network')||msg.includes('fetch')||msg.includes('failed'))return 'No connection — check your internet and try again.';
+  return 'Something went wrong — try again';
 }
-function lockApp(){
-  document.getElementById('pin-gate').classList.remove('hidden');
-  applyPinMode('unlock');
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+function setAuthLoading(kind,isLoading){
+  const btn=document.getElementById(kind==='login'?'login-submit':'signup-submit');
+  if(!btn)return;
+  if(!btn.dataset.label)btn.dataset.label=btn.textContent;
+  btn.disabled=isLoading;
+  btn.textContent=isLoading?'Loading…':btn.dataset.label;
 }
-function initPin(){
-  bindAlphaGate();
-  const hasPin=!!localStorage.getItem(activePinKey());
-  const isStandalone=navigator.standalone===true;
-  const note=document.getElementById('pin-standalone-note');
-  if(note)note.style.display=(isStandalone&&!hasPin)?'block':'none';
-  applyPinMode(hasPin?'unlock':'setup');
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
+function setAuthMode(mode){
+  const signup=mode!=='login';
+  document.getElementById('signup-form')?.classList.toggle('on',signup);
+  document.getElementById('login-form')?.classList.toggle('on',!signup);
+  showAuthError('');
+  setTimeout(()=>document.getElementById(signup?'signup-email':'login-email')?.focus(),50);
 }
-function applyPinMode(mode){
-  pinMode=mode;
-  const isSetup=mode==='setup';
-  const inp=document.getElementById('pin-input');
-  inp.autocomplete=isSetup?'new-password':'current-password';
-  inp.name=isSetup?'new-password':'password';
-  inp.value='';
-  document.getElementById('pin-confirm-input').style.display=isSetup?'block':'none';
-  document.getElementById('pin-confirm-input').value='';
-  document.getElementById('pin-err').textContent='';
-  document.getElementById('pin-subtitle').textContent=isSetup?'Choose a password to protect your data':'Your personal training log';
-  document.getElementById('pin-submit').textContent=isSetup?'Create password':'Log in';
-  document.getElementById('pin-toggle').textContent=isSetup?'Already have a password? Log in':'New device? Create a password';
+function toggleAuthPassword(id,btn){
+  const input=document.getElementById(id);if(!input)return;
+  const visible=input.type==='text';
+  input.type=visible?'password':'text';
+  if(btn)btn.textContent=visible?'Show':'Hide';
 }
-function togglePinMode(){
-  applyPinMode(pinMode==='setup'?'unlock':'setup');
-  setTimeout(()=>document.getElementById('pin-input').focus(),50);
-}
-function showAlphaGate(){
-  document.getElementById('pin-alpha-link').style.display='none';
-  document.getElementById('pin-form').style.display='none';
-  document.getElementById('pin-toggle').style.display='none';
-  document.getElementById('pin-alpha-form').style.display='block';
-  setTimeout(()=>document.getElementById('alpha-username').focus(),50);
-}
-function hideAlphaGate(){
-  document.getElementById('pin-alpha-form').style.display='none';
-  document.getElementById('pin-alpha-link').style.display='';
-  document.getElementById('pin-form').style.display='';
-  document.getElementById('pin-toggle').style.display='';
-  document.getElementById('alpha-err').textContent='';
-  document.getElementById('alpha-username').value='';
-}
-function bindAlphaGate(){
-  const form=document.getElementById('alpha-form');
-  const input=document.getElementById('alpha-username');
-  if(form&&!form.dataset.bound){
-    form.dataset.bound='1';
-    form.addEventListener('submit',submitAlphaUsername);
-  }
-  if(input&&!input.dataset.bound){
+function bindAuthInputs(){
+  document.querySelectorAll('#auth-gate input').forEach(input=>{
+    if(input.dataset.bound)return;
     input.dataset.bound='1';
-    input.addEventListener('keydown',e=>{if(e.key==='Enter')submitAlphaUsername(e);});
-  }
+    input.addEventListener('input',()=>showAuthError(''));
+  });
 }
-function submitAlphaUsername(e){
-  if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
-  const err=document.getElementById('alpha-err');
-  try{
-    const input=document.getElementById('alpha-username');
-    const uname=(input?.value||'').trim().toLowerCase();
-    const cfg=PROFILE_CFG[uname];
-    if(!uname){err.textContent='Enter your username';return false;}
-    if(!cfg||!cfg.isAlpha){err.textContent='Unknown username';return false;}
-    // Persist profile choice so alpha testers stay on their own local profile.
-    localStorage.setItem('mp7_profile',uname);
-    _applyProfile(uname);
-    hideAlphaGate();
-    const hasPin=!!localStorage.getItem(activePinKey());
-    applyPinMode(hasPin?'unlock':'setup');
-    setTimeout(()=>document.getElementById('pin-input').focus(),50);
-  }catch(ex){
-    if(err)err.textContent='Could not continue. Please refresh and try again.';
-    console.error('Alpha login failed',ex);
-  }
-  return false;
+function bindAuthState(){
+  bindAuthInputs();
+  if(_authBound)return;
+  _authBound=true;
+  _supabase.auth.onAuthStateChange((event,session)=>{
+    _AUTH_SESSION=session||null;
+    if(session){bootAppForSession(session);return;}
+    _appReady=false;_AUTH_EMAIL='';
+    if(window._pendingSetupToken){showSetupImport();return;}
+    showAuth();
+  });
 }
+async function bootAppForSession(session){
+  const email=session?.user?.email||'';
+  if(_appReady&&_AUTH_EMAIL===(email||'').trim().toLowerCase()){showApp();return;}
+  _applyProfileForEmail(email);
+  showApp();
+  renderApp();
+  _appReady=true;
+  const ok=await migrateHistoryToSupabase(session);
+  if(ok)renderApp({keepSessions:true});
+}
+async function signUp(email,password,displayName){
+  const {data,error}=await _supabase.auth.signUp({email,password,options:{data:{display_name:displayName||''}}});
+  if(error){showAuthError(mapAuthError(error));return false;}
+  if(!data.session){
+    setAuthMode('login');
+    showAuthError('Account created. Log in to continue.');
+  }
+  return true;
+}
+async function logIn(email,password){
+  const {error}=await _supabase.auth.signInWithPassword({email,password});
+  if(error){showAuthError(mapAuthError(error));return false;}
+  return true;
+}
+async function submitSignup(e){
+  e.preventDefault();
+  const email=document.getElementById('signup-email').value.trim();
+  const password=document.getElementById('signup-password').value;
+  if(!email||!password){showAuthError('Email and password are required');return;}
+  setAuthLoading('signup',true);
+  try{await signUp(email,password,'');}
+  finally{if(!document.getElementById('auth-gate').classList.contains('hidden'))setAuthLoading('signup',false);}
+}
+async function submitLogin(e){
+  e.preventDefault();
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  if(!email||!password){showAuthError('Email and password are required');return;}
+  setAuthLoading('login',true);
+  try{await logIn(email,password);}
+  finally{if(!document.getElementById('auth-gate').classList.contains('hidden'))setAuthLoading('login',false);}
+}
+async function logOut(){
+  await _supabase.auth.signOut();
+}
+function startApp(){init();}
 
 /* DEVICE SETUP TRANSFER */
 let _countdownTimer=null;
-function generateSetupToken(target){
-  const pw=document.getElementById('export-pw').value;
+function _hashToken(value){const s=value+'mp7transfer';let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)^s.charCodeAt(i);h=h>>>0;}return h.toString(36);}
+async function generateSetupToken(target){
   const err=document.getElementById('export-err');
   err.textContent='';
-  if(!pw){err.textContent='Enter your password';return;}
-  if(hashPw(pw)!==localStorage.getItem(activePinKey())){err.textContent='Wrong password';return;}
+  if(!_AUTH_SESSION){err.textContent='Log in before generating a transfer link';return;}
   const payload={
     exp:Date.now()+2*60*1000,
     n:localStorage.getItem(activeStorageKey()+'_name')||'',
@@ -5253,7 +5413,7 @@ function generateSetupToken(target){
     ck:S.claudeKey,su:S.scriptUrl,ms:S.mesoStart
   };
   const payloadStr=JSON.stringify(payload);
-  const sig=hashPw(payloadStr+hashPw(pw));
+  const sig=_hashToken(payloadStr);
   const token=btoa(JSON.stringify({p:payloadStr,sig}));
   const base=target==='v2'
     ?window.location.origin+'/v2/'
@@ -5276,7 +5436,6 @@ function startExportCountdown(seconds){
     if(seconds<=0){
       clearInterval(_countdownTimer);
       result.style.display='none';
-      document.getElementById('export-pw').value='';
       document.getElementById('export-err').textContent='Link expired — generate a new one';
       return;
     }
@@ -5298,36 +5457,29 @@ function checkSetupToken(){
   const params=new URLSearchParams(window.location.search);
   const token=params.get('setup');
   if(!token)return;
-  // Device transfer always goes to the active/Gabriel profile
-  const profileId=localStorage.getItem('mp7_profile')||'gabriel-main';
-  _applyProfile(profileId);
   window._pendingSetupToken=decodeURIComponent(token);
-  document.getElementById('setup-import-gate').classList.remove('hidden');
-  document.getElementById('pin-gate').classList.add('hidden');
-  document.getElementById('profile-gate').classList.add('hidden');
+  showSetupImport();
 }
 function importFromToken(e){
   e.preventDefault();
-  const pw=document.getElementById('import-pw').value;
   const err=document.getElementById('import-err');
   const token=window._pendingSetupToken;
-  if(!token||!pw){err.textContent='Enter your password';return;}
+  if(!token){err.textContent='Missing setup link — generate a new one';return;}
   try{
     const{p:payloadStr,sig}=JSON.parse(atob(token));
     const payload=JSON.parse(payloadStr);
     if(Date.now()>payload.exp){err.textContent='Link expired — ask for a new one';return;}
     const used=JSON.parse(localStorage.getItem('mp7_used_tokens')||'[]');
-    const tokenHash=hashPw(token.slice(0,80));
+    const tokenHash=_hashToken(token.slice(0,80));
     if(used.includes(tokenHash)){err.textContent='Link already used — generate a new one';return;}
-    const expectedSig=hashPw(payloadStr+hashPw(pw));
-    if(sig!==expectedSig){err.textContent='Wrong password';return;}
+    const expectedSig=_hashToken(payloadStr);
+    if(sig!==expectedSig){err.textContent='Invalid signature — generate a new link';return;}
     localStorage.setItem(activeStorageKey()+'_name',payload.n||'');
     localStorage.setItem('mp7_k',payload.k||'');
     localStorage.setItem('mp7_s',payload.s||'');
     localStorage.setItem('mp7_t',payload.t||'Workout_Log');
     localStorage.setItem('mp7_ck',payload.ck||'');
     localStorage.setItem('mp7_su',payload.su||'');
-    localStorage.setItem(activePinKey(),hashPw(pw));
     used.push(tokenHash);
     localStorage.setItem('mp7_used_tokens',JSON.stringify(used.slice(-20)));
     window.history.replaceState({},document.title,window.location.pathname);
@@ -5338,16 +5490,14 @@ function importFromToken(e){
     updateProfileNav();
     document.getElementById('setup-import-gate').classList.add('hidden');
     window._pendingSetupToken=null;
-    unlockApp();
-    nav('profile');
+    showAuth('Setup imported. Log in to continue.');
   }catch(ex){err.textContent='Invalid link — please generate a new one';}
 }
 function dismissSetupImport(){
   document.getElementById('setup-import-gate').classList.add('hidden');
   window._pendingSetupToken=null;
   window.history.replaceState({},document.title,window.location.pathname);
-  document.getElementById('pin-gate').classList.remove('hidden');
-  initPin();
+  showAuth();
 }
 
 /* ── EXERCISE ENTRY SHEET ─────────────────────────────── */
@@ -5467,32 +5617,6 @@ function adoptSheetSug(){
   });
 })();
 /* ── END EXERCISE SHEET ───────────────────────────────── */
-
-/* ── CHANGE PASSWORD ─────────────────────────────────── */
-function toggleChangePw(){
-  const panel=document.getElementById('change-pw-panel');
-  const chevron=document.getElementById('cpw-chevron');
-  const isHidden=panel.classList.contains('hidden');
-  panel.classList.toggle('hidden');
-  if(chevron)chevron.textContent=isHidden?'⌄':'›';
-  if(isHidden){document.getElementById('cpw-old').value='';document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';document.getElementById('cpw-msg').textContent='';document.getElementById('cpw-msg').style.color='';setTimeout(()=>document.getElementById('cpw-old').focus(),50);}
-}
-function doChangePw(){
-  const msg=document.getElementById('cpw-msg');
-  const oldPw=document.getElementById('cpw-old').value;
-  const newPw=document.getElementById('cpw-new').value;
-  const confirm=document.getElementById('cpw-confirm').value;
-  if(!oldPw){msg.textContent='Enter your current password';msg.style.color='var(--danger)';return;}
-  if(hashPw(oldPw)!==localStorage.getItem(activePinKey())){msg.textContent='Current password is wrong';msg.style.color='var(--danger)';return;}
-  if(!newPw){msg.textContent='Enter a new password';msg.style.color='var(--danger)';return;}
-  if(newPw.length<3){msg.textContent='Password too short (3+ characters)';msg.style.color='var(--danger)';return;}
-  if(newPw!==confirm){msg.textContent='New passwords don\'t match';msg.style.color='var(--danger)';return;}
-  localStorage.setItem(activePinKey(),hashPw(newPw));
-  msg.textContent='Password updated ✓';msg.style.color='var(--accent)';
-  document.getElementById('cpw-old').value='';document.getElementById('cpw-new').value='';document.getElementById('cpw-confirm').value='';
-  setTimeout(()=>toggleChangePw(),1500);
-}
-/* ── END CHANGE PASSWORD ────────────────────────────── */
 
 checkSetupToken();
 startApp();
@@ -6089,6 +6213,8 @@ startApp();
   </svg>
   <div id="breath-phase-label"></div>
 </div>
+
+</div><!-- /#app -->
 
 </body>
 </html>
