@@ -5362,6 +5362,7 @@ async function bootAppForSession(session){
   if(_appReady&&_AUTH_EMAIL===(email||'').trim().toLowerCase()){showApp();return;}
   _applyProfileForEmail(email);
   showApp();
+  nav('summary');
   renderApp();
   _appReady=true;
   const ok=await migrateHistoryToSupabase(session);
