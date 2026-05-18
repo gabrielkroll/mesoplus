@@ -5307,13 +5307,14 @@ function showAuthError(message){
   const err=document.getElementById('auth-error');
   if(err)err.textContent=message||'';
 }
-function mapAuthError(error){
+function mapAuthError(error,context='login'){
   const msg=(error?.message||'').toLowerCase();
   if(!msg)return '';
   if(msg.includes('verify')||msg.includes('confirm')||msg.includes('email not confirmed'))return 'Check your inbox and click the verification link before signing in.';
-  if(msg.includes('invalid login')||msg.includes('password'))return 'That password doesn\'t match. Try again or reset your password.';
+  if(context==='signup'&&(msg.includes('invalid login')||msg.includes('password')||msg.includes('invalid_credentials')))return 'An account with that email already exists. Log in instead.';
+  if(msg.includes('invalid login')||msg.includes('password'))return 'That password doesn\'t match. Try again — or reach out to the developer if you forgot it.';
   if(msg.includes('user not found')||msg.includes('not found'))return 'No account with that email';
-  if(msg.includes('already')||msg.includes('registered')||msg.includes('exists'))return 'An account with that email already exists. Sign in instead.';
+  if(msg.includes('already')||msg.includes('registered')||msg.includes('exists'))return 'An account with that email already exists. Log in instead.';
   if(msg.includes('network')||msg.includes('fetch')||msg.includes('failed'))return 'No connection — check your internet and try again.';
   return 'Something went wrong — try again';
 }
@@ -5368,10 +5369,11 @@ async function bootAppForSession(session){
 }
 async function signUp(email,password,displayName){
   const {data,error}=await _supabase.auth.signUp({email,password,options:{data:{display_name:displayName||''}}});
-  if(error){showAuthError(mapAuthError(error));return false;}
+  if(error){showAuthError(mapAuthError(error,'signup'));return false;}
   if(!data.session){
     setAuthMode('login');
-    showAuthError('Account created. Log in to continue.');
+    const alreadyExists=data.user?.identities?.length===0;
+    showAuthError(alreadyExists?'An account with that email already exists. Log in instead.':'Account created. Check your inbox for a verification link, then log in.');
   }
   return true;
 }
