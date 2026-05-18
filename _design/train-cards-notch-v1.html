@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meso+ · Train Cards · Figma v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #080808;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    padding: 48px 24px 80px;
+  }
+
+  /* ── Session card ── */
+  .sc {
+    position: relative;
+    border: 1px solid #222;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 168px;
+    background: #141414;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    transition: border-color .15s;
+  }
+  .sc:hover  { border-color: #333; }
+  .sc:active { opacity: .85; }
+
+  /* Load animation */
+  @keyframes scIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .sc:nth-child(1) { animation: scIn .4s .05s both cubic-bezier(.22,.68,0,1.2); }
+  .sc:nth-child(2) { animation: scIn .4s .12s both cubic-bezier(.22,.68,0,1.2); }
+  .sc:nth-child(3) { animation: scIn .4s .19s both cubic-bezier(.22,.68,0,1.2); }
+  .sc:nth-child(4) { animation: scIn .4s .26s both cubic-bezier(.22,.68,0,1.2); }
+
+  /* In-progress dot */
+  @keyframes dotPulse {
+    0%,100% { opacity: 1;  box-shadow: 0 0 5px rgba(122,173,42,.7); }
+    50%      { opacity: .4; box-shadow: 0 0 2px rgba(122,173,42,.2); }
+  }
+  .sc-dot {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #7aad2a;
+    z-index: 4;
+    animation: dotPulse 2.4s ease infinite;
+  }
+
+  /* ── TOP-LEFT label (Figma: no background, plain text) ── */
+  .sc-label {
+    position: absolute;
+    top: 0; left: 0;
+    height: 16px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;   /* Figma: tracking-[0.72px] @ 9px ≈ 0.08em */
+    text-transform: uppercase;
+    color: rgba(255,255,255,.6);
+    z-index: 3;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  /* ── BOTTOM-RIGHT status area ── */
+  .sc-status {
+    position: absolute;
+    bottom: 0; right: 0;
+    z-index: 3;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Default: score · tier — no background */
+  .sc-status-default {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+    padding: 0 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;
+    white-space: nowrap;
+    /* Figma: transparent, text floats on image */
+    transition: opacity .18s ease;
+  }
+  .sc-status-default.hidden { opacity: 0; pointer-events: none; }
+
+  .sc-status-default .s-score { color: #e8e8e8; }
+  .sc-status-default .s-sep   { color: #666; }
+  .sc-status-default .s-tier  { color: #e8a020; }        /* Moderate */
+  .sc-status-default .s-tier.high  { color: #7aad2a; }
+  .sc-status-default .s-tier.prime { color: #9a6fd4; }
+  .sc-status-default .s-tier.poor  { color: #d44040; }
+
+  /* Expanded: readiness breakdown — with #141414 background */
+  .sc-status-expanded {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 10px 10px 0;
+    background: #141414;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;
+    white-space: nowrap;
+    /* Animate in from right, clip parent has overflow:hidden */
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .22s ease, transform .22s ease;
+    pointer-events: none;
+  }
+  .sc-status-expanded.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .sc-status-expanded .s-key { color: #666; }
+  .sc-status-expanded .s-val { color: #7aad2a; }
+  .sc-status-expanded .s-sep { color: #444; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+/* ─────────────────────────────────────────
+   IosFrame (from assets/ios_frame.jsx)
+───────────────────────────────────────── */
+function IosFrame({ children, width=393, height=830, time='9:41', battery=78 }) {
+  return (
+    <div style={{
+      display:'inline-block', padding:12,
+      background:'#000', borderRadius:60,
+      boxShadow:'0 0 0 2px #1c1c1e, 0 24px 64px rgba(0,0,0,.5)',
+    }}>
+      <div style={{ position:'relative', borderRadius:48, overflow:'hidden', width, height, background:'#141414' }}>
+        {/* Status bar */}
+        <div style={{
+          position:'absolute', top:0, left:0, right:0, height:54,
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding:'0 32px', fontSize:15, fontWeight:600,
+          fontFamily:'-apple-system, "SF Pro Text", sans-serif',
+          color:'#fff', zIndex:20, pointerEvents:'none',
+        }}>
+          <span>{time}</span>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <div style={{ display:'flex', alignItems:'flex-end', gap:2, height:12 }}>
+              {[4,6,9,11].map((h,i) => (
+                <div key={i} style={{ width:3, height:h, background:'#fff', borderRadius:1 }} />
+              ))}
+            </div>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+              <path d="M8 11.5a1 1 0 100-2 1 1 0 000 2z" fill="#fff" />
+              <path d="M3.5 7.5a6.5 6.5 0 019 0" stroke="#fff" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
+              <path d="M1 5a10.5 10.5 0 0114 0" stroke="#fff" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity=".6"/>
+            </svg>
+            <div style={{ width:26, height:12, border:'1.5px solid rgba(255,255,255,.8)', borderRadius:3, padding:1, position:'relative', opacity:.85 }}>
+              <div style={{ width:`${battery}%`, height:'100%', background:'#fff', borderRadius:1 }} />
+              <div style={{ position:'absolute', top:3, right:-3, width:2, height:6, background:'rgba(255,255,255,.8)', borderRadius:'0 1px 1px 0' }} />
+            </div>
+          </div>
+        </div>
+        {/* Dynamic Island */}
+        <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', width:124, height:36, background:'#000', borderRadius:999, zIndex:30 }} />
+        {/* Content */}
+        <div style={{ position:'absolute', top:54, left:0, right:0, bottom:34, overflowY:'auto' }}>
+          {children}
+        </div>
+        {/* Home indicator */}
+        <div style={{ position:'absolute', bottom:10, left:'50%', transform:'translateX(-50%)', width:140, height:5, background:'rgba(255,255,255,.45)', borderRadius:999, zIndex:10 }} />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   SessionCard
+   Exact Figma spec:
+   - Label: top-left, plain text, no bg, rgba(255,255,255,.6)
+   - Default status: bottom-right, plain text, no bg
+     score=#e8e8e8  ·=#666  tier=tier-color
+   - Expanded status: bottom-right, bg=#141414
+     keys=#666  values=#7aad2a
+───────────────────────────────────────── */
+function SessionCard({
+  label,
+  image,
+  score,
+  tier,
+  tierColor = '#e8a020',
+  expandedItems,   // [{key, val}, ...]  — if null, not expandable
+  inProgress,
+  startExpanded = false,
+}) {
+  const [exp, setExp] = React.useState(startExpanded);
+
+  const toggle = (e) => {
+    e.stopPropagation();
+    if (expandedItems) setExp(v => !v);
+  };
+
+  return (
+    <div
+      className="sc"
+      style={image ? { backgroundImage:`url("${image}")` } : {}}
+    >
+      {/* Gradient overlay for readability (not in Figma but needed for real images) */}
+      {image && (
+        <div style={{
+          position:'absolute', inset:0, zIndex:1,
+          background:'linear-gradient(170deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.45) 100%)',
+          pointerEvents:'none',
+        }} />
+      )}
+
+      {/* In-progress dot */}
+      {inProgress && <div className="sc-dot" />}
+
+      {/* TOP-LEFT LABEL — plain text, no background */}
+      <div className="sc-label" style={{ zIndex:3 }}>{label}</div>
+
+      {/* BOTTOM-RIGHT STATUS */}
+      <div className="sc-status" onClick={toggle}>
+
+        {/* Default: score · tier */}
+        <div className={`sc-status-default${exp ? ' hidden' : ''}`}>
+          {score && <span className="s-score">{score}</span>}
+          {score && tier && <span className="s-sep">·</span>}
+          {tier && <span className="s-tier" style={{ color: tierColor }}>{tier}</span>}
+          {!score && !tier && <span className="s-sep" style={{ color:'rgba(255,255,255,.3)' }}>{label === 'Rest' ? 'Rest day' : 'Tap to log'}</span>}
+        </div>
+
+        {/* Expanded: readiness breakdown */}
+        {expandedItems && (
+          <div className={`sc-status-expanded${exp ? ' visible' : ''}`}>
+            {expandedItems.map((item, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="s-sep">·</span>}
+                <span style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                  <span className="s-key">{item.key}</span>
+                  <span className="s-val">{item.val}</span>
+                </span>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Train Tab
+───────────────────────────────────────── */
+function TrainTab() {
+  const img = name => `../img/${encodeURIComponent(name)}`;
+
+  return (
+    <div style={{ background:'#141414', minHeight:'100%' }}>
+
+      {/* Day header */}
+      <div style={{ padding:'16px 14px 6px' }}>
+        <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:'.1em', textTransform:'uppercase', color:'#333', marginBottom:4 }}>
+          Week 2 · Day 4
+        </div>
+        <div style={{ fontFamily:"'Instrument Serif',serif", fontStyle:'italic', fontSize:22, color:'#e8e8e8', letterSpacing:'-.01em', lineHeight:1.1 }}>
+          Wednesday
+          <span style={{ fontFamily:"'DM Mono',monospace", fontStyle:'normal', fontSize:10, color:'#7aad2a', marginLeft:8, verticalAlign:'middle', letterSpacing:'.04em' }}>
+            May 7
+          </span>
+        </div>
+      </div>
+
+      {/* Readiness mini-bar */}
+      <div style={{ margin:'8px 10px 10px', padding:'7px 12px', background:'#1a1a1a', border:'1px solid #1e1e1e', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:'.08em', textTransform:'uppercase', color:'#333' }}>Readiness</span>
+        <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:'#c98a0a', letterSpacing:'.04em' }}>68 · Moderate</span>
+      </div>
+
+      {/* Cards — 1-col on mobile, 2-col on desktop */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:8, padding:'0 10px 16px' }}>
+
+        {/* Readiness — starts expanded to show the Figma hover state */}
+        <SessionCard
+          label="Readiness"
+          image={img("The priest checks in.png")}
+          score="68"
+          tier="Moderate"
+          tierColor="#e8a020"
+          expandedItems={[
+            { key:'SLEEP',    val:'7h'   },
+            { key:'ENERGY',   val:'Good' },
+            { key:'SORENESS', val:'Mild' },
+          ]}
+          startExpanded={true}
+        />
+
+        {/* Resistance — in progress */}
+        <SessionCard
+          label="Resistance"
+          image={img("The disgraced lieutenant lifts.png")}
+          score="Push"
+          tier="Wk 2"
+          tierColor="rgba(255,255,255,.45)"
+          expandedItems={[
+            { key:'SQUAT', val:'4×6'  },
+            { key:'PRESS', val:'3×8'  },
+            { key:'ROW',   val:'3×10' },
+          ]}
+          inProgress={true}
+        />
+
+        {/* BJJ — not expandable */}
+        <SessionCard
+          label="BJJ"
+          image={img("Two soldiers, one drill.png")}
+          score={null}
+          tier={null}
+          expandedItems={null}
+        />
+
+        {/* Performance */}
+        <SessionCard
+          label="Performance"
+          image={img("The officer marks herself.png")}
+          score={null}
+          tier={null}
+          expandedItems={[
+            { key:'FEEL',  val:'Strong' },
+            { key:'PUSH',  val:'Intent' },
+          ]}
+        />
+
+      </div>
+
+      {/* Tap hint — fades out */}
+      <div style={{
+        fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:'.1em',
+        textTransform:'uppercase', color:'#282828', textAlign:'center', padding:'0 14px 20px',
+        animation: 'scIn .4s .8s both ease',
+      }}>
+        Tap status to toggle
+      </div>
+
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   App
+───────────────────────────────────────── */
+function App() {
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:20, minHeight:'100vh', background:'#080808', padding:'48px 20px 80px' }}>
+
+      <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:'.14em', textTransform:'uppercase', color:'#252525' }}>
+        Meso+ · Train Cards · Figma v1
+      </div>
+
+      <IosFrame width={393} height={780} time="9:41" battery={78}>
+        <TrainTab />
+      </IosFrame>
+
+      {/* Figma spec notes */}
+      <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color:'#252525', textAlign:'center', maxWidth:393, lineHeight:2, letterSpacing:'.05em' }}>
+        Label · top-left · rgba(255,255,255,.6) · no bg<br/>
+        Default status · bottom-right · no bg · score #e8e8e8 · tier colored<br/>
+        Expanded · bg #141414 · keys #666 · values #7aad2a
+      </div>
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
